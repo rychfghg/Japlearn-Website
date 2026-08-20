@@ -911,6 +911,7 @@ a {
   min-height: 100vh;
   display: grid;
   grid-template-columns: 1.08fr 0.92fr;
+  background: #faf7fc;
 }
 .login-visual {
   position: relative;
@@ -1001,10 +1002,18 @@ a {
   display: grid;
   place-items: center;
   padding: 40px;
-  background: #fff;
+  background:
+    radial-gradient(circle at 92% 8%, #f0e2fb 0 9%, transparent 9.3%),
+    radial-gradient(circle at 8% 92%, #edf7e7 0 8%, transparent 8.3%),
+    #fff;
 }
 .login-panel form {
   width: min(420px, 100%);
+  padding: 34px;
+  border: 1px solid #e9e0ed;
+  border-radius: 28px;
+  background: rgba(255, 255, 255, 0.94);
+  box-shadow: 0 24px 60px #3b214b17;
 }
 .portal-pill {
   display: inline-flex;
@@ -1045,6 +1054,7 @@ a {
   padding: 0 14px;
   margin-top: 7px;
   transition: 0.2s;
+  background: #fdfbfd;
 }
 .field:focus-within {
   border-color: #7d28d7;
@@ -1080,7 +1090,13 @@ a {
   font-weight: 800;
   margin-top: 12px;
   box-shadow: 0 12px 25px #7725d32a;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 9px;
+  cursor: pointer;
 }
+.submit svg { width: 18px; }
 .submit span {
   float: right;
   margin-right: 10px;
@@ -1105,6 +1121,44 @@ a {
   color: #b83d55;
   font-size: 12px;
   margin: 16px 0;
+}
+.teacher-signup-page { grid-template-columns: 0.95fr 1.05fr; }
+.signup-scene img { height: 62%; transform: translateX(17%); }
+.signup-scene .login-message { max-width: 430px; top: 23%; }
+.signup-scene .login-message b { font-size: clamp(30px, 3.2vw, 45px); }
+.signup-panel { padding-block: 28px; }
+.signup-panel form { width: min(560px, 100%); padding: 30px 34px; }
+.signup-panel .login-panel h1 { font-size: 32px; }
+.signup-panel label { margin: 12px 0; }
+.signup-name-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+.signup-success {
+  width: min(470px, 100%);
+  padding: 42px;
+  text-align: center;
+  border: 1px solid #e3d9e8;
+  border-radius: 28px;
+  background: #fff;
+  box-shadow: 0 24px 60px #3b214b17;
+}
+.signup-success > span {
+  width: 72px;
+  height: 72px;
+  margin: 0 auto 18px;
+  display: grid;
+  place-items: center;
+  border-radius: 24px;
+  color: #fff;
+  background: linear-gradient(145deg, #65a936, #80c747);
+  box-shadow: 0 12px 26px #65a93638;
+}
+.signup-success > span svg { width: 34px; height: 34px; }
+.signup-success small { color: #65a936; font-weight: 900; letter-spacing: 1.3px; }
+.signup-success h1 { margin: 8px 0; }
+.signup-success p { color: #817486; line-height: 1.65; }
+.signup-success p b { color: #4a3354; word-break: break-word; }
+@media (max-width: 680px) {
+  .login-panel form, .signup-panel form, .signup-success { padding: 25px 20px; border-radius: 22px; }
+  .signup-name-grid { grid-template-columns: 1fr; gap: 0; }
 }
 .portal {
   min-height: 100vh;

@@ -140,14 +140,11 @@ export default function Login({ role }: LoginProps) {
           <div className="role-switch">
             {isTeacher ? (
               <>
-                Are you an administrator?{" "}
-                <Link to="/admin/login">Admin login</Link>
+                New to the teacher portal?{" "}
+                <Link to="/teacher/create-account">Create a teacher account</Link>
               </>
             ) : (
-              <>
-                Are you a teacher?{" "}
-                <Link to="/teacher/login">Teacher login</Link>
-              </>
+              <>Authorized administrators only.</>
             )}
           </div>
         </form>

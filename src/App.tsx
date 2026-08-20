@@ -2,6 +2,7 @@ import { Navigate, Route, Routes } from "react-router-dom";
 import type { ReactNode } from "react";
 import Landing from "./pages/Landing";
 import Login from "./pages/Login";
+import TeacherSignup from "./pages/TeacherSignup";
 import AdminQuestionBankPage from "./features/admin/pages/AdminQuestionBankPage";
 import AdminQuackResponsePage from "./features/admin/pages/AdminQuackResponsePage";
 import AdminLayout from "./features/admin/layouts/AdminLayout";
@@ -39,6 +40,7 @@ export default function App() {
     <Routes>
       <Route path="/" element={<Landing />} />
       <Route path="/teacher/login" element={<Login role="teacher" />} />
+      <Route path="/teacher/create-account" element={<TeacherSignup />} />
       <Route path="/admin/login" element={<Login role="admin" />} />
 
       <Route
