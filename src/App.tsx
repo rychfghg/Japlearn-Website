@@ -5,6 +5,7 @@ import Login from "./pages/Login";
 import TeacherSignup from "./pages/TeacherSignup";
 import AdminQuestionBankPage from "./features/admin/pages/AdminQuestionBankPage";
 import AdminQuackResponsePage from "./features/admin/pages/AdminQuackResponsePage";
+import AdminExpressionMatchPage from "./features/admin/pages/AdminExpressionMatchPage";
 import AdminLayout from "./features/admin/layouts/AdminLayout";
 import AdminOverviewPage from "./features/admin/pages/AdminOverviewPage";
 import AdminUsersPage from "./features/admin/pages/AdminUsersPage";
@@ -83,6 +84,7 @@ export default function App() {
         <Route path="teachers" element={<AdminUsersPage role="teacher" />} />
         <Route path="quackslate" element={<AdminQuestionBankPage />} />
         <Route path="quackresponse" element={<AdminQuackResponsePage />} />
+        <Route path="expression-match" element={<AdminExpressionMatchPage />} />
       </Route>
 
       <Route path="*" element={<Navigate to="/" replace />} />

@@ -8,6 +8,7 @@ import type {
   Student,
   StudentLessonProgress,
   SituationalAttempt,
+  ArcadeScore,
 } from "../types";
 
 async function request<T>(path: string, options?: RequestInit): Promise<T> {
@@ -113,4 +114,6 @@ export const teacherApi = {
     request<SituationalAttempt[]>(
       `/api/situational/attempts?email=${encodeURIComponent(email)}&gameType=RECOGNITION`,
     ),
+  getSituationalAttempts: (email: string) => request<SituationalAttempt[]>(`/api/situational/attempts?email=${encodeURIComponent(email)}`),
+  getArcadeScores: (email: string) => request<ArcadeScore[]>(`/api/scores/student?email=${encodeURIComponent(email)}`),
 };

@@ -46,6 +46,9 @@ export type CommunicationAnalytics = {
   strengths: string[];
   weakAreas: string[];
   recommendation: string;
+  recognitionAccuracy?: number;
+  expressionMatchAccuracy?: number;
+  politenessAccuracy?: number;
 };
 
 export type CommunicationReport = {
@@ -79,4 +82,9 @@ export type SituationalAttempt = {
   accuracy: number;
   completed: boolean;
   completedAt: string;
+  level?: number;
+  setNumber?: number;
+  topic?: string;
 };
+
+export type ArcadeScore = { id: string; email: string; name: string; game: string; score: number; date: string };

@@ -3,16 +3,16 @@ import { useEffect, useMemo, useState } from "react";
 import { API_URL } from "../../../lib/api";
 
 type Choice = { japanese: string; romaji: string };
-type Question = { id: string; gameType: string; difficulty: string; order: number; location: string; sceneKey: string; scenario: string; hint: string; choices: Choice[]; correctAnswer: string; explanation: string; active: boolean };
+type Question = { id: string; gameType: string; difficulty: string; order: number; level: number; setNumber: number; topic: string; location: string; sceneKey: string; scenario: string; hint: string; choices: Choice[]; correctAnswer: string; explanation: string; active: boolean };
 type FormState = Omit<Question, "id" | "choices"> & { choices: Choice[] };
 
 const emptyForm: FormState = {
-  gameType: "RECOGNITION", difficulty: "STARTER", order: 1, location: "School hallway", sceneKey: "school", scenario: "", hint: "",
+  gameType: "RECOGNITION", difficulty: "STARTER", order: 1, level: 1, setNumber: 1, topic: "Everyday greetings", location: "School hallway", sceneKey: "school", scenario: "", hint: "",
   choices: Array.from({ length: 4 }, () => ({ japanese: "", romaji: "" })), correctAnswer: "", explanation: "", active: true,
 };
 
-export default function AdminQuackResponsePage() {
-  const [gameType, setGameType] = useState("RECOGNITION");
+export default function AdminQuackResponsePage({ initialGameType = "RECOGNITION" }: { initialGameType?: string }) {
+  const [gameType, setGameType] = useState(initialGameType);
   const [questions, setQuestions] = useState<Question[]>([]);
   const [form, setForm] = useState<FormState>(emptyForm);
   const [editingId, setEditingId] = useState<string | null>(null);
@@ -59,6 +59,7 @@ export default function AdminQuackResponsePage() {
     <form className="response-editor" onSubmit={save}>
       <div className="response-editor-title"><div><small>{editingId ? "EDITING MISSION" : "NEW MISSION"}</small><h2>{editingId ? `Update ${gameType.toLowerCase().replace("_", " ")}` : `Add ${gameType.toLowerCase().replace("_", " ")} content`}</h2></div>{editingId && <button type="button" className="soft-button" onClick={() => reset()}><X />Cancel</button>}</div>
       <div className="response-form-grid">
+        {gameType === "EXPRESSION_MATCH" && <><label>Level<select value={form.level} onChange={(event) => setForm({ ...form, level: Number(event.target.value) })}>{[1,2,3,4,5].map(level => <option key={level} value={level}>Level {level}</option>)}</select></label><label>Set / round<input type="number" min="1" max="10" required value={form.setNumber} onChange={(event) => setForm({ ...form, setNumber: Number(event.target.value) })} /></label><label className="wide">Covered topic<input required value={form.topic} onChange={(event) => setForm({ ...form, topic: event.target.value })} placeholder="School greetings and formal courtesy" /></label></>}
         <label>Mission number<input type="number" min="1" required value={form.order} onChange={(event) => setForm({ ...form, order: Number(event.target.value) })} /></label>
         <label>Difficulty<select value={form.difficulty} onChange={(event) => setForm({ ...form, difficulty: event.target.value })}><option>STARTER</option><option>HARD</option></select></label>
         <label>Scene location<input required value={form.location} onChange={(event) => setForm({ ...form, location: event.target.value })} /></label>

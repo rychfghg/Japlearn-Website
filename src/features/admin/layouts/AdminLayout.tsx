@@ -1,4 +1,4 @@
-import { BookOpenCheck, GraduationCap, LayoutDashboard, LogOut, MessageCircleQuestion, Users } from "lucide-react";
+import { BookOpenCheck, GitCompareArrows, GraduationCap, LayoutDashboard, LogOut, MessageCircleQuestion, Users } from "lucide-react";
 import { NavLink, Outlet, useNavigate } from "react-router-dom";
 import Brand from "../../../components/Brand";
 import { session } from "../../../lib/auth";
@@ -21,6 +21,7 @@ export default function AdminLayout() {
           <NavLink to="/admin/teachers"><GraduationCap />Teachers</NavLink>
           <NavLink to="/admin/quackslate"><BookOpenCheck />QuackSlate bank</NavLink>
           <NavLink to="/admin/quackresponse"><MessageCircleQuestion />QuackResponse</NavLink>
+          <NavLink to="/admin/expression-match"><GitCompareArrows />Expression Match</NavLink>
         </nav>
         <button className="admin-logout" onClick={logout}><LogOut />Sign out</button>
       </aside>

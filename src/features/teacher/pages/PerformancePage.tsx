@@ -3,7 +3,7 @@ import { useEffect, useState } from "react";
 import PageHeader from "../components/PageHeader";
 import StatusMessage from "../components/StatusMessage";
 import { teacherApi } from "../services/teacherApi";
-import type { CommunicationAnalytics, SituationalAttempt, Student } from "../types";
+import type { ArcadeScore, CommunicationAnalytics, SituationalAttempt, Student } from "../types";
 
 export default function PerformancePage() {
   const [students, setStudents] = useState<Student[]>([]);
@@ -15,6 +15,7 @@ export default function PerformancePage() {
   const [analyticsError, setAnalyticsError] = useState("");
   const [recognitionError, setRecognitionError] = useState("");
   const [recognitionAttempts, setRecognitionAttempts] = useState<SituationalAttempt[]>([]);
+  const [arcadeScores, setArcadeScores] = useState<ArcadeScore[]>([]);
 
   useEffect(() => {
     teacherApi
@@ -40,7 +41,7 @@ export default function PerformancePage() {
         setAnalytics(null);
         setAnalyticsError("Communication summary is temporarily unavailable. Recognition records below are loaded separately.");
       });
-    teacherApi.getRecognitionAttempts(selectedEmail)
+    teacherApi.getSituationalAttempts(selectedEmail)
       .then((data) => {
         setRecognitionAttempts(data);
         setRecognitionError("");
@@ -49,6 +50,7 @@ export default function PerformancePage() {
         setRecognitionAttempts([]);
         setRecognitionError("Recognition records could not be reached. Restart the updated Spring Boot backend, then refresh this page.");
       });
+    teacherApi.getArcadeScores(selectedEmail).then(setArcadeScores).catch(() => setArcadeScores([]));
   }, [selectedEmail]);
 
   const metrics = analytics
@@ -124,11 +126,12 @@ export default function PerformancePage() {
       )}
       {analyticsError && <div className="analytics-inline-notice"><TriangleAlert /><span>{analyticsError}</span></div>}
       <section className="recognition-records">
-        <div><small>QUACKSITUATE · RECOGNITION</small><h2>Recognition attempt history</h2><p>Detailed results from the learner's standard and hard situational-response missions.</p></div>
+        <div><small>COMPLETE GAME RECORD</small><h2>Student game progress</h2><p>Detailed QuackSituate attempts and arcade personal-best records for this learner.</p></div>
         <div className="recognition-record-table">
-          <div className="recognition-record-row heading"><span>Date</span><span>Score</span><span>Correct</span><span>Accuracy</span><span>Status</span></div>
-          {recognitionError ? <p className="recognition-fetch-error">{recognitionError}</p> : recognitionAttempts.length ? recognitionAttempts.map((attempt) => <div className="recognition-record-row" key={attempt.id}><span>{new Date(attempt.completedAt).toLocaleString()}</span><b>{attempt.score}</b><span>{attempt.correctAnswers} / {attempt.totalQuestions}</span><strong>{attempt.accuracy}%</strong><i>Completed</i></div>) : <p className="empty-recognition-record">No completed Recognition run has been recorded for this student yet.</p>}
+          <div className="recognition-record-row heading"><span>Game / date</span><span>Score</span><span>Progress</span><span>Accuracy</span><span>Status</span></div>
+          {recognitionError ? <p className="recognition-fetch-error">{recognitionError}</p> : recognitionAttempts.length ? recognitionAttempts.map((attempt) => <div className="recognition-record-row" key={attempt.id}><span><b>{attempt.gameType.replaceAll("_", " ")}</b><br />{new Date(attempt.completedAt).toLocaleString()}</span><b>{attempt.score}</b><span>{attempt.level ? `Level ${attempt.level} · Set ${attempt.setNumber}` : `${attempt.correctAnswers} / ${attempt.totalQuestions}`}</span><strong>{attempt.accuracy}%</strong><i>Completed</i></div>) : <p className="empty-recognition-record">No QuackSituate attempt has been recorded for this student yet.</p>}
         </div>
+        <div className="recognition-record-table"><div className="recognition-record-row heading"><span>Arcade game</span><span>Best score</span><span>Date</span><span>Record</span><span>Status</span></div>{arcadeScores.length ? arcadeScores.map(score => <div className="recognition-record-row" key={score.id}><b>{score.game}</b><strong>{score.score}</strong><span>{score.date || "—"}</span><span>Personal best</span><i>Recorded</i></div>) : <p className="empty-recognition-record">No Quack-a-Mole, Quackman, or QuackSlate score is available yet.</p>}</div>
       </section>
     </section>
   );
