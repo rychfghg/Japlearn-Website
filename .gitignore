@@ -1,0 +1,23 @@
+# Dependencies are installed independently on each machine and by Vercel.
+node_modules/
+
+# Vite and TypeScript generated output.
+dist/
+*.tsbuildinfo
+.vite/
+
+# Local environment values. Keep the example file in Git.
+.env
+.env.local
+.env.*.local
+
+# Editor, operating-system, and log files.
+.DS_Store
+Thumbs.db
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Vercel's local project metadata.
+.vercel/
