@@ -49,6 +49,22 @@ export type CommunicationAnalytics = {
   recognitionAccuracy?: number;
   expressionMatchAccuracy?: number;
   politenessAccuracy?: number;
+  quackTalkPracticeSessions?: number;
+  quackTalkPracticeSeconds?: number;
+  quackTalkEvaluationStatus?: "PRACTICE_ONLY" | "EVALUATED";
+};
+
+export type QuackTalkSession = {
+  id: string;
+  email: string;
+  name: string;
+  roomType: "TALK_WITH_SUMI" | "GUIDED_PHRASE";
+  language: "JAPANESE" | "ENGLISH";
+  durationSeconds: number;
+  completed: boolean;
+  evaluated: boolean;
+  score?: number | null;
+  practicedAt: string;
 };
 
 export type CommunicationReport = {
@@ -87,4 +103,11 @@ export type SituationalAttempt = {
   topic?: string;
 };
 
-export type ArcadeScore = { id: string; email: string; name: string; game: string; score: number; date: string };
+export type ArcadeScore = {
+  id: string;
+  email: string;
+  name: string;
+  game: string;
+  score: number;
+  date: string;
+};

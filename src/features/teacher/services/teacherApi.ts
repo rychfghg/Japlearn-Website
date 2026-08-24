@@ -9,6 +9,7 @@ import type {
   StudentLessonProgress,
   SituationalAttempt,
   ArcadeScore,
+  QuackTalkSession,
 } from "../types";
 
 async function request<T>(path: string, options?: RequestInit): Promise<T> {
@@ -114,6 +115,16 @@ export const teacherApi = {
     request<SituationalAttempt[]>(
       `/api/situational/attempts?email=${encodeURIComponent(email)}&gameType=RECOGNITION`,
     ),
-  getSituationalAttempts: (email: string) => request<SituationalAttempt[]>(`/api/situational/attempts?email=${encodeURIComponent(email)}`),
-  getArcadeScores: (email: string) => request<ArcadeScore[]>(`/api/scores/student?email=${encodeURIComponent(email)}`),
+  getSituationalAttempts: (email: string) =>
+    request<SituationalAttempt[]>(
+      `/api/situational/attempts?email=${encodeURIComponent(email)}`,
+    ),
+  getArcadeScores: (email: string) =>
+    request<ArcadeScore[]>(
+      `/api/scores/student?email=${encodeURIComponent(email)}`,
+    ),
+  getQuackTalkSessions: (email: string) =>
+    request<QuackTalkSession[]>(
+      `/api/quackTalkSessions?email=${encodeURIComponent(email)}`,
+    ),
 };
