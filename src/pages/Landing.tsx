@@ -3,6 +3,7 @@ import {
   BarChart3,
   BookOpen,
   CheckCircle2,
+  Download,
   Gamepad2,
   GraduationCap,
   MessageCircleMore,
@@ -90,6 +91,9 @@ const appScreens = [
 ];
 
 export default function Landing() {
+  const androidDownloadUrl =
+    import.meta.env.VITE_ANDROID_APK_URL ||
+    "/downloads/JapLearn-latest.apk";
   const [activeScreen, setActiveScreen] = useState(appScreens[0]);
   const [scrollProgress, setScrollProgress] = useState(0);
   const [navScrolled, setNavScrolled] = useState(false);
@@ -136,6 +140,9 @@ export default function Landing() {
             <a href="#experience">App experience</a>
             <a href="#students">Students</a>
             <a href="#teachers">Teachers</a>
+            <a className="nav-download" href={androidDownloadUrl} download>
+              <Download size={16} /> Android app
+            </a>
             <Link className="nav-cta" to="/teacher/login">
               Teacher sign in <ArrowRight size={16} />
             </Link>
@@ -164,13 +171,16 @@ export default function Landing() {
             learning and helping teachers guide every learner with confidence.
           </p>
           <div className="hero-actions">
-            <a className="primary" href="#about">
-              Discover JapLearn <ArrowRight size={18} />
+            <a className="primary apk-download" href={androidDownloadUrl} download>
+              <Download size={18} /> Download for Android
             </a>
             <Link className="secondary" to="/teacher/login">
               Teacher portal
             </Link>
           </div>
+          <p className="apk-note">
+            Install the latest JapLearn test build directly on an Android phone.
+          </p>
           <div className="trust-row">
             <span>
               <ShieldCheck /> Safe classroom access

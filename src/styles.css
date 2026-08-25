@@ -2244,6 +2244,24 @@ a {
 .landing .nav-links a:not(.nav-cta):hover::after {
   transform: scaleX(1);
 }
+.landing .nav-links .nav-download {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  color: #6920bd;
+  font-weight: 900;
+}
+.landing .nav-links .nav-download::after {
+  display: none;
+}
+.landing .apk-download {
+  gap: 9px;
+}
+.landing .apk-note {
+  margin: 10px 0 0;
+  color: #8b7c91;
+  font-size: 12px;
+}
 .landing .landing-hero {
   min-height: calc(100vh - 92px);
   padding-top: 45px;
