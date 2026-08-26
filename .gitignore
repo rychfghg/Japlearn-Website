@@ -21,3 +21,6 @@ yarn-error.log*
 
 # Vercel's local project metadata.
 .vercel/
+
+# APK builds are distributed outside the website repository.
+public/downloads/*.apk
