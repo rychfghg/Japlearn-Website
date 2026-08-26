@@ -1,5 +1,6 @@
 import {
   ArrowRight,
+  Apple,
   BarChart3,
   BookOpen,
   CheckCircle2,
@@ -7,6 +8,7 @@ import {
   Gamepad2,
   GraduationCap,
   MessageCircleMore,
+  Play,
   ShieldCheck,
   Sparkles,
   Users,
@@ -92,8 +94,7 @@ const appScreens = [
 
 export default function Landing() {
   const androidDownloadUrl =
-    import.meta.env.VITE_ANDROID_APK_URL ||
-    "/downloads/JapLearn-latest.apk";
+    "https://expo.dev/accounts/reybacolod/projects/japlearn/builds/1c051dff-4c0d-4012-987b-ab7144397a48";
   const [activeScreen, setActiveScreen] = useState(appScreens[0]);
   const [scrollProgress, setScrollProgress] = useState(0);
   const [navScrolled, setNavScrolled] = useState(false);
@@ -140,8 +141,8 @@ export default function Landing() {
             <a href="#experience">App experience</a>
             <a href="#students">Students</a>
             <a href="#teachers">Teachers</a>
-            <a className="nav-download" href={androidDownloadUrl} download>
-              <Download size={16} /> Android app
+            <a className="nav-download" href={androidDownloadUrl}>
+              <Download size={16} /> Download app
             </a>
             <Link className="nav-cta" to="/teacher/login">
               Teacher sign in <ArrowRight size={16} />
@@ -171,16 +172,42 @@ export default function Landing() {
             learning and helping teachers guide every learner with confidence.
           </p>
           <div className="hero-actions">
-            <a className="primary apk-download" href={androidDownloadUrl} download>
-              <Download size={18} /> Download for Android
+            <a className="primary apk-download" href={androidDownloadUrl}>
+              <Download size={18} /> Download the app
             </a>
             <Link className="secondary" to="/teacher/login">
               Teacher portal
             </Link>
           </div>
-          <p className="apk-note">
-            Install the latest JapLearn test build directly on an Android phone.
-          </p>
+          <div className="app-availability" aria-label="JapLearn app availability">
+            <a className="direct-app-download" href={androidDownloadUrl}>
+              <span className="availability-icon">
+                <Download size={20} />
+              </span>
+              <span>
+                <small>Available now</small>
+                <strong>Android download</strong>
+              </span>
+            </a>
+            <div className="store-coming-soon" aria-disabled="true">
+              <span className="availability-icon">
+                <Play size={19} />
+              </span>
+              <span>
+                <small>Coming soon</small>
+                <strong>Google Play</strong>
+              </span>
+            </div>
+            <div className="store-coming-soon" aria-disabled="true">
+              <span className="availability-icon">
+                <Apple size={20} />
+              </span>
+              <span>
+                <small>Coming soon</small>
+                <strong>App Store</strong>
+              </span>
+            </div>
+          </div>
           <div className="trust-row">
             <span>
               <ShieldCheck /> Safe classroom access
@@ -463,3 +490,7 @@ export default function Landing() {
     </main>
   );
 }
+
+
+
+
