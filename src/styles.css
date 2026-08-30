@@ -3662,3 +3662,60 @@ a {
   }
 }
 
+/* Reply Coach visual-novel authoring studio */
+.reply-studio { padding: 32px; color: #30143f; }
+.reply-studio-hero { padding: 28px; border-radius: 28px; background: linear-gradient(135deg,#3a174b,#7921cf); color: #fff; display:flex; justify-content:space-between; gap:24px; align-items:center; box-shadow:0 20px 45px rgba(50,20,68,.18); }
+.reply-studio-hero small,.reply-section-title small { letter-spacing:.16em; font-weight:800; color:#9ce66c; }
+.reply-studio-hero h1 { margin:5px 0 8px; font-size:34px; }
+.reply-studio-hero p { max-width:760px; margin:0; color:#eadcf1; line-height:1.55; }
+.reply-hero-actions,.reply-publish-actions,.node-tools { display:flex; gap:9px; align-items:center; flex-wrap:wrap; }
+.reply-studio-shell { display:grid; grid-template-columns:260px minmax(0,1fr); gap:20px; margin-top:20px; align-items:start; }
+.reply-chapter-list,.reply-meta-card,.reply-node-list,.reply-node-editor { background:#fff; border:1px solid #eadfec; border-radius:22px; box-shadow:0 10px 28px rgba(54,27,65,.07); }
+.reply-chapter-list { padding:12px; position:sticky; top:18px; }
+.reply-panel-heading { display:flex; align-items:center; justify-content:space-between; gap:10px; padding:10px; color:#7c6685; font-size:12px; letter-spacing:.12em; font-weight:800; }
+.reply-panel-heading b { color:#8324da; font-size:18px; }
+.reply-chapter-list>button { width:100%; border:0; background:transparent; display:flex; text-align:left; align-items:flex-start; gap:10px; padding:13px; border-radius:15px; color:#42264e; cursor:pointer; }
+.reply-chapter-list>button.active { background:#f3e9fa; }
+.reply-chapter-list button div { display:grid; gap:4px; }
+.reply-chapter-list button small { color:#97899c; font-size:10px; }
+.chapter-status { width:10px; height:10px; border-radius:50%; margin-top:4px; background:#aaa; flex:0 0 auto; }
+.chapter-status.published { background:#69ba42; }.chapter-status.hidden { background:#e19835; }.chapter-status.draft { background:#9c86aa; }
+.reply-empty-studio { min-height:420px; border:2px dashed #decce5; border-radius:25px; display:grid; place-content:center; justify-items:center; text-align:center; padding:40px; color:#7b6782; }
+.reply-empty-studio svg { width:54px; height:54px; color:#8423d9; }.reply-empty-studio h2{color:#3e204d;margin-bottom:4px;}
+.reply-workspace { min-width:0; display:grid; gap:18px; }
+.reply-meta-card,.reply-node-editor { padding:22px; }
+.reply-section-title { display:flex; align-items:center; justify-content:space-between; gap:20px; margin-bottom:17px; }
+.reply-section-title h2 { margin:4px 0 0; font-size:24px; }
+.reply-publish-actions select { min-height:43px; border:1px solid #d9c9df; border-radius:12px; padding:0 12px; }
+.reply-meta-grid { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:13px; }
+.reply-meta-grid label { display:grid; gap:6px; font-size:12px; color:#705d78; font-weight:700; }
+.reply-meta-grid label.wide { grid-column:1/-1; }
+.reply-meta-grid input,.reply-meta-grid textarea,.reply-meta-grid select,.choice-branch-head input,.choice-branch-head select { width:100%; border:1px solid #decfe3; border-radius:12px; padding:11px 12px; background:#fcfafd; color:#341b40; font:inherit; box-sizing:border-box; }
+.reply-meta-grid textarea { min-height:84px; resize:vertical; }
+.reply-validation { display:flex; gap:13px; border-radius:18px; padding:16px 18px; border:1px solid; }
+.reply-validation.valid { background:#f1faed;border-color:#badeaa;color:#437b2b; }.reply-validation.invalid { background:#fff1f2;border-color:#f0bfc5;color:#9f3947; }
+.reply-validation span { display:block; font-size:12px; margin-top:3px; }.reply-validation p { margin:7px 0 0; font-size:12px; }
+.reply-graph-layout { display:grid; grid-template-columns:310px minmax(0,1fr); gap:18px; align-items:start; }
+.reply-node-list { padding:10px; position:sticky; top:18px; max-height:calc(100vh - 36px); overflow:auto; }
+.node-add-row { display:grid; grid-template-columns:repeat(2,1fr); gap:6px; padding:5px; }
+.node-add-row button { border:1px solid #e2d3e7; border-radius:10px; background:#fbf8fc; padding:8px; color:#75577f; font-size:9px; font-weight:800; display:flex; gap:4px; align-items:center; justify-content:center; cursor:pointer; }
+.node-add-row svg { width:13px;height:13px; }
+.node-flow { display:grid; gap:14px; padding:10px 5px 20px; }
+.node-flow>button { position:relative; border:1px solid #e4d8e7; background:#fff; border-radius:14px; padding:11px; display:grid; gap:4px; text-align:left; cursor:pointer; color:#442650; }
+.node-flow>button.active { border-color:#8b26df; box-shadow:0 0 0 3px #f0e2fa; }
+.node-flow>button small { color:#9b8a9f; font-size:9px; }.node-type { width:max-content; border-radius:999px; padding:4px 7px; font-size:8px; letter-spacing:.1em; color:#fff; background:#775084; }
+.node-narration{background:#4f78b8}.node-dialogue{background:#8423d9}.node-choice{background:#db8927}.node-reaction{background:#d65a75}.node-cultural_note{background:#61a941}.node-ending{background:#3e2847}
+.flow-connector { position:absolute; width:15px;height:15px;bottom:-15px;left:50%;color:#b895c8; }
+.node-tools button,.choice-branch-head button { width:38px;height:38px;border-radius:11px;border:1px solid #dfd0e5;background:#faf6fc;color:#765283;display:grid;place-items:center;cursor:pointer; }
+.node-tools svg,.choice-branch-head svg { width:17px;height:17px; }.node-tools button.delete,.choice-branch-head button{color:#c84359;}
+.choice-graph-editor { margin-top:22px; border-top:1px solid #eadfeb; padding-top:15px; }
+.choice-graph-editor .reply-panel-heading button { border:0;border-radius:10px;background:#8423d9;color:#fff;padding:8px 12px;display:flex;gap:5px;align-items:center;cursor:pointer; }
+.inline-check { display:flex;gap:8px;align-items:center;color:#6d5975;font-size:12px;margin:4px 10px 14px; }
+.choice-branch { border:1px solid #e5d9e8; border-left:5px solid #8d7895; border-radius:16px; padding:14px; margin-top:12px; background:#fdfbfd; }
+.choice-branch.choice-best{border-left-color:#63b53e}.choice-branch.choice-acceptable{border-left-color:#4f83d1}.choice-branch.choice-awkward{border-left-color:#dc922d}.choice-branch.choice-impolite,.choice-branch.choice-rude{border-left-color:#d65368}
+.choice-branch-head { display:grid;grid-template-columns:36px 1fr 145px 65px 40px;gap:8px;align-items:center;margin-bottom:12px; }
+.choice-branch-head>b { width:34px;height:34px;border-radius:11px;background:#efe2f7;color:#8423d9;display:grid;place-items:center; }
+.danger-link { width:max-content;border:0;background:transparent;color:#c54459;display:flex;gap:7px;align-items:center;cursor:pointer;font-weight:700;margin-left:auto; }
+.danger-link svg{width:16px;height:16px}.admin-preview-overlay{position:fixed;inset:0;background:rgba(30,13,39,.72);z-index:100;display:grid;place-items:center;padding:25px}.admin-story-preview{position:relative;width:min(700px,95vw);max-height:90vh;overflow:auto;background:linear-gradient(145deg,#fff,#f7eefc);border-radius:28px;padding:30px}.preview-close{position:absolute;right:18px;top:14px;border:0;background:transparent;font-size:30px;color:#6d4b79;cursor:pointer}.admin-story-preview>small{color:#68b841;letter-spacing:.14em;font-weight:800}.preview-flow{display:flex;flex-wrap:wrap;gap:10px;margin:20px 0}.preview-flow span{min-width:130px;border:1px solid #e1d1e6;border-radius:14px;padding:10px;color:#8a7292;font-size:9px;display:grid;gap:4px}.preview-flow b{color:#442550;font-size:12px}.reply-empty-studio+.primary-button{margin-top:10px}
+@media(max-width:1050px){.reply-studio-shell{grid-template-columns:1fr}.reply-chapter-list{position:static;display:flex;overflow:auto}.reply-chapter-list .reply-panel-heading{display:none}.reply-chapter-list>button{min-width:210px}.reply-graph-layout{grid-template-columns:1fr}.reply-node-list{position:static;max-height:none}.node-flow{grid-template-columns:repeat(3,minmax(170px,1fr));overflow:auto}.flow-connector{display:none}}
+@media(max-width:700px){.reply-studio{padding:16px}.reply-studio-hero,.reply-section-title{align-items:flex-start;flex-direction:column}.reply-studio-hero h1{font-size:27px}.reply-meta-grid{grid-template-columns:1fr}.reply-meta-grid label.wide{grid-column:auto}.choice-branch-head{grid-template-columns:34px 1fr}.choice-branch-head select,.choice-branch-head input[type=number],.choice-branch-head button{grid-row:2}.node-flow{grid-template-columns:1fr}}

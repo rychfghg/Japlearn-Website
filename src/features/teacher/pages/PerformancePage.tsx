@@ -9,6 +9,7 @@ import type {
   SituationalAttempt,
   Student,
   QuackTalkSession,
+  ReplyCoachAttempt,
 } from "../types";
 
 export default function PerformancePage() {
@@ -25,6 +26,9 @@ export default function PerformancePage() {
   >([]);
   const [arcadeScores, setArcadeScores] = useState<ArcadeScore[]>([]);
   const [talkSessions, setTalkSessions] = useState<QuackTalkSession[]>([]);
+  const [replyCoachAttempts, setReplyCoachAttempts] = useState<
+    ReplyCoachAttempt[]
+  >([]);
 
   useEffect(() => {
     teacherApi
@@ -76,6 +80,10 @@ export default function PerformancePage() {
       .getQuackTalkSessions(selectedEmail)
       .then(setTalkSessions)
       .catch(() => setTalkSessions([]));
+    teacherApi
+      .getReplyCoachAttempts(selectedEmail)
+      .then(setReplyCoachAttempts)
+      .catch(() => setReplyCoachAttempts([]));
   }, [selectedEmail]);
 
   const metrics = analytics
@@ -166,6 +174,49 @@ export default function PerformancePage() {
             Detailed QuackSituate attempts and arcade personal-best records for
             this learner.
           </p>
+        </div>
+        <div className="recognition-record-table">
+          <div className="recognition-record-row heading">
+            <span>Reply Coach chapter</span>
+            <span>Attempt</span>
+            <span>Response quality</span>
+            <span>Score</span>
+            <span>Status</span>
+          </div>
+          {replyCoachAttempts.length ? (
+            replyCoachAttempts.map((attempt) => (
+              <div className="recognition-record-row" key={attempt.id}>
+                <span>
+                  <b>{attempt.chapterTitle}</b>
+                  <br />
+                  {new Date(
+                    attempt.completedAt || attempt.updatedAt,
+                  ).toLocaleString()}
+                </span>
+                <b>#{attempt.attemptNumber}</b>
+                <span>
+                  {attempt.bestCount} best · {attempt.acceptableCount} acceptable
+                  <br />
+                  {attempt.awkwardCount} awkward ·{" "}
+                  {attempt.impoliteCount + attempt.rudeCount} impolite/rude
+                </span>
+                <strong>
+                  {attempt.status === "COMPLETED"
+                    ? `${attempt.finalPercentage}%`
+                    : `${attempt.score} pts`}
+                </strong>
+                <i>
+                  {attempt.status === "COMPLETED"
+                    ? "Completed"
+                    : "Resume pending"}
+                </i>
+              </div>
+            ))
+          ) : (
+            <p className="empty-recognition-record">
+              No Reply Coach chapter has been started by this student yet.
+            </p>
+          )}
         </div>
         <div className="recognition-record-table">
           <div className="recognition-record-row heading">

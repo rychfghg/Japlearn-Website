@@ -67,6 +67,26 @@ export type QuackTalkSession = {
   practicedAt: string;
 };
 
+export type ReplyCoachAttempt = {
+  id: string;
+  email: string;
+  chapterId: string;
+  chapterTitle: string;
+  attemptNumber: number;
+  status: "IN_PROGRESS" | "COMPLETED";
+  score: number;
+  maximumScore: number;
+  finalPercentage: number;
+  bestCount: number;
+  acceptableCount: number;
+  awkwardCount: number;
+  impoliteCount: number;
+  rudeCount: number;
+  startedAt: string;
+  updatedAt: string;
+  completedAt?: string;
+};
+
 export type CommunicationReport = {
   studentEmail: string;
   completionRate: number;

@@ -1,5 +1,5 @@
-import AdminQuackResponsePage from "./AdminQuackResponsePage";
+import AdminSituationalContentPage from "./AdminSituationalContentPage";
 
 export default function AdminExpressionMatchPage() {
-  return <AdminQuackResponsePage initialGameType="EXPRESSION_MATCH" />;
+  return <AdminSituationalContentPage initialGameType="EXPRESSION_MATCH" />;
 }
