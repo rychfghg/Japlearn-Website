@@ -23,6 +23,8 @@ type Question = {
   topic: string;
   location: string;
   sceneKey: string;
+  imageUrl: string;
+  imageAlt: string;
   scenario: string;
   hint: string;
   choices: Choice[];
@@ -41,6 +43,8 @@ const emptyForm: FormState = {
   topic: "Everyday greetings",
   location: "School hallway",
   sceneKey: "school",
+  imageUrl: "",
+  imageAlt: "Japanese situational scene",
   scenario: "",
   hint: "",
   choices: Array.from({ length: 4 }, () => ({ japanese: "", romaji: "" })),
@@ -60,6 +64,7 @@ export default function AdminSituationalContentPage({
   const [editingId, setEditingId] = useState<string | null>(null);
   const [message, setMessage] = useState("");
   const [saving, setSaving] = useState(false);
+  const [uploadingImage, setUploadingImage] = useState(false);
 
   const filtered = useMemo(
     () => questions.filter((item) => item.gameType === gameType),
@@ -112,6 +117,31 @@ export default function AdminSituationalContentPage({
       ),
     });
 
+  const uploadSceneImage = async (file?: File) => {
+    if (!file) return;
+    setUploadingImage(true);
+    setMessage("");
+    try {
+      const body = new FormData();
+      body.append("file", file);
+      const response = await fetch(`${API_URL}/api/situational/media`, {
+        method: "POST",
+        body,
+      });
+      if (!response.ok) throw new Error(`Server returned ${response.status}`);
+      const result = (await response.json()) as { url: string };
+      setForm((current) => ({ ...current, imageUrl: result.url }));
+      setMessage("Scene image uploaded. Save the mission to publish this picture.");
+    } catch {
+      setMessage("Scene image could not be uploaded. Check the backend connection and file type.");
+    } finally {
+      setUploadingImage(false);
+    }
+  };
+
+  const mediaPreview = (url: string) =>
+    !url ? "" : url.startsWith("http") ? url : `${API_URL}${url}`;
+
   const save = async (event: React.FormEvent) => {
     event.preventDefault();
     const cleanChoices = form.choices
@@ -162,6 +192,8 @@ export default function AdminSituationalContentPage({
     setEditingId(question.id);
     setForm({
       ...question,
+      imageUrl: question.imageUrl || "",
+      imageAlt: question.imageAlt || question.location || "Japanese situational scene",
       choices: [
         ...question.choices,
         ...Array.from(
@@ -367,7 +399,7 @@ export default function AdminSituationalContentPage({
             />
           </label>
           <label>
-            Scene image
+            Existing scene fallback
             <select
               value={form.sceneKey}
               onChange={(event) =>
@@ -382,6 +414,44 @@ export default function AdminSituationalContentPage({
               <option value="home">Home</option>
             </select>
           </label>
+          <label className="wide">
+            Scene picture URL
+            <input
+              value={form.imageUrl}
+              onChange={(event) =>
+                setForm({ ...form, imageUrl: event.target.value })
+              }
+              placeholder="Upload below or paste a complete HTTPS image URL"
+            />
+          </label>
+          <label className="wide">
+            Upload scene picture
+            <input
+              type="file"
+              accept="image/png,image/jpeg,image/webp,image/gif"
+              disabled={uploadingImage}
+              onChange={(event) => void uploadSceneImage(event.target.files?.[0])}
+            />
+            <small>{uploadingImage ? "Uploading picture..." : "PNG, JPG, WebP, or GIF. Stored through the JapLearn backend."}</small>
+          </label>
+          <label className="wide">
+            Image description
+            <input
+              value={form.imageAlt}
+              onChange={(event) =>
+                setForm({ ...form, imageAlt: event.target.value })
+              }
+              placeholder="School hallway in the morning"
+            />
+          </label>
+          {form.imageUrl && (
+            <div className="wide response-image-preview">
+              <img src={mediaPreview(form.imageUrl)} alt={form.imageAlt || "Recognition scene preview"} />
+              <button type="button" className="soft-button" onClick={() => setForm({ ...form, imageUrl: "" })}>
+                <X /> Remove uploaded picture
+              </button>
+            </div>
+          )}
           <label className="wide">
             Scenario
             <textarea
@@ -509,6 +579,13 @@ export default function AdminSituationalContentPage({
                   )}
                 </div>
                 <h3>{question.scenario}</h3>
+                {question.imageUrl && (
+                  <img
+                    className="mission-scene-thumb"
+                    src={mediaPreview(question.imageUrl)}
+                    alt={question.imageAlt || question.location}
+                  />
+                )}
                 <div className="answer-preview">
                   <b lang="ja">{question.correctAnswer}</b>
                   <span>
@@ -540,4 +617,3 @@ export default function AdminSituationalContentPage({
     </main>
   );
 }
-
