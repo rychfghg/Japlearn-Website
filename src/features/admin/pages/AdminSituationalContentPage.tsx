@@ -226,7 +226,7 @@ export default function AdminSituationalContentPage({
     ) {
       setMessage(
         gameType === "EXPRESSION_MATCH"
-          ? "Add two complete phrases and select the phrase represented by the first image."
+          ? "Add the draggable phrase, one comparison phrase, and select the phrase represented by the first image."
           : "Add at least three complete choices and select one of them as the correct answer.",
       );
       return;
@@ -475,7 +475,7 @@ export default function AdminSituationalContentPage({
             />
           </label>
           <label>
-            Existing scene fallback
+            Scene category
             <select
               value={form.sceneKey}
               onChange={(event) =>
@@ -491,7 +491,7 @@ export default function AdminSituationalContentPage({
             </select>
           </label>
           <label className="wide">
-            {gameType === "EXPRESSION_MATCH" ? "First gesture image URL" : "Scene picture URL"}
+            {gameType === "EXPRESSION_MATCH" ? "Correct situation image URL" : "Scene picture URL"}
             <input
               value={form.imageUrl}
               onChange={(event) =>
@@ -501,7 +501,7 @@ export default function AdminSituationalContentPage({
             />
           </label>
           <label className="wide">
-            {gameType === "EXPRESSION_MATCH" ? "Upload first gesture image" : "Upload scene picture"}
+            {gameType === "EXPRESSION_MATCH" ? "Upload correct situation image" : "Upload scene picture"}
             <input
               type="file"
               accept="image/png,image/jpeg,image/webp,image/gif"
@@ -531,7 +531,7 @@ export default function AdminSituationalContentPage({
           {gameType === "EXPRESSION_MATCH" && (
             <>
               <label className="wide">
-                Second gesture image URL
+                Comparison situation image URL
                 <input
                   value={form.secondaryImageUrl}
                   onChange={(event) =>
@@ -541,7 +541,7 @@ export default function AdminSituationalContentPage({
                 />
               </label>
               <label className="wide">
-                Upload second gesture image
+                Upload comparison situation image
                 <input
                   type="file"
                   accept="image/png,image/jpeg,image/webp,image/gif"
@@ -553,11 +553,11 @@ export default function AdminSituationalContentPage({
                 <small>
                   {uploadingSecondaryImage
                     ? "Uploading second picture..."
-                    : "Transparent PNG, JPG, WebP, or GIF. The app preserves its aspect ratio."}
+                    : "PNG, JPG, WebP, or GIF. The app preserves the complete image without stretching."}
                 </small>
               </label>
               <label className="wide">
-                Second image description
+                Comparison image description
                 <input
                   value={form.secondaryImageAlt}
                   onChange={(event) =>
@@ -621,7 +621,7 @@ export default function AdminSituationalContentPage({
             </div>
           )}
           <label className="wide">
-            {gameType === "EXPRESSION_MATCH" ? "First picture scenario" : "Scenario"}
+            {gameType === "EXPRESSION_MATCH" ? "Correct picture situation" : "Scenario"}
             <textarea
               required
               value={form.scenario}
@@ -633,7 +633,7 @@ export default function AdminSituationalContentPage({
           </label>
           {gameType === "EXPRESSION_MATCH" && (
             <label className="wide">
-              Second picture scenario
+              Comparison picture situation
               <textarea
                 required
                 value={form.secondaryScenario}
@@ -657,15 +657,31 @@ export default function AdminSituationalContentPage({
         </div>
         <div className="choice-editor">
           <div>
-            <small>ANSWER CHOICES</small>
-            <h3>Japanese and romaji</h3>
+            <small>
+              {gameType === "EXPRESSION_MATCH"
+                ? "DRAGGABLE EXPRESSION"
+                : "ANSWER CHOICES"}
+            </small>
+            <h3>
+              {gameType === "EXPRESSION_MATCH"
+                ? "Phrase used by the two-image matching game"
+                : "Japanese and romaji"}
+            </h3>
           </div>
-          {form.choices.slice(0, 4).map((choice, index) => (
+          {form.choices
+            .slice(0, gameType === "EXPRESSION_MATCH" ? 2 : 4)
+            .map((choice, index) => (
             <div className="choice-edit-row" key={index}>
-              <b>{String.fromCharCode(65 + index)}</b>
+              <b>
+                {gameType === "EXPRESSION_MATCH"
+                  ? index === 0
+                    ? "DRAG"
+                    : "ALT"
+                  : String.fromCharCode(65 + index)}
+              </b>
               <input
                 lang="ja"
-                required={index < 3}
+                required={gameType === "EXPRESSION_MATCH" || index < 3}
                 placeholder="おはようございます"
                 value={choice.japanese}
                 onChange={(event) =>
@@ -673,7 +689,7 @@ export default function AdminSituationalContentPage({
                 }
               />
               <input
-                required={index < 3}
+                required={gameType === "EXPRESSION_MATCH" || index < 3}
                 placeholder="Ohayou gozaimasu"
                 value={choice.romaji}
                 onChange={(event) =>
@@ -692,10 +708,19 @@ export default function AdminSituationalContentPage({
                     setForm({ ...form, correctAnswer: choice.japanese })
                   }
                 />
-                Correct
+                {gameType === "EXPRESSION_MATCH"
+                  ? "Matches first picture"
+                  : "Correct"}
               </label>
             </div>
           ))}
+          {gameType === "EXPRESSION_MATCH" && (
+            <p className="response-field-note">
+              The DRAG phrase is shown between the two pictures. ALT keeps the
+              database record compatible with the matching engine and can be
+              edited for future variations.
+            </p>
+          )}
         </div>
         <label className="response-explanation">
           Correct-answer explanation
