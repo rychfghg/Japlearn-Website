@@ -6,8 +6,9 @@ import TeacherSignup from "./pages/TeacherSignup";
 import SeoManager from "./components/SeoManager";
 import AdminQuestionBankPage from "./features/admin/pages/AdminQuestionBankPage";
 import AdminQuackResponsePage from "./features/admin/pages/AdminQuackResponsePage";
-import AdminExpressionMatchPage from "./features/admin/pages/AdminExpressionMatchPage";
 import AdminQuackTalkPage from "./features/admin/pages/AdminQuackTalkPage";
+import AdminSituationalContentPage from "./features/admin/pages/AdminSituationalContentPage";
+import AdminGamePage from "./features/admin/pages/AdminGamePage";
 import AdminLayout from "./features/admin/layouts/AdminLayout";
 import AdminOverviewPage from "./features/admin/pages/AdminOverviewPage";
 import AdminUsersPage from "./features/admin/pages/AdminUsersPage";
@@ -86,10 +87,32 @@ export default function App() {
           <Route index element={<AdminOverviewPage />} />
           <Route path="students" element={<AdminUsersPage role="student" />} />
           <Route path="teachers" element={<AdminUsersPage role="teacher" />} />
+          <Route path="quacksituate" element={<AdminSituationalContentPage />} />
           <Route path="quackslate" element={<AdminQuestionBankPage />} />
           <Route path="quackresponse" element={<AdminQuackResponsePage />} />
-          <Route path="expression-match" element={<AdminExpressionMatchPage />} />
+          <Route
+            path="expression-match"
+            element={<Navigate to="/admin/quacksituate" replace />}
+          />
           <Route path="quacktalk" element={<AdminQuackTalkPage />} />
+          <Route
+            path="quackamole"
+            element={
+              <AdminGamePage
+                title="Quack-a-Mole"
+                description="Manage the character-matching arcade game from one dedicated workspace."
+              />
+            }
+          />
+          <Route
+            path="quackman"
+            element={
+              <AdminGamePage
+                title="Quackman"
+                description="Manage the word-survival game from one dedicated workspace."
+              />
+            }
+          />
         </Route>
 
         <Route path="*" element={<Navigate to="/" replace />} />

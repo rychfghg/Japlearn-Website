@@ -1,6 +1,7 @@
 import {
   BookOpenCheck,
-  GitCompareArrows,
+  Compass,
+  Gamepad2,
   GraduationCap,
   LayoutDashboard,
   LogOut,
@@ -43,21 +44,29 @@ export default function AdminLayout() {
             <GraduationCap />
             Teachers
           </NavLink>
-          <NavLink to="/admin/quackslate">
-            <BookOpenCheck />
-            QuackSlate bank
+          <NavLink to="/admin/quacksituate">
+            <Compass />
+            QuackSituate
           </NavLink>
           <NavLink to="/admin/quackresponse">
             <MessageCircleQuestion />
             QuackResponse
           </NavLink>
-          <NavLink to="/admin/expression-match">
-            <GitCompareArrows />
-            Expression Match
-          </NavLink>
           <NavLink to="/admin/quacktalk">
             <Mic2 />
             QuackTalk
+          </NavLink>
+          <NavLink to="/admin/quackamole">
+            <Gamepad2 />
+            Quack-a-Mole
+          </NavLink>
+          <NavLink to="/admin/quackslate">
+            <BookOpenCheck />
+            QuackSlate
+          </NavLink>
+          <NavLink to="/admin/quackman">
+            <Gamepad2 />
+            Quackman
           </NavLink>
         </nav>
         <button className="admin-logout" onClick={logout}>
