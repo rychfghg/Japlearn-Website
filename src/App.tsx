@@ -3,6 +3,7 @@ import type { ReactNode } from "react";
 import Landing from "./pages/Landing";
 import Login from "./pages/Login";
 import TeacherSignup from "./pages/TeacherSignup";
+import SeoManager from "./components/SeoManager";
 import AdminQuestionBankPage from "./features/admin/pages/AdminQuestionBankPage";
 import AdminQuackResponsePage from "./features/admin/pages/AdminQuackResponsePage";
 import AdminExpressionMatchPage from "./features/admin/pages/AdminExpressionMatchPage";
@@ -39,57 +40,60 @@ function RoleGuard({ role, children }: { role: string; children: ReactNode }) {
 
 export default function App() {
   return (
-    <Routes>
-      <Route path="/" element={<Landing />} />
-      <Route path="/teacher/login" element={<Login role="teacher" />} />
-      <Route path="/teacher/create-account" element={<TeacherSignup />} />
-      <Route path="/admin/login" element={<Login role="admin" />} />
+    <>
+      <SeoManager />
+      <Routes>
+        <Route path="/" element={<Landing />} />
+        <Route path="/teacher/login" element={<Login role="teacher" />} />
+        <Route path="/teacher/create-account" element={<TeacherSignup />} />
+        <Route path="/admin/login" element={<Login role="admin" />} />
 
-      <Route
-        path="/teacher"
-        element={
-          <RoleGuard role="teacher">
-            <TeacherLayout />
-          </RoleGuard>
-        }
-      >
-        <Route index element={<OverviewPage />} />
-        <Route path="classes" element={<ClassesPage />} />
-        <Route path="classes/:classCode" element={<ClassDetailPage />} />
-        <Route path="students" element={<StudentsPage />} />
-        <Route path="lessons" element={<LessonsPage />} />
-        <Route path="lessons/progress" element={<LessonProgressPage />} />
-        <Route path="activities" element={<ActivitiesPage />} />
-        <Route path="quackslate" element={<QuackslatePage />} />
-        <Route path="communication" element={<CommunicationPage />} />
-        <Route path="communication/performance" element={<PerformancePage />} />
         <Route
-          path="communication/assign"
-          element={<AssignCommunicationPage />}
-        />
-        <Route path="reports" element={<ReportsPage />} />
-        <Route path="profile" element={<ProfilePage />} />
-        <Route path="settings" element={<SettingsPage />} />
-      </Route>
+          path="/teacher"
+          element={
+            <RoleGuard role="teacher">
+              <TeacherLayout />
+            </RoleGuard>
+          }
+        >
+          <Route index element={<OverviewPage />} />
+          <Route path="classes" element={<ClassesPage />} />
+          <Route path="classes/:classCode" element={<ClassDetailPage />} />
+          <Route path="students" element={<StudentsPage />} />
+          <Route path="lessons" element={<LessonsPage />} />
+          <Route path="lessons/progress" element={<LessonProgressPage />} />
+          <Route path="activities" element={<ActivitiesPage />} />
+          <Route path="quackslate" element={<QuackslatePage />} />
+          <Route path="communication" element={<CommunicationPage />} />
+          <Route path="communication/performance" element={<PerformancePage />} />
+          <Route
+            path="communication/assign"
+            element={<AssignCommunicationPage />}
+          />
+          <Route path="reports" element={<ReportsPage />} />
+          <Route path="profile" element={<ProfilePage />} />
+          <Route path="settings" element={<SettingsPage />} />
+        </Route>
 
-      <Route
-        path="/admin"
-        element={
-          <RoleGuard role="admin">
-            <AdminLayout />
-          </RoleGuard>
-        }
-      >
-        <Route index element={<AdminOverviewPage />} />
-        <Route path="students" element={<AdminUsersPage role="student" />} />
-        <Route path="teachers" element={<AdminUsersPage role="teacher" />} />
-        <Route path="quackslate" element={<AdminQuestionBankPage />} />
-        <Route path="quackresponse" element={<AdminQuackResponsePage />} />
-        <Route path="expression-match" element={<AdminExpressionMatchPage />} />
-        <Route path="quacktalk" element={<AdminQuackTalkPage />} />
-      </Route>
+        <Route
+          path="/admin"
+          element={
+            <RoleGuard role="admin">
+              <AdminLayout />
+            </RoleGuard>
+          }
+        >
+          <Route index element={<AdminOverviewPage />} />
+          <Route path="students" element={<AdminUsersPage role="student" />} />
+          <Route path="teachers" element={<AdminUsersPage role="teacher" />} />
+          <Route path="quackslate" element={<AdminQuestionBankPage />} />
+          <Route path="quackresponse" element={<AdminQuackResponsePage />} />
+          <Route path="expression-match" element={<AdminExpressionMatchPage />} />
+          <Route path="quacktalk" element={<AdminQuackTalkPage />} />
+        </Route>
 
-      <Route path="*" element={<Navigate to="/" replace />} />
-    </Routes>
+        <Route path="*" element={<Navigate to="/" replace />} />
+      </Routes>
+    </>
   );
 }
