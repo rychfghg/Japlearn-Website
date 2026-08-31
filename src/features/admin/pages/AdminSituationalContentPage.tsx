@@ -76,6 +76,7 @@ export default function AdminSituationalContentPage({
   const [uploadingImage, setUploadingImage] = useState(false);
   const [uploadingSecondaryImage, setUploadingSecondaryImage] = useState(false);
   const [uploadingAudio, setUploadingAudio] = useState(false);
+  const [expressionTarget, setExpressionTarget] = useState<"FIRST" | "SECOND">("FIRST");
 
   const filtered = useMemo(
     () => questions.filter((item) => item.gameType === gameType),
@@ -114,6 +115,7 @@ export default function AdminSituationalContentPage({
 
   const reset = (type = gameType) => {
     setEditingId(null);
+    setExpressionTarget("FIRST");
     setForm({
       ...emptyForm,
       gameType: type,
@@ -121,13 +123,17 @@ export default function AdminSituationalContentPage({
       order: questions.filter((item) => item.gameType === type).length + 1,
     });
   };
-  const setChoice = (index: number, key: keyof Choice, value: string) =>
+  const setChoice = (index: number, key: keyof Choice, value: string) => {
     setForm({
       ...form,
       choices: form.choices.map((choice, choiceIndex) =>
         choiceIndex === index ? { ...choice, [key]: value } : choice,
       ),
+      ...(gameType === "EXPRESSION_MATCH" && index === 0 && key === "japanese"
+        ? { correctAnswer: value }
+        : {}),
     });
+  };
 
   const uploadSceneImage = async (file?: File) => {
     if (!file) return;
@@ -205,10 +211,15 @@ export default function AdminSituationalContentPage({
     event.preventDefault();
     if (
       gameType === "EXPRESSION_MATCH" &&
-      (!form.scenario.trim() || !form.secondaryScenario.trim())
+      (
+        !form.imageUrl.trim() ||
+        !form.secondaryImageUrl.trim() ||
+        !form.scenario.trim() ||
+        !form.secondaryScenario.trim()
+      )
     ) {
       setMessage(
-        "Add a situation prompt for both pictures before saving this Expression Match moment.",
+        "Add two pictures and one short situation for each picture before saving.",
       );
       return;
     }
@@ -219,18 +230,35 @@ export default function AdminSituationalContentPage({
       }))
       .filter((choice) => choice.japanese && choice.romaji);
     if (
-      cleanChoices.length < (gameType === "EXPRESSION_MATCH" ? 2 : 3) ||
+      cleanChoices.length < (gameType === "EXPRESSION_MATCH" ? 1 : 3) ||
       !cleanChoices.some(
         (choice) => choice.japanese === form.correctAnswer.trim(),
       )
     ) {
       setMessage(
         gameType === "EXPRESSION_MATCH"
-          ? "Add the draggable phrase, one comparison phrase, and select the phrase represented by the first image."
+          ? "Add one draggable Japanese phrase with its romaji."
           : "Add at least three complete choices and select one of them as the correct answer.",
       );
       return;
     }
+    const expressionImages = expressionTarget === "FIRST"
+      ? {
+          imageUrl: form.imageUrl,
+          imageAlt: form.imageAlt,
+          scenario: form.scenario,
+          secondaryImageUrl: form.secondaryImageUrl,
+          secondaryImageAlt: form.secondaryImageAlt,
+          secondaryScenario: form.secondaryScenario,
+        }
+      : {
+          imageUrl: form.secondaryImageUrl,
+          imageAlt: form.secondaryImageAlt,
+          scenario: form.secondaryScenario,
+          secondaryImageUrl: form.imageUrl,
+          secondaryImageAlt: form.imageAlt,
+          secondaryScenario: form.scenario,
+        };
     setSaving(true);
     setMessage("");
     const response = await fetch(
@@ -240,9 +268,10 @@ export default function AdminSituationalContentPage({
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           ...form,
+          ...(gameType === "EXPRESSION_MATCH" ? expressionImages : {}),
           gameType,
           setNumber: gameType === "EXPRESSION_MATCH" ? 1 : form.setNumber,
-          choices: cleanChoices,
+          choices: gameType === "EXPRESSION_MATCH" ? cleanChoices.slice(0, 1) : cleanChoices,
         }),
       },
     );
@@ -265,6 +294,7 @@ export default function AdminSituationalContentPage({
   const edit = (question: Question) => {
     setGameType(question.gameType);
     setEditingId(question.id);
+    setExpressionTarget("FIRST");
     setForm({
       ...question,
       imageUrl: question.imageUrl || "",
@@ -385,19 +415,8 @@ export default function AdminSituationalContentPage({
                 </select>
               </label>
               <div className="response-field-note">
-                Each difficulty contains up to 20 ordered items. Use Mission number to arrange them.
+                Choose the journey and its order. The app uses one phrase, two pictures, and one correct picture.
               </div>
-              <label className="wide">
-                Covered topic
-                <input
-                  required
-                  value={form.topic}
-                  onChange={(event) =>
-                    setForm({ ...form, topic: event.target.value })
-                  }
-                  placeholder="School greetings and formal courtesy"
-                />
-              </label>
             </>
           )}
           {gameType === "POLITENESS" && (
@@ -464,32 +483,36 @@ export default function AdminSituationalContentPage({
               </select>
             </label>
           )}
-          <label>
-            Scene location
-            <input
-              required
-              value={form.location}
-              onChange={(event) =>
-                setForm({ ...form, location: event.target.value })
-              }
-            />
-          </label>
-          <label>
-            Scene category
-            <select
-              value={form.sceneKey}
-              onChange={(event) =>
-                setForm({ ...form, sceneKey: event.target.value })
-              }
-            >
-              <option value="school">School hallway</option>
-              <option value="classroom">Classroom</option>
-              <option value="station">Station</option>
-              <option value="office">Office</option>
-              <option value="meal">Meal setting</option>
-              <option value="home">Home</option>
-            </select>
-          </label>
+          {gameType !== "EXPRESSION_MATCH" && (
+            <>
+              <label>
+                Scene location
+                <input
+                  required
+                  value={form.location}
+                  onChange={(event) =>
+                    setForm({ ...form, location: event.target.value })
+                  }
+                />
+              </label>
+              <label>
+                Scene category
+                <select
+                  value={form.sceneKey}
+                  onChange={(event) =>
+                    setForm({ ...form, sceneKey: event.target.value })
+                  }
+                >
+                  <option value="school">School hallway</option>
+                  <option value="classroom">Classroom</option>
+                  <option value="station">Station</option>
+                  <option value="office">Office</option>
+                  <option value="meal">Meal setting</option>
+                  <option value="home">Home</option>
+                </select>
+              </label>
+            </>
+          )}
           <label className="wide">
             {gameType === "EXPRESSION_MATCH" ? "Correct situation image URL" : "Scene picture URL"}
             <input
@@ -511,7 +534,7 @@ export default function AdminSituationalContentPage({
             <small>{uploadingImage ? "Uploading picture..." : "PNG, JPG, WebP, or GIF. Stored through the JapLearn backend."}</small>
           </label>
           <label className="wide">
-            Image description
+            {gameType === "EXPRESSION_MATCH" ? "Picture 1 description (optional)" : "Image description"}
             <input
               value={form.imageAlt}
               onChange={(event) =>
@@ -557,7 +580,7 @@ export default function AdminSituationalContentPage({
                 </small>
               </label>
               <label className="wide">
-                Comparison image description
+                Picture 2 description (optional)
                 <input
                   value={form.secondaryImageAlt}
                   onChange={(event) =>
@@ -584,7 +607,7 @@ export default function AdminSituationalContentPage({
             </>
           )}
           <label className="wide">
-            Gesture audio URL
+            {gameType === "EXPRESSION_MATCH" ? "Phrase audio URL (optional)" : "Gesture audio URL"}
             <input
               value={form.audioUrl}
               onChange={(event) =>
@@ -621,7 +644,7 @@ export default function AdminSituationalContentPage({
             </div>
           )}
           <label className="wide">
-            {gameType === "EXPRESSION_MATCH" ? "Correct picture situation" : "Scenario"}
+            {gameType === "EXPRESSION_MATCH" ? "Picture 1 situation" : "Scenario"}
             <textarea
               required
               value={form.scenario}
@@ -633,7 +656,7 @@ export default function AdminSituationalContentPage({
           </label>
           {gameType === "EXPRESSION_MATCH" && (
             <label className="wide">
-              Comparison picture situation
+              Picture 2 situation
               <textarea
                 required
                 value={form.secondaryScenario}
@@ -645,9 +668,9 @@ export default function AdminSituationalContentPage({
             </label>
           )}
           <label className="wide">
-            Small hint
+            Small hint {gameType === "EXPRESSION_MATCH" ? "(optional)" : ""}
             <textarea
-              required
+              required={gameType !== "EXPRESSION_MATCH"}
               value={form.hint}
               onChange={(event) =>
                 setForm({ ...form, hint: event.target.value })
@@ -664,19 +687,17 @@ export default function AdminSituationalContentPage({
             </small>
             <h3>
               {gameType === "EXPRESSION_MATCH"
-                ? "Phrase used by the two-image matching game"
+                ? "The one phrase the player will drag"
                 : "Japanese and romaji"}
             </h3>
           </div>
           {form.choices
-            .slice(0, gameType === "EXPRESSION_MATCH" ? 2 : 4)
+            .slice(0, gameType === "EXPRESSION_MATCH" ? 1 : 4)
             .map((choice, index) => (
             <div className="choice-edit-row" key={index}>
               <b>
                 {gameType === "EXPRESSION_MATCH"
-                  ? index === 0
-                    ? "DRAG"
-                    : "ALT"
+                  ? "PHRASE"
                   : String.fromCharCode(65 + index)}
               </b>
               <input
@@ -696,36 +717,55 @@ export default function AdminSituationalContentPage({
                   setChoice(index, "romaji", event.target.value)
                 }
               />
-              <label className="correct-choice">
-                <input
-                  type="radio"
-                  name="correct"
-                  checked={
-                    form.correctAnswer === choice.japanese &&
-                    Boolean(choice.japanese)
-                  }
-                  onChange={() =>
-                    setForm({ ...form, correctAnswer: choice.japanese })
-                  }
-                />
-                {gameType === "EXPRESSION_MATCH"
-                  ? "Matches first picture"
-                  : "Correct"}
-              </label>
+              {gameType !== "EXPRESSION_MATCH" && (
+                <label className="correct-choice">
+                  <input
+                    type="radio"
+                    name="correct"
+                    checked={
+                      form.correctAnswer === choice.japanese &&
+                      Boolean(choice.japanese)
+                    }
+                    onChange={() =>
+                      setForm({ ...form, correctAnswer: choice.japanese })
+                    }
+                  />
+                  Correct
+                </label>
+              )}
             </div>
           ))}
           {gameType === "EXPRESSION_MATCH" && (
-            <p className="response-field-note">
-              The DRAG phrase is shown between the two pictures. ALT keeps the
-              database record compatible with the matching engine and can be
-              edited for future variations.
-            </p>
+            <div className="response-field-note">
+              <strong>Which uploaded picture matches this phrase?</strong>
+              <label className="correct-choice">
+                <input
+                  type="radio"
+                  name="expression-target"
+                  checked={expressionTarget === "FIRST"}
+                  onChange={() => setExpressionTarget("FIRST")}
+                />
+                Picture 1
+              </label>
+              <label className="correct-choice">
+                <input
+                  type="radio"
+                  name="expression-target"
+                  checked={expressionTarget === "SECOND"}
+                  onChange={() => setExpressionTarget("SECOND")}
+                />
+                Picture 2
+              </label>
+              <small>
+                The app randomizes whether the correct picture appears above or below. You only choose which uploaded picture is correct.
+              </small>
+            </div>
           )}
         </div>
         <label className="response-explanation">
-          Correct-answer explanation
+          Correct-answer explanation {gameType === "EXPRESSION_MATCH" ? "(optional)" : ""}
           <textarea
-            required
+            required={gameType !== "EXPRESSION_MATCH"}
             value={form.explanation}
             onChange={(event) =>
               setForm({ ...form, explanation: event.target.value })
