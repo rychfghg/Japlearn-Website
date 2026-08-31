@@ -271,7 +271,9 @@ export default function PerformancePage() {
                   <br />
                   {new Date(attempt.completedAt).toLocaleString()}
                 </span>
-                <b>{attempt.score}</b>
+                <b>
+                  {attempt.score} / {attempt.maxScore || attempt.totalQuestions * 10}
+                </b>
                 <span>
                   {attempt.level
                     ? `Level ${attempt.level} · Set ${attempt.setNumber}`

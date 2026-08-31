@@ -112,6 +112,7 @@ export type SituationalAttempt = {
   gameType: string;
   difficulty: string;
   score: number;
+  maxScore?: number;
   totalQuestions: number;
   correctAnswers: number;
   wrongAnswers: number;
