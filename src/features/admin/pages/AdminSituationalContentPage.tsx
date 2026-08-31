@@ -26,8 +26,11 @@ type Question = {
   sceneKey: string;
   imageUrl: string;
   imageAlt: string;
+  secondaryImageUrl: string;
+  secondaryImageAlt: string;
   audioUrl: string;
   scenario: string;
+  secondaryScenario: string;
   hint: string;
   choices: Choice[];
   correctAnswer: string;
@@ -47,8 +50,11 @@ const emptyForm: FormState = {
   sceneKey: "school",
   imageUrl: "",
   imageAlt: "Japanese situational scene",
+  secondaryImageUrl: "",
+  secondaryImageAlt: "Alternative Japanese gesture",
   audioUrl: "",
   scenario: "",
+  secondaryScenario: "",
   hint: "",
   choices: Array.from({ length: 4 }, () => ({ japanese: "", romaji: "" })),
   correctAnswer: "",
@@ -68,6 +74,7 @@ export default function AdminSituationalContentPage({
   const [message, setMessage] = useState("");
   const [saving, setSaving] = useState(false);
   const [uploadingImage, setUploadingImage] = useState(false);
+  const [uploadingSecondaryImage, setUploadingSecondaryImage] = useState(false);
   const [uploadingAudio, setUploadingAudio] = useState(false);
 
   const filtered = useMemo(
@@ -110,6 +117,7 @@ export default function AdminSituationalContentPage({
     setForm({
       ...emptyForm,
       gameType: type,
+      difficulty: type === "EXPRESSION_MATCH" ? "EASY" : "STARTER",
       order: questions.filter((item) => item.gameType === type).length + 1,
     });
   };
@@ -143,6 +151,31 @@ export default function AdminSituationalContentPage({
     }
   };
 
+  const uploadSecondarySceneImage = async (file?: File) => {
+    if (!file) return;
+    setUploadingSecondaryImage(true);
+    setMessage("");
+    try {
+      const body = new FormData();
+      body.append("file", file);
+      const response = await fetch(`${API_URL}/api/situational/media`, {
+        method: "POST",
+        body,
+      });
+      if (!response.ok) throw new Error(`Server returned ${response.status}`);
+      const result = (await response.json()) as { url: string };
+      setForm((current) => ({
+        ...current,
+        secondaryImageUrl: result.url,
+      }));
+      setMessage("Second gesture image uploaded. Save the item to keep it.");
+    } catch {
+      setMessage("The second gesture image could not be uploaded.");
+    } finally {
+      setUploadingSecondaryImage(false);
+    }
+  };
+
   const uploadSceneAudio = async (file?: File) => {
     if (!file) return;
     setUploadingAudio(true);
@@ -170,6 +203,15 @@ export default function AdminSituationalContentPage({
 
   const save = async (event: React.FormEvent) => {
     event.preventDefault();
+    if (
+      gameType === "EXPRESSION_MATCH" &&
+      (!form.scenario.trim() || !form.secondaryScenario.trim())
+    ) {
+      setMessage(
+        "Add a situation prompt for both pictures before saving this Expression Match moment.",
+      );
+      return;
+    }
     const cleanChoices = form.choices
       .map((choice) => ({
         japanese: choice.japanese.trim(),
@@ -177,13 +219,15 @@ export default function AdminSituationalContentPage({
       }))
       .filter((choice) => choice.japanese && choice.romaji);
     if (
-      cleanChoices.length < 3 ||
+      cleanChoices.length < (gameType === "EXPRESSION_MATCH" ? 2 : 3) ||
       !cleanChoices.some(
         (choice) => choice.japanese === form.correctAnswer.trim(),
       )
     ) {
       setMessage(
-        "Add at least three complete choices and select one of them as the correct answer.",
+        gameType === "EXPRESSION_MATCH"
+          ? "Add two complete phrases and select the phrase represented by the first image."
+          : "Add at least three complete choices and select one of them as the correct answer.",
       );
       return;
     }
@@ -194,7 +238,12 @@ export default function AdminSituationalContentPage({
       {
         method: editingId ? "PUT" : "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ ...form, gameType, choices: cleanChoices }),
+        body: JSON.stringify({
+          ...form,
+          gameType,
+          setNumber: gameType === "EXPRESSION_MATCH" ? 1 : form.setNumber,
+          choices: cleanChoices,
+        }),
       },
     );
     setSaving(false);
@@ -220,7 +269,10 @@ export default function AdminSituationalContentPage({
       ...question,
       imageUrl: question.imageUrl || "",
       imageAlt: question.imageAlt || question.location || "Japanese situational scene",
+      secondaryImageUrl: question.secondaryImageUrl || "",
+      secondaryImageAlt: question.secondaryImageAlt || "Second Japanese situation",
       audioUrl: question.audioUrl || "",
+      secondaryScenario: question.secondaryScenario || "",
       choices: [
         ...question.choices,
         ...Array.from(
@@ -314,33 +366,27 @@ export default function AdminSituationalContentPage({
           {gameType === "EXPRESSION_MATCH" && (
             <>
               <label>
-                Level
+                Difficulty group
                 <select
                   value={form.level}
-                  onChange={(event) =>
-                    setForm({ ...form, level: Number(event.target.value) })
-                  }
+                  onChange={(event) => {
+                    const level = Number(event.target.value);
+                    setForm({
+                      ...form,
+                      level,
+                      setNumber: 1,
+                      difficulty: level === 1 ? "EASY" : level === 2 ? "MEDIUM" : "HARD",
+                    });
+                  }}
                 >
-                  {[1, 2, 3, 4, 5].map((level) => (
-                    <option key={level} value={level}>
-                      Level {level}
-                    </option>
-                  ))}
+                  <option value={1}>Easy</option>
+                  <option value={2}>Medium</option>
+                  <option value={3}>Hard</option>
                 </select>
               </label>
-              <label>
-                Set / round
-                <input
-                  type="number"
-                  min="1"
-                  max="10"
-                  required
-                  value={form.setNumber}
-                  onChange={(event) =>
-                    setForm({ ...form, setNumber: Number(event.target.value) })
-                  }
-                />
-              </label>
+              <div className="response-field-note">
+                Each difficulty contains up to 20 ordered items. Use Mission number to arrange them.
+              </div>
               <label className="wide">
                 Covered topic
                 <input
@@ -403,18 +449,21 @@ export default function AdminSituationalContentPage({
               }
             />
           </label>
-          <label>
-            Difficulty
-            <select
-              value={form.difficulty}
-              onChange={(event) =>
-                setForm({ ...form, difficulty: event.target.value })
-              }
-            >
-              <option>STARTER</option>
-              <option>HARD</option>
-            </select>
-          </label>
+          {gameType !== "EXPRESSION_MATCH" && (
+            <label>
+              Difficulty
+              <select
+                value={form.difficulty}
+                onChange={(event) =>
+                  setForm({ ...form, difficulty: event.target.value })
+                }
+              >
+                <option>STARTER</option>
+                <option>MEDIUM</option>
+                <option>HARD</option>
+              </select>
+            </label>
+          )}
           <label>
             Scene location
             <input
@@ -442,7 +491,7 @@ export default function AdminSituationalContentPage({
             </select>
           </label>
           <label className="wide">
-            Scene picture URL
+            {gameType === "EXPRESSION_MATCH" ? "First gesture image URL" : "Scene picture URL"}
             <input
               value={form.imageUrl}
               onChange={(event) =>
@@ -452,7 +501,7 @@ export default function AdminSituationalContentPage({
             />
           </label>
           <label className="wide">
-            Upload scene picture
+            {gameType === "EXPRESSION_MATCH" ? "Upload first gesture image" : "Upload scene picture"}
             <input
               type="file"
               accept="image/png,image/jpeg,image/webp,image/gif"
@@ -478,6 +527,61 @@ export default function AdminSituationalContentPage({
                 <X /> Remove uploaded picture
               </button>
             </div>
+          )}
+          {gameType === "EXPRESSION_MATCH" && (
+            <>
+              <label className="wide">
+                Second gesture image URL
+                <input
+                  value={form.secondaryImageUrl}
+                  onChange={(event) =>
+                    setForm({ ...form, secondaryImageUrl: event.target.value })
+                  }
+                  placeholder="Upload below or paste a complete HTTPS image URL"
+                />
+              </label>
+              <label className="wide">
+                Upload second gesture image
+                <input
+                  type="file"
+                  accept="image/png,image/jpeg,image/webp,image/gif"
+                  disabled={uploadingSecondaryImage}
+                  onChange={(event) =>
+                    void uploadSecondarySceneImage(event.target.files?.[0])
+                  }
+                />
+                <small>
+                  {uploadingSecondaryImage
+                    ? "Uploading second picture..."
+                    : "Transparent PNG, JPG, WebP, or GIF. The app preserves its aspect ratio."}
+                </small>
+              </label>
+              <label className="wide">
+                Second image description
+                <input
+                  value={form.secondaryImageAlt}
+                  onChange={(event) =>
+                    setForm({ ...form, secondaryImageAlt: event.target.value })
+                  }
+                  placeholder="Person bowing politely"
+                />
+              </label>
+              {form.secondaryImageUrl && (
+                <div className="wide response-image-preview">
+                  <img
+                    src={mediaPreview(form.secondaryImageUrl)}
+                    alt={form.secondaryImageAlt || "Second gesture preview"}
+                  />
+                  <button
+                    type="button"
+                    className="soft-button"
+                    onClick={() => setForm({ ...form, secondaryImageUrl: "" })}
+                  >
+                    <X /> Remove second picture
+                  </button>
+                </div>
+              )}
+            </>
           )}
           <label className="wide">
             Gesture audio URL
@@ -517,7 +621,7 @@ export default function AdminSituationalContentPage({
             </div>
           )}
           <label className="wide">
-            Scenario
+            {gameType === "EXPRESSION_MATCH" ? "First picture scenario" : "Scenario"}
             <textarea
               required
               value={form.scenario}
@@ -527,6 +631,19 @@ export default function AdminSituationalContentPage({
               placeholder="You meet your professor in the hallway in the morning. What should you say?"
             />
           </label>
+          {gameType === "EXPRESSION_MATCH" && (
+            <label className="wide">
+              Second picture scenario
+              <textarea
+                required
+                value={form.secondaryScenario}
+                onChange={(event) =>
+                  setForm({ ...form, secondaryScenario: event.target.value })
+                }
+                placeholder="You politely greet someone at the entrance."
+              />
+            </label>
+          )}
           <label className="wide">
             Small hint
             <textarea
@@ -648,6 +765,13 @@ export default function AdminSituationalContentPage({
                     className="mission-scene-thumb"
                     src={mediaPreview(question.imageUrl)}
                     alt={question.imageAlt || question.location}
+                  />
+                )}
+                {gameType === "EXPRESSION_MATCH" && question.secondaryImageUrl && (
+                  <img
+                    className="mission-scene-thumb"
+                    src={mediaPreview(question.secondaryImageUrl)}
+                    alt={question.secondaryImageAlt || "Second gesture"}
                   />
                 )}
                 <div className="answer-preview">
