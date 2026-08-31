@@ -3,6 +3,7 @@ import {
   Edit3,
   Eye,
   MessagesSquare,
+  Volume2,
   Plus,
   Save,
   Sparkles,
@@ -25,6 +26,7 @@ type Question = {
   sceneKey: string;
   imageUrl: string;
   imageAlt: string;
+  audioUrl: string;
   scenario: string;
   hint: string;
   choices: Choice[];
@@ -45,6 +47,7 @@ const emptyForm: FormState = {
   sceneKey: "school",
   imageUrl: "",
   imageAlt: "Japanese situational scene",
+  audioUrl: "",
   scenario: "",
   hint: "",
   choices: Array.from({ length: 4 }, () => ({ japanese: "", romaji: "" })),
@@ -65,6 +68,7 @@ export default function AdminSituationalContentPage({
   const [message, setMessage] = useState("");
   const [saving, setSaving] = useState(false);
   const [uploadingImage, setUploadingImage] = useState(false);
+  const [uploadingAudio, setUploadingAudio] = useState(false);
 
   const filtered = useMemo(
     () => questions.filter((item) => item.gameType === gameType),
@@ -139,6 +143,28 @@ export default function AdminSituationalContentPage({
     }
   };
 
+  const uploadSceneAudio = async (file?: File) => {
+    if (!file) return;
+    setUploadingAudio(true);
+    setMessage("");
+    try {
+      const body = new FormData();
+      body.append("file", file);
+      const response = await fetch(`${API_URL}/api/situational/media`, {
+        method: "POST",
+        body,
+      });
+      if (!response.ok) throw new Error(`Server returned ${response.status}`);
+      const result = (await response.json()) as { url: string };
+      setForm((current) => ({ ...current, audioUrl: result.url }));
+      setMessage("Moment audio uploaded. Save the mission to keep it.");
+    } catch {
+      setMessage("Moment audio could not be uploaded. Use MP3, M4A, WAV, or OGG and check the backend.");
+    } finally {
+      setUploadingAudio(false);
+    }
+  };
+
   const mediaPreview = (url: string) =>
     !url ? "" : url.startsWith("http") ? url : `${API_URL}${url}`;
 
@@ -194,6 +220,7 @@ export default function AdminSituationalContentPage({
       ...question,
       imageUrl: question.imageUrl || "",
       imageAlt: question.imageAlt || question.location || "Japanese situational scene",
+      audioUrl: question.audioUrl || "",
       choices: [
         ...question.choices,
         ...Array.from(
@@ -449,6 +476,43 @@ export default function AdminSituationalContentPage({
               <img src={mediaPreview(form.imageUrl)} alt={form.imageAlt || "Recognition scene preview"} />
               <button type="button" className="soft-button" onClick={() => setForm({ ...form, imageUrl: "" })}>
                 <X /> Remove uploaded picture
+              </button>
+            </div>
+          )}
+          <label className="wide">
+            Gesture audio URL
+            <input
+              value={form.audioUrl}
+              onChange={(event) =>
+                setForm({ ...form, audioUrl: event.target.value })
+              }
+              placeholder="Upload below or paste a complete HTTPS audio URL"
+            />
+          </label>
+          <label className="wide">
+            Upload gesture audio
+            <input
+              type="file"
+              accept="audio/mpeg,audio/mp4,audio/wav,audio/ogg"
+              disabled={uploadingAudio}
+              onChange={(event) => void uploadSceneAudio(event.target.files?.[0])}
+            />
+            <small>
+              {uploadingAudio
+                ? "Uploading audio..."
+                : "Optional pronunciation or situational audio stored through the backend."}
+            </small>
+          </label>
+          {form.audioUrl && (
+            <div className="wide response-image-preview">
+              <Volume2 size={20} />
+              <audio controls preload="metadata" src={mediaPreview(form.audioUrl)} />
+              <button
+                type="button"
+                className="soft-button"
+                onClick={() => setForm({ ...form, audioUrl: "" })}
+              >
+                <X /> Remove audio
               </button>
             </div>
           )}
