@@ -29,6 +29,10 @@ type Question = {
   secondaryImageUrl: string;
   secondaryImageAlt: string;
   audioUrl: string;
+  speaker: string;
+  characterKey: string;
+  npcLine: string;
+  npcRomaji: string;
   scenario: string;
   secondaryScenario: string;
   hint: string;
@@ -53,6 +57,10 @@ const emptyForm: FormState = {
   secondaryImageUrl: "",
   secondaryImageAlt: "Alternative Japanese gesture",
   audioUrl: "",
+  speaker: "Sumi",
+  characterKey: "SUMI",
+  npcLine: "",
+  npcRomaji: "",
   scenario: "",
   secondaryScenario: "",
   hint: "",
@@ -302,6 +310,10 @@ export default function AdminSituationalContentPage({
       secondaryImageUrl: question.secondaryImageUrl || "",
       secondaryImageAlt: question.secondaryImageAlt || "Second Japanese situation",
       audioUrl: question.audioUrl || "",
+      speaker: question.speaker || (question.characterKey === "HARU" ? "Haru" : "Sumi"),
+      characterKey: question.characterKey || "SUMI",
+      npcLine: question.npcLine || "",
+      npcRomaji: question.npcRomaji || "",
       secondaryScenario: question.secondaryScenario || "",
       choices: [
         ...question.choices,
@@ -453,6 +465,25 @@ export default function AdminSituationalContentPage({
                   }
                   placeholder="Professor, classmate, service staff, or workplace senior"
                 />
+              </label>
+              <label>
+                Character shown in the game
+                <select value={form.characterKey} onChange={(event) => setForm({ ...form, characterKey: event.target.value, speaker: event.target.value === "HARU" ? "Haru" : "Sumi" })}>
+                  <option value="SUMI">Sumi</option>
+                  <option value="HARU">Haru</option>
+                </select>
+              </label>
+              <label>
+                Speaker name
+                <input value={form.speaker} onChange={(event) => setForm({ ...form, speaker: event.target.value })} placeholder="Sumi, Haru, Professor Tanaka..." />
+              </label>
+              <label className="wide">
+                Character dialogue (Japanese)
+                <input lang="ja" required value={form.npcLine} onChange={(event) => setForm({ ...form, npcLine: event.target.value })} placeholder="おはようございます。" />
+              </label>
+              <label className="wide">
+                Character dialogue (romaji)
+                <input required value={form.npcRomaji} onChange={(event) => setForm({ ...form, npcRomaji: event.target.value })} placeholder="Ohayou gozaimasu." />
               </label>
             </>
           )}
@@ -607,7 +638,7 @@ export default function AdminSituationalContentPage({
             </>
           )}
           <label className="wide">
-            {gameType === "EXPRESSION_MATCH" ? "Phrase audio URL (optional)" : "Gesture audio URL"}
+            {gameType === "POLITENESS" ? "Character dialogue audio URL" : gameType === "EXPRESSION_MATCH" ? "Phrase audio URL (optional)" : "Gesture audio URL"}
             <input
               value={form.audioUrl}
               onChange={(event) =>
@@ -617,7 +648,7 @@ export default function AdminSituationalContentPage({
             />
           </label>
           <label className="wide">
-            Upload gesture audio
+            {gameType === "POLITENESS" ? "Upload character dialogue audio" : "Upload gesture audio"}
             <input
               type="file"
               accept="audio/mpeg,audio/mp4,audio/wav,audio/ogg"

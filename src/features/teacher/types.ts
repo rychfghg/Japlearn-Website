@@ -49,6 +49,10 @@ export type CommunicationAnalytics = {
   recognitionAccuracy?: number;
   expressionMatchAccuracy?: number;
   politenessAccuracy?: number;
+  quackamoleAccuracy?: number;
+  quackmanAccuracy?: number;
+  quackslateAccuracy?: number;
+  arcadeCompletedActivities?: number;
   quackTalkPracticeSessions?: number;
   quackTalkPracticeSeconds?: number;
   quackTalkEvaluationStatus?: "PRACTICE_ONLY" | "EVALUATED";
@@ -130,5 +134,10 @@ export type ArcadeScore = {
   name: string;
   game: string;
   score: number;
+  maxScore?: number;
+  correctAnswers?: number;
+  totalQuestions?: number;
+  completed?: boolean;
+  mode?: string;
   date: string;
 };

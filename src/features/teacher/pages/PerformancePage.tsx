@@ -94,6 +94,9 @@ export default function PerformancePage() {
         ["Recognition", analytics.recognitionAccuracy || 0],
         ["Expression Match", analytics.expressionMatchAccuracy || 0],
         ["Politeness", analytics.politenessAccuracy || 0],
+        ["Quack-a-Mole", analytics.quackamoleAccuracy || 0],
+        ["Quackman", analytics.quackmanAccuracy || 0],
+        ["QuackSlate", analytics.quackslateAccuracy || 0],
       ]
     : [];
 
@@ -301,10 +304,10 @@ export default function PerformancePage() {
             arcadeScores.map((score) => (
               <div className="recognition-record-row" key={score.id}>
                 <b>{score.game}</b>
-                <strong>{score.score}</strong>
+                <strong>{score.maxScore ? `${score.score} / ${score.maxScore}` : score.score}</strong>
                 <span>{score.date || "—"}</span>
-                <span>Personal best</span>
-                <i>Recorded</i>
+                <span>{score.totalQuestions ? `${score.correctAnswers || score.score} correct · ${Math.round(((score.correctAnswers || score.score) / score.totalQuestions) * 100)}%` : "Personal best"}</span>
+                <i>{score.mode === "TEACHER_CODED" ? "Teacher-coded" : "Solo"}</i>
               </div>
             ))
           ) : (
