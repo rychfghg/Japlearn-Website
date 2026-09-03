@@ -69,6 +69,15 @@ export type QuackTalkSession = {
   evaluated: boolean;
   score?: number | null;
   practicedAt: string;
+  scenarioTitle?: string;
+  conversationTurns?: number;
+  averagePronunciationScore?: number;
+  averageAccuracyScore?: number;
+  averageFluencyScore?: number;
+  contextualAccuracy?: number;
+  registerPerformance?: string;
+  hintsUsed?: number;
+  feedbackSummary?: string;
 };
 
 export type ReplyCoachAttempt = {
