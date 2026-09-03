@@ -3583,84 +3583,35 @@ a {
   }
 }
 
-/* JapLearn app availability */
-.landing .app-availability {
-  display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: 10px;
-  max-width: 650px;
-  margin-top: 16px;
-}
-.landing .direct-app-download,
-.landing .store-coming-soon {
-  min-height: 68px;
+/* One download action with a compact platform-status note. */
+.landing .download-status {
   display: flex;
   align-items: center;
+  flex-wrap: wrap;
   gap: 11px;
-  padding: 11px 14px;
-  border: 1px solid #e6daec;
-  border-radius: 18px;
-  background: rgba(255, 255, 255, 0.88);
-  box-shadow: 0 10px 26px rgba(61, 30, 75, 0.08);
-  text-decoration: none;
+  max-width: 610px;
+  margin-top: 15px;
+  color: #7b6c81;
+  font-size: 11px;
 }
-.landing .direct-app-download {
-  color: #ffffff;
-  border-color: transparent;
-  background: linear-gradient(135deg, #7d24db, #9b35e8);
-  box-shadow: 0 13px 30px rgba(125, 36, 219, 0.24);
-  transition: transform 0.2s ease, box-shadow 0.2s ease;
+.landing .download-status-ready {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  color: #589736;
 }
-.landing .direct-app-download:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 17px 34px rgba(125, 36, 219, 0.3);
+.landing .download-status-ready svg { width: 15px; }
+.landing .download-status-divider {
+  width: 1px;
+  height: 16px;
+  background: #dacfe0;
 }
-.landing .store-coming-soon {
-  color: #4b3554;
-  cursor: default;
-}
-.landing .availability-icon {
-  width: 39px;
-  height: 39px;
-  flex: 0 0 39px;
-  display: grid;
-  place-items: center;
-  border-radius: 13px;
-  background: rgba(125, 36, 219, 0.1);
-  color: #7d24db;
-}
-.landing .direct-app-download .availability-icon {
-  background: rgba(255, 255, 255, 0.17);
-  color: #ffffff;
-}
-.landing .app-availability span:last-child {
-  min-width: 0;
-  display: grid;
-  gap: 2px;
-}
-.landing .app-availability small {
-  color: #907f98;
-  font-size: 10px;
-  font-weight: 800;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
-}
-.landing .direct-app-download small {
-  color: rgba(255, 255, 255, 0.78);
-}
-.landing .app-availability strong {
-  color: inherit;
-  font-size: 13px;
-  line-height: 1.15;
-}
+.landing .download-status-soon b { color: #6f5f76; }
 @media (max-width: 720px) {
-  .landing .app-availability {
-    grid-template-columns: 1fr;
-  }
-  .landing .direct-app-download,
-  .landing .store-coming-soon {
-    min-height: 62px;
-  }
+  .landing .download-status { align-items: flex-start; }
+  .landing .download-status-divider { display: none; }
+  .landing .download-status-ready,
+  .landing .download-status-soon { width: 100%; }
 }
 
 /* Reply Coach visual-novel authoring studio */

@@ -1,6 +1,5 @@
 import {
   ArrowRight,
-  Apple,
   BarChart3,
   BookOpen,
   CheckCircle2,
@@ -8,7 +7,6 @@ import {
   Gamepad2,
   GraduationCap,
   MessageCircleMore,
-  Play,
   ShieldCheck,
   Sparkles,
   Users,
@@ -141,9 +139,6 @@ export default function Landing() {
             <a href="#experience">App experience</a>
             <a href="#students">Students</a>
             <a href="#teachers">Teachers</a>
-            <a className="nav-download" href={androidDownloadUrl}>
-              <Download size={16} /> Download app
-            </a>
             <Link className="nav-cta" to="/teacher/login">
               Teacher sign in <ArrowRight size={16} />
             </Link>
@@ -173,40 +168,21 @@ export default function Landing() {
           </p>
           <div className="hero-actions">
             <a className="primary apk-download" href={androidDownloadUrl}>
-              <Download size={18} /> Download the app
+              <Download size={18} /> Download for Android
             </a>
             <Link className="secondary" to="/teacher/login">
               Teacher portal
             </Link>
           </div>
-          <div className="app-availability" aria-label="JapLearn app availability">
-            <a className="direct-app-download" href={androidDownloadUrl}>
-              <span className="availability-icon">
-                <Download size={20} />
-              </span>
-              <span>
-                <small>Available now</small>
-                <strong>Android download</strong>
-              </span>
-            </a>
-            <div className="store-coming-soon" aria-disabled="true">
-              <span className="availability-icon">
-                <Play size={19} />
-              </span>
-              <span>
-                <small>Coming soon</small>
-                <strong>Google Play</strong>
-              </span>
-            </div>
-            <div className="store-coming-soon" aria-disabled="true">
-              <span className="availability-icon">
-                <Apple size={20} />
-              </span>
-              <span>
-                <small>Coming soon</small>
-                <strong>App Store</strong>
-              </span>
-            </div>
+          <div className="download-status" aria-label="JapLearn app availability">
+            <span className="download-status-ready">
+              <CheckCircle2 size={16} />
+              <b>Android APK available now</b>
+            </span>
+            <span className="download-status-divider" aria-hidden="true" />
+            <span className="download-status-soon">
+              Google Play and App Store <b>coming soon</b>
+            </span>
           </div>
           <div className="trust-row">
             <span>
@@ -490,7 +466,6 @@ export default function Landing() {
     </main>
   );
 }
-
 
 
 
