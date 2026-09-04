@@ -223,33 +223,31 @@ export default function PerformancePage() {
         </div>
         <div className="recognition-record-table">
           <div className="recognition-record-row heading">
-            <span>Guided scenario / date</span>
-            <span>Practice</span>
-            <span>Speech</span>
-            <span>Conversation</span>
-            <span>Sumi's note</span>
+            <span>Speaking room / date</span>
+            <span>Duration</span>
+            <span>Language</span>
+            <span>Evaluation</span>
+            <span>Status</span>
           </div>
           {talkSessions.length ? (
             talkSessions.map((session) => (
               <div className="recognition-record-row" key={session.id}>
                 <span>
-                  <b>{session.scenarioTitle || session.roomType.replaceAll("_", " ")}</b>
+                  <b>{session.roomType.replaceAll("_", " ")}</b>
                   <br />
                   {new Date(session.practicedAt).toLocaleString()}
                 </span>
                 <b>
                   {Math.floor(session.durationSeconds / 60)}m{" "}
-                  {session.durationSeconds % 60}s · {session.conversationTurns || 0} turns
+                  {session.durationSeconds % 60}s
                 </b>
-                <span>
-                  Pronunciation {session.averagePronunciationScore ?? "—"}<br />
-                  Fluency {session.averageFluencyScore ?? "—"}
-                </span>
+                <span>{session.language}</span>
                 <strong>
-                  Context {session.contextualAccuracy ?? "—"}%<br />
-                  {session.registerPerformance || "Not evaluated"}
+                  {session.evaluated && session.score != null
+                    ? `${session.score}%`
+                    : "Not evaluated"}
                 </strong>
-                <i>{session.feedbackSummary || "Practice saved"}</i>
+                <i>Practice saved</i>
               </div>
             ))
           ) : (

@@ -2,7 +2,6 @@ import { Headphones, Mic2, Radio, TimerReset } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
 import { API_URL } from "../../../lib/api";
 import type { QuackTalkSession } from "../../teacher/types";
-import AdminGuidedPracticeManager from "./AdminGuidedPracticeManager";
 
 export default function AdminQuackTalkPage() {
   const [sessions, setSessions] = useState<QuackTalkSession[]>([]);
@@ -83,8 +82,6 @@ export default function AdminQuackTalkPage() {
       </div>
 
       {error && <div className="admin-error">{error}</div>}
-
-      <AdminGuidedPracticeManager />
 
       <section className="admin-talk-records">
         <div className="admin-talk-toolbar">

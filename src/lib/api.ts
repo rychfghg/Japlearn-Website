@@ -14,7 +14,6 @@ export type User = {
   fname: string;
   lname: string;
   role: string;
-  apiToken?: string;
 };
 
 async function readError(response: Response) {
@@ -81,6 +80,5 @@ export async function loginUser(
     fname: data.fname,
     lname: data.lname,
     role: String(data.role || "").toLowerCase(),
-    apiToken: data.apiToken,
   };
 }
