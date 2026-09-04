@@ -6,14 +6,27 @@ import {
   Languages,
   MessageCircleMore,
   Plus,
+  Sparkles,
   Trash2,
+  Wand2,
 } from "lucide-react";
-import { FormEvent, useEffect, useState } from "react";
+import { FormEvent, useEffect, useRef, useState } from "react";
 import { Link, useSearchParams } from "react-router-dom";
 import PageHeader from "../components/PageHeader";
 import StatusMessage from "../components/StatusMessage";
 import { teacherApi } from "../services/teacherApi";
 import type { ClassRecord, Lesson } from "../types";
+
+const LESSON_TYPES: Record<string, { label: string; tone: string; icon: typeof Languages }> = {
+  KANA: { label: "Kana", tone: "purple", icon: Languages },
+  WORDS: { label: "Words", tone: "green", icon: MessageCircleMore },
+  GRAMMAR: { label: "Grammar", tone: "orange", icon: BookOpen },
+  ENRICHMENT: { label: "Enrichment", tone: "pink", icon: Sparkles },
+};
+
+function typeMeta(type?: string) {
+  return LESSON_TYPES[type || ""] ?? { label: "Lesson", tone: "purple", icon: BookOpen };
+}
 
 export default function LessonsPage() {
   const [params] = useSearchParams();
@@ -25,6 +38,8 @@ export default function LessonsPage() {
   const [description, setDescription] = useState("");
   const [lessonType, setLessonType] = useState("WORDS");
   const [error, setError] = useState("");
+  const composerRef = useRef<HTMLElement>(null);
+  const titleInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     Promise.all([teacherApi.getClasses(), teacherApi.getDatabankLessons()])
@@ -71,6 +86,13 @@ export default function LessonsPage() {
     if (!window.confirm("Delete this lesson?")) return;
     await teacherApi.deleteLesson(lesson.id);
     loadLessons();
+  };
+
+  const useFromDatabank = (lesson: Lesson) => {
+    setTitle(lesson.lessonTitle || lesson.lesson_title || lesson.title || "");
+    setDescription(lesson.lessonDescription || lesson.lesson_description || lesson.description || "");
+    composerRef.current?.scrollIntoView({ behavior: "smooth", block: "center" });
+    titleInputRef.current?.focus();
   };
 
   return (
@@ -139,88 +161,141 @@ export default function LessonsPage() {
         </div>
       </div>
 
-      <div className="lesson-toolbar">
-        <label>
-          Class
-          <select
-            value={classCode}
-            onChange={(event) => setClassCode(event.target.value)}
-          >
-            {classes.map((item) => (
-              <option key={item.classCodes}>{item.classCodes}</option>
-            ))}
-          </select>
-        </label>
-      </div>
-
-      <form className="lesson-create" onSubmit={createLesson}>
-        <span>
-          <Plus />
-        </span>
-        <input
-          value={title}
-          onChange={(event) => setTitle(event.target.value)}
-          placeholder="Lesson title"
-          required
-        />
-        <input
-          value={description}
-          onChange={(event) => setDescription(event.target.value)}
-          placeholder="Short description"
-        />
-        <select
-          value={lessonType}
-          onChange={(event) => setLessonType(event.target.value)}
-        >
-          <option value="KANA">Kana</option>
-          <option value="WORDS">Words</option>
-          <option value="GRAMMAR">Grammar</option>
-          <option value="ENRICHMENT">Enrichment</option>
-        </select>
-        <button>Create lesson</button>
-      </form>
+      <section className="lesson-composer" ref={composerRef}>
+        <header>
+          <div>
+            <span>CUSTOM LESSONS</span>
+            <h3>Add a lesson to a class</h3>
+          </div>
+        </header>
+        <form className="lesson-composer-form" onSubmit={createLesson}>
+          <label>
+            Class
+            <select value={classCode} onChange={(event) => setClassCode(event.target.value)}>
+              {classes.map((item) => (
+                <option key={item.classCodes}>{item.classCodes}</option>
+              ))}
+            </select>
+          </label>
+          <label>
+            Lesson title
+            <input
+              ref={titleInputRef}
+              value={title}
+              onChange={(event) => setTitle(event.target.value)}
+              placeholder="e.g. Ordering at a restaurant"
+              required
+            />
+          </label>
+          <label>
+            Type
+            <select value={lessonType} onChange={(event) => setLessonType(event.target.value)}>
+              <option value="KANA">Kana</option>
+              <option value="WORDS">Words</option>
+              <option value="GRAMMAR">Grammar</option>
+              <option value="ENRICHMENT">Enrichment</option>
+            </select>
+          </label>
+          <label className="lesson-composer-desc">
+            Description
+            <input
+              value={description}
+              onChange={(event) => setDescription(event.target.value)}
+              placeholder="Short description for your students"
+            />
+          </label>
+          <button className="submit" disabled={!classCode}>
+            <Plus /> Create lesson
+          </button>
+        </form>
+      </section>
 
       <div className="lesson-layout">
         <section>
-          <h3>
-            <BookOpen /> Lessons in {classCode || "class"}
-          </h3>
+          <header className="lesson-panel-head">
+            <div>
+              <span>CUSTOM LESSONS</span>
+              <h3><BookOpen /> Lessons in {classCode || "class"}</h3>
+            </div>
+            <small>{lessons.length} lesson{lessons.length === 1 ? "" : "s"}</small>
+          </header>
           <div className="lesson-cards">
-            {lessons.map((lesson) => (
-              <article key={lesson.id}>
-                <span>日</span>
+            {lessons.length ? (
+              lessons.map((lesson) => {
+                const type = lesson.lesson_type;
+                const meta = typeMeta(type);
+                const Icon = meta.icon;
+                return (
+                  <article key={lesson.id}>
+                    <span className={meta.tone}>
+                      <Icon />
+                    </span>
+                    <div>
+                      <b>
+                        {lesson.lessonTitle || lesson.lesson_title || lesson.title}
+                      </b>
+                      <p>
+                        {lesson.lessonDescription ||
+                          lesson.lesson_description ||
+                          lesson.description ||
+                          "Japanese lesson content"}
+                      </p>
+                    </div>
+                    <em className={`lesson-type-tag ${meta.tone}`}>{meta.label}</em>
+                    <button onClick={() => deleteLesson(lesson)} aria-label="Delete lesson">
+                      <Trash2 />
+                    </button>
+                  </article>
+                );
+              })
+            ) : (
+              <div className="lesson-empty">
+                <BookOpen />
                 <div>
-                  <b>
-                    {lesson.lessonTitle || lesson.lesson_title || lesson.title}
-                  </b>
-                  <p>
-                    {lesson.lessonDescription ||
-                      lesson.lesson_description ||
-                      lesson.lesson_type ||
-                      lesson.description ||
-                      "Japanese lesson content"}
-                  </p>
+                  <b>No custom lessons yet</b>
+                  <small>Use the form above, or pull one from the databank on the right.</small>
                 </div>
-                <button onClick={() => deleteLesson(lesson)}>
-                  <Trash2 />
-                </button>
-              </article>
-            ))}
+              </div>
+            )}
           </div>
         </section>
         <aside>
-          <h3>
-            <BookCopy /> Lesson databank
-          </h3>
+          <header className="lesson-panel-head">
+            <div>
+              <span>REUSABLE CONTENT</span>
+              <h3><BookCopy /> Lesson databank</h3>
+            </div>
+            <small>{databank.length} available</small>
+          </header>
           <p>
-            Reusable lessons available through the existing databank endpoint.
+            Pull a ready-made lesson into {classCode || "your class"} instead of
+            writing one from scratch.
           </p>
-          {databank.slice(0, 8).map((lesson) => (
-            <article key={lesson.id}>
-              <b>{lesson.lessonTitle || lesson.title}</b>
-              <small>{lesson.lessonDescription || lesson.description}</small>
-            </article>
-          ))}
+          {databank.length ? (
+            databank.slice(0, 8).map((lesson) => (
+              <article key={lesson.id}>
+                <div>
+                  <b>{lesson.lessonTitle || lesson.title}</b>
+                  <small>{lesson.lessonDescription || lesson.description}</small>
+                </div>
+                <button
+                  type="button"
+                  className="databank-use"
+                  onClick={() => useFromDatabank(lesson)}
+                >
+                  <Wand2 /> Use
+                </button>
+              </article>
+            ))
+          ) : (
+            <div className="lesson-empty">
+              <BookCopy />
+              <div>
+                <b>Databank is empty</b>
+                <small>Reusable lessons will appear here once available.</small>
+              </div>
+            </div>
+          )}
         </aside>
       </div>
     </section>

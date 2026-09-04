@@ -20,15 +20,7 @@ import mascot from "../../../assets/hello.png";
 import { session } from "../../../lib/auth";
 import { teacherApi } from "../services/teacherApi";
 import type { ClassRecord, Student, StudentLessonProgress } from "../types";
-
-const LESSON_STAGES = [
-  { key: "hiragana", label: "Hiragana", fields: ["hiragana1", "hiragana2", "hiragana3"] as const },
-  { key: "katakana", label: "Katakana", fields: ["katakana1", "katakana2", "katakana3"] as const },
-  { key: "vocab", label: "Vocabulary", fields: ["vocab1", "vocab2", "vocab3"] as const },
-  { key: "sentence", label: "Grammar", fields: ["sentence"] as const },
-] satisfies Array<{ key: string; label: string; fields: ReadonlyArray<keyof StudentLessonProgress> }>;
-
-const ALL_LESSON_FIELDS = LESSON_STAGES.flatMap((stage) => stage.fields);
+import { LESSON_STAGES, masteryPercent, progressMapByEmail } from "../utils/mastery";
 
 export default function OverviewPage() {
   const user = session.get()!;
@@ -56,21 +48,14 @@ export default function OverviewPage() {
     ? Math.round((studentsWithClasses / students.length) * 100)
     : 0;
 
-  const progressByEmail = useMemo(() => {
-    const map = new Map<string, StudentLessonProgress>();
-    lessonProgress.forEach((entry) => map.set(entry.email, entry));
-    return map;
-  }, [lessonProgress]);
+  const progressByEmail = useMemo(() => progressMapByEmail(lessonProgress), [lessonProgress]);
 
   const studentMastery = useMemo(
     () =>
-      students.map((student) => {
-        const progress = progressByEmail.get(student.email);
-        const completed = progress
-          ? ALL_LESSON_FIELDS.filter((field) => progress[field]).length
-          : 0;
-        return { ...student, percent: Math.round((completed / ALL_LESSON_FIELDS.length) * 100) };
-      }),
+      students.map((student) => ({
+        ...student,
+        percent: masteryPercent(progressByEmail.get(student.email)),
+      })),
     [students, progressByEmail],
   );
 

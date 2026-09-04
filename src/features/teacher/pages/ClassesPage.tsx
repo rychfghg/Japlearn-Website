@@ -1,12 +1,15 @@
-import { ChevronRight, GraduationCap, Plus, Search, Trash2, X } from "lucide-react";
+import { ChevronRight, GraduationCap, Plus, Search, Trash2, Users, X } from "lucide-react";
 import { FormEvent, useEffect, useMemo, useState } from "react";
 import { Link } from "react-router-dom";
 import StatusMessage from "../components/StatusMessage";
 import { teacherApi } from "../services/teacherApi";
-import type { ClassRecord } from "../types";
+import type { ClassRecord, Student, StudentLessonProgress } from "../types";
+import { masteryPercent, progressMapByEmail } from "../utils/mastery";
 
 export default function ClassesPage() {
   const [classes, setClasses] = useState<ClassRecord[]>([]);
+  const [students, setStudents] = useState<Student[]>([]);
+  const [lessonProgress, setLessonProgress] = useState<StudentLessonProgress[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [modalOpen, setModalOpen] = useState(false);
@@ -33,12 +36,35 @@ export default function ClassesPage() {
 
   useEffect(() => {
     loadClasses();
+    Promise.all([teacherApi.getAllStudents(), teacherApi.getAllLessonProgress()])
+      .then(([studentData, progressData]) => {
+        setStudents(studentData);
+        setLessonProgress(progressData);
+      })
+      .catch(() => undefined);
   }, []);
 
   const filteredClasses = useMemo(() => {
     const query = search.trim().toLowerCase();
     return classes.filter((item) => item.classCodes.toLowerCase().includes(query));
   }, [classes, search]);
+
+  const progressByEmail = useMemo(() => progressMapByEmail(lessonProgress), [lessonProgress]);
+
+  const classStats = useMemo(() => {
+    const map = new Map<string, { count: number; avgMastery: number }>();
+    classes.forEach((item) => {
+      const roster = students.filter((student) => student.classCode === item.classCodes);
+      const avgMastery = roster.length
+        ? Math.round(
+            roster.reduce((sum, student) => sum + masteryPercent(progressByEmail.get(student.email)), 0) /
+              roster.length,
+          )
+        : 0;
+      map.set(item.classCodes, { count: roster.length, avgMastery });
+    });
+    return map;
+  }, [classes, students, progressByEmail]);
 
   const createClass = async (event: FormEvent) => {
     event.preventDefault();
@@ -95,16 +121,27 @@ export default function ClassesPage() {
         <div className="skeleton-list tall" />
       ) : filteredClasses.length > 0 ? (
         <div className="class-grid">
-          {filteredClasses.map((classItem, index) => (
+          {filteredClasses.map((classItem, index) => {
+            const stats = classStats.get(classItem.classCodes) ?? { count: 0, avgMastery: 0 };
+            return (
             <article className={`class-directory-card accent-${index % 4}`} key={classItem.classCodes}>
               <div className="class-card-heading">
                 <span className="class-kanji">{["日", "本", "語", "学"][index % 4]}</span>
-                <span className="class-ready"><i /> Active</span>
+                {stats.count > 0 ? (
+                  <span className="class-ready"><i /> Active</span>
+                ) : (
+                  <span className="class-ready muted"><i /> Awaiting learners</span>
+                )}
                 <small>CLASS {String(index + 1).padStart(2, "0")}</small>
               </div>
               <div className="class-card-content">
                 <h3>{classItem.classCodes}</h3>
-                <p>Japanese learning classroom</p>
+                <div className="class-card-stats">
+                  <span><Users /> {stats.count} learner{stats.count === 1 ? "" : "s"}</span>
+                  {stats.count > 0 && (
+                    <span className="class-card-mastery"><b>{stats.avgMastery}%</b> mastery</span>
+                  )}
+                </div>
               </div>
               <div className="class-card-footer">
                   <Link
@@ -123,7 +160,8 @@ export default function ClassesPage() {
                   </button>
               </div>
             </article>
-          ))}
+            );
+          })}
         </div>
       ) : classes.length === 0 ? (
         <div className="empty">

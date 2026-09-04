@@ -3,6 +3,14 @@ import { FormEvent, useEffect, useMemo, useState } from "react";
 import StatusMessage from "../components/StatusMessage";
 import { teacherApi } from "../services/teacherApi";
 import type { ClassRecord, Student, StudentLessonProgress } from "../types";
+import { masteryPercent } from "../utils/mastery";
+
+function statusFor(percent: number): { label: string; tone: string } {
+  if (percent >= 80) return { label: "Mastering", tone: "mastering" };
+  if (percent >= 40) return { label: "Progressing", tone: "progressing" };
+  if (percent > 0) return { label: "Starting out", tone: "starting" };
+  return { label: "Not started", tone: "none" };
+}
 
 export default function StudentsPage() {
   const [classes, setClasses] = useState<ClassRecord[]>([]);
@@ -183,10 +191,16 @@ export default function StudentsPage() {
               </tr>
             </thead>
             <tbody>
-              {filteredStudents.map((student) => (
+              {filteredStudents.map((student, index) => {
+                const progress = lessonProgress.find(
+                  (item) => item.email?.toLowerCase() === student.email?.toLowerCase(),
+                );
+                const percent = masteryPercent(progress);
+                const status = statusFor(percent);
+                return (
                 <tr key={student.id || student.email}>
                   <td>
-                    <span className="student-avatar">
+                    <span className={`student-avatar tone-${(index % 4) + 1}`}>
                       {student.fname?.[0]}
                       {student.lname?.[0]}
                     </span>
@@ -199,38 +213,15 @@ export default function StudentsPage() {
                     {student.classCode || selectedClass || "Not assigned"}
                   </td>
                   <td>
-                    <span className="active-status">Active</span>
+                    <span className={`student-status-pill tone-${status.tone}`}>{status.label}</span>
                   </td>
                   <td>
-                    {(() => {
-                      const progress = lessonProgress.find(
-                        (item) =>
-                          item.email.toLowerCase() ===
-                          student.email.toLowerCase(),
-                      );
-                      const kanaComplete = Boolean(
-                        progress?.hiragana1 &&
-                        progress?.hiragana2 &&
-                        progress?.hiragana3 &&
-                        progress?.katakana1 &&
-                        progress?.katakana2 &&
-                        progress?.katakana3,
-                      );
-                      const wordsComplete = Boolean(
-                        progress?.vocab1 && progress?.vocab2 && progress?.vocab3,
-                      );
-                      const grammarComplete = Boolean(progress?.sentence);
-                      const completed = [
-                        kanaComplete,
-                        wordsComplete,
-                        grammarComplete,
-                      ].filter(Boolean).length;
-                      return (
-                        <span className="lesson-progress-status">
-                          {completed} / 3 core lessons
-                        </span>
-                      );
-                    })()}
+                    <div className="student-progress-cell">
+                      <div className="mastery-bar-track small">
+                        <div className="mastery-bar-fill" style={{ width: `${percent}%` }} />
+                      </div>
+                      <b>{percent}%</b>
+                    </div>
                   </td>
                   <td>
                     {selectedClass && (
@@ -245,7 +236,8 @@ export default function StudentsPage() {
                     )}
                   </td>
                 </tr>
-              ))}
+                );
+              })}
             </tbody>
           </table>
         </div>
