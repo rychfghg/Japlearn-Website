@@ -5454,3 +5454,187 @@ a {
   .tool-metrics { width: 100%; }
   .tool-metrics > div { flex: 1; }
 }
+
+/* =======================================================================
+   Lesson masterlist - progress matrix
+   Ten verbose status columns become grouped milestone dots with a
+   sticky student column and sticky headers.
+   ======================================================================= */
+.matrix-shell {
+  border: 1px solid #e8dfee;
+  border-radius: 24px;
+  background: #fff;
+  box-shadow: 0 10px 30px rgba(59,31,72,.05);
+  overflow: hidden;
+}
+.matrix-wrap { overflow: auto; max-height: 66vh; }
+.matrix-table { width: 100%; border-collapse: separate; border-spacing: 0; }
+
+.matrix-table th, .matrix-table td { background: #fff; }
+.matrix-table thead th {
+  position: sticky;
+  top: 0;
+  z-index: 3;
+  padding: 11px 10px;
+  background: #faf7fc;
+  border-bottom: 1px solid #ece4f0;
+  color: #7c6e82;
+  font-size: 9px;
+  font-weight: 900;
+  letter-spacing: .7px;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+.matrix-table thead tr:nth-child(2) th { top: 38px; z-index: 3; }
+.matrix-group {
+  text-align: center;
+  border-left: 1px solid #ece4f0;
+  color: #fff !important;
+}
+.matrix-group span {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 5px 11px;
+  border-radius: 999px;
+  font-size: 9px;
+  font-weight: 900;
+  letter-spacing: .6px;
+}
+.matrix-group.tone-1 span { background: #efe5fa; color: #7827ce; }
+.matrix-group.tone-2 span { background: #edf7e6; color: #57952e; }
+.matrix-group.tone-3 span { background: #fff1dc; color: #d8841c; }
+.matrix-group.tone-4 span { background: #fbe7ee; color: #c64978; }
+.matrix-step { width: 42px; text-align: center; color: #a294a8; font-size: 8px; }
+.matrix-step.first { border-left: 1px solid #ece4f0; }
+
+.matrix-table tbody td {
+  padding: 11px 10px;
+  border-bottom: 1px solid #f4eef7;
+  font-size: 11px;
+  vertical-align: middle;
+}
+.matrix-table tbody tr:hover td { background: #fdfaff; }
+.matrix-table tbody tr:last-child td { border-bottom: 0; }
+
+.matrix-sticky {
+  position: sticky;
+  left: 0;
+  z-index: 2;
+  min-width: 218px;
+  box-shadow: 8px 0 14px -12px rgba(46,23,56,.4);
+}
+.matrix-table thead .matrix-sticky { z-index: 4; }
+.matrix-table tbody tr:hover .matrix-sticky { background: #fdfaff; }
+
+.matrix-student { display: flex; align-items: center; gap: 10px; min-width: 0; }
+.matrix-student > span {
+  width: 34px;
+  height: 34px;
+  flex: none;
+  display: grid;
+  place-items: center;
+  border-radius: 12px;
+  background: #eee3f8;
+  color: #7828d0;
+  font: 900 10px "Nunito";
+}
+.matrix-student.tone-2 > span { background: #edf7e6; color: #57952e; }
+.matrix-student.tone-3 > span { background: #fff1dc; color: #d8841c; }
+.matrix-student.tone-4 > span { background: #fbe7ee; color: #c64978; }
+.matrix-student div { min-width: 0; }
+.matrix-student b { display: block; color: #3b2744; font-size: 11px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.matrix-student small { display: block; margin-top: 1px; color: #97899d; font-size: 8px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+
+.matrix-class {
+  display: inline-block;
+  padding: 4px 9px;
+  border-radius: 999px;
+  background: #f3ecf8;
+  color: #6f3aa0;
+  font-size: 8px;
+  font-weight: 900;
+  white-space: nowrap;
+}
+.matrix-class.none { background: #f4f1f6; color: #9a8da0; }
+
+.matrix-progress { display: flex; align-items: center; gap: 9px; min-width: 128px; }
+.matrix-progress .mastery-bar-track { flex: 1; min-width: 56px; }
+.matrix-progress b { flex: none; color: #382141; font: 900 10px "Nunito"; }
+
+.matrix-cell { text-align: center; }
+.matrix-cell.first { border-left: 1px solid #f4eef7; }
+.matrix-dot {
+  width: 22px;
+  height: 22px;
+  display: inline-grid;
+  place-items: center;
+  border-radius: 50%;
+  background: #f2edf5;
+  color: #cfc3d5;
+  border: 1px solid #eae2ee;
+}
+.matrix-dot svg { width: 13px; }
+.matrix-dot.done { background: #eaf7e1; border-color: #cfe9bb; color: #5b9c34; }
+.matrix-dot.done.tone-1 { background: #f0e6fa; border-color: #ddc9f0; color: #7827ce; }
+.matrix-dot.done.tone-2 { background: #eaf7e1; border-color: #cfe9bb; color: #57952e; }
+.matrix-dot.done.tone-3 { background: #fff1dc; border-color: #f3ddba; color: #d8841c; }
+.matrix-dot.done.tone-4 { background: #fbe7ee; border-color: #f2ccda; color: #c64978; }
+
+.matrix-score { white-space: nowrap; color: #382141; font: 900 11px "Nunito"; text-align: right; }
+.matrix-score small { display: block; margin-top: 1px; color: #a294a8; font-size: 8px; font-weight: 800; }
+.matrix-status {
+  display: inline-flex;
+  padding: 5px 10px;
+  border-radius: 999px;
+  font-size: 8px;
+  font-weight: 900;
+  white-space: nowrap;
+}
+.matrix-status.done { background: #ebf7e5; color: #5b9439; }
+.matrix-status.partial { background: #f1e8fa; color: #7326ca; }
+.matrix-status.none { background: #f2eef4; color: #8a7c90; }
+
+.matrix-foot {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 16px;
+  padding: 14px 20px;
+  border-top: 1px solid #f1eaf4;
+  background: #fdfbfe;
+}
+.matrix-foot span { display: inline-flex; align-items: center; gap: 7px; color: #8a7c90; font-size: 9px; font-weight: 800; }
+.matrix-foot .matrix-dot { width: 18px; height: 18px; }
+.matrix-foot .matrix-dot svg { width: 11px; }
+.matrix-foot em { margin-left: auto; color: #a294a8; font-style: normal; font-size: 9px; font-weight: 800; }
+
+/* toolbar for this page */
+.matrix-toolbar { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
+.matrix-select {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  height: 46px;
+  padding: 0 6px 0 13px;
+  border: 1px solid #e2d8e7;
+  border-radius: 14px;
+  background: #fff;
+}
+.matrix-select > span { color: #a294a8; font-size: 7px; font-weight: 900; letter-spacing: .9px; text-transform: uppercase; white-space: nowrap; }
+.matrix-select select {
+  height: 34px;
+  min-width: 132px;
+  border: 0;
+  outline: 0;
+  background: transparent;
+  color: #3b2744;
+  font: 900 11px "Nunito";
+  cursor: pointer;
+}
+
+@media (max-width: 720px) {
+  .matrix-toolbar > * { width: 100%; }
+  .matrix-select { justify-content: space-between; }
+  .matrix-sticky { min-width: 170px; }
+}
