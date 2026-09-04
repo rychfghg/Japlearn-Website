@@ -63,13 +63,13 @@ export default function Login({ role }: LoginProps) {
         <Brand light />
         <div className="login-scene">
           <div className="login-message">
-            <span>{isTeacher ? "先生、おかえりなさい" : "管理者ポータル"}</span>
+            <span>{isTeacher ? "先生、お疲れ様です" : "管理者ポータル"}</span>
             <b>
-              {isTeacher ? "A clearer view of every learner." : "Your JapLearn command center."}
+              {isTeacher ? "Your classroom, all in one place." : "Your JapLearn command center."}
             </b>
             <p>
               {isTeacher
-                ? "Pick up where you left off—review progress, guide practice, and keep your class moving forward."
+                ? "Sign in to track every student's progress, review their practice, and plan what comes next for your class."
                 : "Manage JapLearn through the authorized administration portal."}
             </p>
             <div className="login-benefits" aria-label="Portal benefits">
@@ -82,8 +82,12 @@ export default function Login({ role }: LoginProps) {
         <div className="secure-note">
           <ShieldCheck />
           <span>
-            <b>Protected workspace</b>
-            <small>Only verified {role} accounts can continue.</small>
+            <b>{isTeacher ? "Your classroom is secure" : "Protected workspace"}</b>
+            <small>
+              {isTeacher
+                ? "Only verified teacher accounts can access student data."
+                : `Only verified ${role} accounts can continue.`}
+            </small>
           </span>
         </div>
       </section>
