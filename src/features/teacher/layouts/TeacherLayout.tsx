@@ -1,7 +1,7 @@
 import {
   Activity,
+  ArrowRight,
   BarChart3,
-  Bell,
   BookOpen,
   GraduationCap,
   LayoutDashboard,
@@ -15,7 +15,7 @@ import {
   Users,
   X,
 } from "lucide-react";
-import { useState } from "react";
+import { type FormEvent, useState } from "react";
 import { NavLink, Outlet, useLocation, useNavigate } from "react-router-dom";
 import Brand from "../../../components/Brand";
 import { session } from "../../../lib/auth";
@@ -54,12 +54,27 @@ const routeTitles: Record<string, string> = {
 
 export default function TeacherLayout() {
   const [menuOpen, setMenuOpen] = useState(false);
+  const [searchQuery, setSearchQuery] = useState("");
+  const [searchFocused, setSearchFocused] = useState(false);
   const navigate = useNavigate();
   const location = useLocation();
   const user = session.get()!;
   const pageTitle = location.pathname.startsWith("/teacher/classes/")
     ? "Classroom"
     : routeTitles[location.pathname] || "Teacher workspace";
+  const searchResults = searchQuery.trim()
+    ? navigation.filter((item) =>
+        `${item.label} ${item.to}`.toLowerCase().includes(searchQuery.trim().toLowerCase()),
+      ).slice(0, 5)
+    : [];
+
+  const submitSearch = (event: FormEvent) => {
+    event.preventDefault();
+    if (!searchResults.length) return;
+    navigate(searchResults[0].to);
+    setSearchQuery("");
+    setSearchFocused(false);
+  };
 
   const logout = () => {
     session.clear();
@@ -140,18 +155,28 @@ export default function TeacherLayout() {
           </div>
 
           <div className="top-tools">
-            <div className="global-search">
+            <form className="global-search" onSubmit={submitSearch} role="search">
               <Search />
-              <input placeholder="Search your workspace…" />
-            </div>
-            <button
-              type="button"
-              className="icon-button"
-              aria-label="Notifications"
-            >
-              <Bell />
-              <i />
-            </button>
+              <input
+                value={searchQuery}
+                onChange={(event) => setSearchQuery(event.target.value)}
+                onFocus={() => setSearchFocused(true)}
+                onBlur={() => window.setTimeout(() => setSearchFocused(false), 120)}
+                placeholder="Search pages and tools…"
+                aria-label="Search teacher workspace"
+              />
+              {searchFocused && searchQuery.trim() && (
+                <div className="global-search-results">
+                  {searchResults.length ? searchResults.map(({ to, label, icon: Icon }) => (
+                    <button key={to} type="button" onMouseDown={() => navigate(to)}>
+                      <Icon />
+                      <span><b>{label}</b><small>Open workspace page</small></span>
+                      <ArrowRight />
+                    </button>
+                  )) : <p>No matching workspace page</p>}
+                </div>
+              )}
+            </form>
             <NavLink to="/teacher/profile" className="profile-chip">
               <span>
                 {user.fname?.[0]}
