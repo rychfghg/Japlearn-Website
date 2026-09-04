@@ -3,7 +3,6 @@ import {
   GraduationCap,
   Plus,
   Search,
-  Sparkles,
   Trash2,
   X,
 } from "lucide-react";
@@ -123,26 +122,12 @@ export default function ClassesPage() {
 
   return (
     <section className="class-directory-page">
-      <div className="hero-banner">
-        <span className="hero-glyph">教</span>
-        <div className="hero-top">
-          <div>
-            <span className="hero-kicker"><Sparkles /> MY CLASSES</span>
-            <h2>Your classrooms</h2>
-            <p>Everything you need to organize and open your classes.</p>
-          </div>
-          <button type="button" className="hero-action" onClick={() => setModalOpen(true)}>
-            <Plus /> New class
-          </button>
-        </div>
-        <div className="hero-stats">
-          <div><b>{classes.length}</b><small>Active classes</small></div>
-          <div><b>{enrolled}</b><small>Enrolled learners</small></div>
+      <div className="tool-bar">
+        <div className="tool-metrics">
+          <div><b>{classes.length}</b><small>Classes</small></div>
+          <div><b>{enrolled}</b><small>Learners</small></div>
           <div><b>{overallMastery}%</b><small>Avg. mastery</small></div>
         </div>
-      </div>
-
-      <div className="tool-bar">
         <label className="tool-search">
           <Search />
           <input
@@ -157,6 +142,9 @@ export default function ClassesPage() {
             </button>
           )}
         </label>
+        <button type="button" className="head-action" onClick={() => setModalOpen(true)}>
+          <Plus /> New class
+        </button>
       </div>
 
       {error && <StatusMessage>{error}</StatusMessage>}

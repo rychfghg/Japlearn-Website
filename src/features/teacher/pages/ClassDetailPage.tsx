@@ -9,6 +9,7 @@ import {
 } from "lucide-react";
 import { FormEvent, useEffect, useMemo, useState } from "react";
 import { Link, useParams } from "react-router-dom";
+import PageHeader from "../components/PageHeader";
 import StatusMessage from "../components/StatusMessage";
 import { teacherApi } from "../services/teacherApi";
 import type { Lesson, Student, StudentLessonProgress } from "../types";
@@ -86,27 +87,27 @@ export default function ClassDetailPage() {
 
   return (
     <section className="class-detail-page">
-      <div className="hero-banner">
-        <span className="hero-glyph">組</span>
-        <Link className="hero-back" to="/teacher/classes">
-          <ChevronLeft /> Back to classes
-        </Link>
-        <div className="hero-top">
-          <div>
-            <span className="hero-kicker"><GraduationCap /> ACTIVE CLASSROOM</span>
-            <h2>{decodedCode}</h2>
-            <p>Manage live enrollment, lessons, and interactive activities for this class.</p>
-          </div>
+      <Link className="back-inline" to="/teacher/classes">
+        <ChevronLeft /> Back to classes
+      </Link>
+      <PageHeader
+        eyebrow="ACTIVE CLASSROOM"
+        title={decodedCode}
+        description="Manage live enrollment, lessons, and interactive activities for this class."
+        action={
           <Link
-            className="hero-action"
+            className="head-action"
             to={`/teacher/lessons?class=${encodeURIComponent(decodedCode)}`}
           >
             <BookOpen /> Manage lessons
           </Link>
-        </div>
-        <div className="hero-stats">
-          <div><b>{students.length}</b><small>Enrolled learners</small></div>
-          <div><b>{lessons.length}</b><small>Class lessons</small></div>
+        }
+      />
+
+      <div className="tool-bar">
+        <div className="tool-metrics">
+          <div><b>{students.length}</b><small>Learners</small></div>
+          <div><b>{lessons.length}</b><small>Lessons</small></div>
           <div><b>{avgMastery}%</b><small>Avg. mastery</small></div>
         </div>
       </div>

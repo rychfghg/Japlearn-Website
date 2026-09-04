@@ -160,28 +160,6 @@ export default function LessonsPage() {
 
   return (
     <section className="lesson-page">
-      <div className="hero-banner">
-        <span className="hero-glyph">課</span>
-        <div className="hero-top">
-          <div>
-            <span className="hero-kicker"><BookOpen /> LESSON MANAGEMENT</span>
-            <h2>Class lessons</h2>
-            <p>
-              Create original lessons or reference the reusable lesson databank
-              from the mobile teacher workflow.
-            </p>
-          </div>
-          <Link to="/teacher/lessons/progress" className="hero-action">
-            <FileSpreadsheet /> Progress masterlist
-          </Link>
-        </div>
-        <div className="hero-stats">
-          <div><b>10</b><small>Built-in milestones</small></div>
-          <div><b>{lessons.length}</b><small>Custom in {classCode || "class"}</small></div>
-          <div><b>{databank.length}</b><small>Databank lessons</small></div>
-        </div>
-      </div>
-
       {error && <StatusMessage>{error}</StatusMessage>}
 
       <div className="tile-head">
@@ -193,6 +171,9 @@ export default function LessonsPage() {
             and are monitored through their required exercises.
           </p>
         </div>
+        <Link to="/teacher/lessons/progress" className="head-action">
+          <FileSpreadsheet /> Progress masterlist
+        </Link>
       </div>
 
       <div className="path-grid">

@@ -7,6 +7,7 @@ import {
 } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
 import { Link } from "react-router-dom";
+import PageHeader from "../components/PageHeader";
 import { teacherApi } from "../services/teacherApi";
 import type { Student, StudentLessonProgress } from "../types";
 
@@ -133,25 +134,17 @@ export default function LessonProgressPage() {
 
   return (
     <section className="progress-master-page">
-      <div className="hero-banner">
-        <span className="hero-glyph">録</span>
-        <Link className="hero-back" to="/teacher/lessons">
-          <ChevronLeft /> Back to lessons
-        </Link>
-        <div className="hero-top">
-          <div>
-            <span className="hero-kicker"><FileSpreadsheet /> AUTOMATIC CURRICULUM RECORD</span>
-            <h2>Student lesson masterlist</h2>
-            <p>
-              Detailed progress for every built-in JapLearn lesson and its
-              required exercise.
-            </p>
-          </div>
-          <button type="button" className="hero-action" onClick={exportCsv}>
-            <Download /> Export CSV
-          </button>
-        </div>
-        <div className="hero-stats">
+      <Link className="back-inline" to="/teacher/lessons">
+        <ChevronLeft /> Back to lessons
+      </Link>
+      <PageHeader
+        eyebrow="AUTOMATIC CURRICULUM RECORD"
+        title="Student lesson masterlist"
+        description="Detailed progress for every built-in JapLearn lesson and its required exercise."
+      />
+
+      <div className="tool-bar">
+        <div className="tool-metrics">
           <div><b>{filteredRows.length}</b><small>Students shown</small></div>
           <div><b>{avgCompletion}%</b><small>Avg. completion</small></div>
           <div><b>{fullyComplete}</b><small>Fully complete</small></div>
@@ -198,6 +191,9 @@ export default function LessonProgressPage() {
             placeholder="Search student, email, or class…"
           />
         </div>
+        <button onClick={exportCsv}>
+          <Download /> Export CSV for Excel
+        </button>
       </div>
       <div className="score-guide">
         <FileSpreadsheet />

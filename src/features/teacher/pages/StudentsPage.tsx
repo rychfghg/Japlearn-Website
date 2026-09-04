@@ -1,5 +1,6 @@
 import { Search, Trash2, UserPlus, Users, X } from "lucide-react";
 import { FormEvent, useEffect, useMemo, useState } from "react";
+import ClassFilter from "../components/ClassFilter";
 import StatusMessage from "../components/StatusMessage";
 import { teacherApi } from "../services/teacherApi";
 import type { ClassRecord, Student, StudentLessonProgress } from "../types";
@@ -15,6 +16,8 @@ function statusFor(percent: number): { label: string; tone: string } {
 export default function StudentsPage() {
   const [classes, setClasses] = useState<ClassRecord[]>([]);
   const [students, setStudents] = useState<Student[]>([]);
+  /** Unfiltered roster, kept so the class picker can show accurate counts. */
+  const [allStudents, setAllStudents] = useState<Student[]>([]);
   const [lessonProgress, setLessonProgress] = useState<StudentLessonProgress[]>(
     [],
   );
@@ -34,6 +37,7 @@ export default function StudentsPage() {
         ]);
         setClasses(classData);
         setStudents(studentData);
+        setAllStudents(studentData);
         Promise.allSettled(
           studentData.map((student) =>
             teacherApi.getLessonProgress(student.email),
@@ -63,7 +67,10 @@ export default function StudentsPage() {
     if (!selectedClass) {
       teacherApi
         .getAllStudents()
-        .then(setStudents)
+        .then((studentData) => {
+          setStudents(studentData);
+          setAllStudents(studentData);
+        })
         .catch(() => undefined);
       return;
     }
@@ -97,10 +104,15 @@ export default function StudentsPage() {
     [filteredStudents, lessonProgress],
   );
 
-  const connected = students.filter((student) => student.classCode || selectedClass).length;
-  const avgMastery = rows.length
-    ? Math.round(rows.reduce((sum, row) => sum + row.percent, 0) / rows.length)
-    : 0;
+  /** Learner count per class code, always taken from the unfiltered roster. */
+  const classCounts = useMemo(() => {
+    const map = new Map<string, number>();
+    allStudents.forEach((student) => {
+      if (!student.classCode) return;
+      map.set(student.classCode, (map.get(student.classCode) ?? 0) + 1);
+    });
+    return map;
+  }, [allStudents]);
 
   const addStudent = async (event: FormEvent) => {
     event.preventDefault();
@@ -142,44 +154,16 @@ export default function StudentsPage() {
 
   return (
     <section className="student-directory-page">
-      <div className="hero-banner">
-        <span className="hero-glyph">生</span>
-        <div className="hero-top">
-          <div>
-            <span className="hero-kicker"><Users /> LEARNER DIRECTORY</span>
-            <h2>Students</h2>
-            <p>Find learners and manage enrollment from one focused view.</p>
-          </div>
-        </div>
-        <div className="hero-stats">
-          <div><b>{students.length}</b><small>{selectedClass ? `In ${selectedClass}` : "Learners shown"}</small></div>
-          <div><b>{connected}</b><small>Connected</small></div>
-          <div><b>{avgMastery}%</b><small>Avg. mastery</small></div>
-        </div>
-      </div>
-
       {error && <StatusMessage>{error}</StatusMessage>}
 
       <div className="tool-bar">
-        <div className="chip-row">
-          <button
-            type="button"
-            className={`chip ${selectedClass ? "" : "on"}`}
-            onClick={() => setSelectedClass("")}
-          >
-            All students <i>{students.length}</i>
-          </button>
-          {classes.map((item) => (
-            <button
-              key={item.classCodes}
-              type="button"
-              className={`chip ${selectedClass === item.classCodes ? "on" : ""}`}
-              onClick={() => setSelectedClass(item.classCodes)}
-            >
-              {item.classCodes}
-            </button>
-          ))}
-        </div>
+        <ClassFilter
+          value={selectedClass}
+          classes={classes}
+          counts={classCounts}
+          totalCount={allStudents.length}
+          onChange={setSelectedClass}
+        />
         <label className="tool-search">
           <Search />
           <input

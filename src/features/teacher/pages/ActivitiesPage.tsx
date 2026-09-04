@@ -6,6 +6,7 @@ import {
   Smartphone,
 } from "lucide-react";
 import { Link } from "react-router-dom";
+import PageHeader from "../components/PageHeader";
 
 const families = [
   {
@@ -34,24 +35,11 @@ const families = [
 export default function ActivitiesPage() {
   return (
     <section className="activities-page">
-      <div className="hero-banner">
-        <span className="hero-glyph">遊</span>
-        <div className="hero-top">
-          <div>
-            <span className="hero-kicker"><Gamepad2 /> ACTIVITY MANAGEMENT</span>
-            <h2>Interactive learning activities</h2>
-            <p>
-              Access the activity families already managed by the React Native
-              teacher application.
-            </p>
-          </div>
-        </div>
-        <div className="hero-stats">
-          <div><b>3</b><small>Activity families</small></div>
-          <div><b>1</b><small>Live session tool</small></div>
-          <div><b>3</b><small>Communication tools</small></div>
-        </div>
-      </div>
+      <PageHeader
+        eyebrow="ACTIVITY MANAGEMENT"
+        title="Interactive learning activities"
+        description="Access the activity families already managed by the React Native teacher application."
+      />
 
       <div className="tile-head">
         <div>
