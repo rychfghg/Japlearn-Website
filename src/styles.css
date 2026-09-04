@@ -4181,6 +4181,36 @@ a {
 .overview-ring small { color: #9a8da0; font-size: 8px; }
 .overview-insight-panel p { display: flex; gap: 6px; align-items: flex-start; margin: 0 0 15px; color: #817486; font-size: 9px; line-height: 1.5; }
 .overview-insight-panel p svg { width: 14px; flex: none; color: #6aaa3e; }
+
+/* Class-wide curriculum mastery breakdown */
+.overview-mastery {
+  margin-top: 16px;
+  padding: 22px;
+  border: 1px solid #e8dfee;
+  border-radius: 23px;
+  background: #fff;
+  box-shadow: 0 10px 30px rgba(59,31,72,.045);
+}
+.overview-mastery header { display: flex; align-items: center; justify-content: space-between; gap: 14px; margin-bottom: 16px; }
+.overview-mastery header a { display: flex; align-items: center; gap: 6px; color: #7626ca; font-size: 10px; font-weight: 900; }
+.overview-mastery header a svg { width: 14px; }
+.mastery-bars { display: grid; gap: 14px; }
+.mastery-bar-label { display: flex; align-items: center; justify-content: space-between; margin-bottom: 6px; }
+.mastery-bar-label span { color: #5a4d61; font-size: 11px; font-weight: 800; }
+.mastery-bar-label b { color: #382141; font: 900 12px Nunito, sans-serif; }
+.mastery-bar-track { height: 9px; border-radius: 999px; background: #f0e9f5; overflow: hidden; }
+.mastery-bar-fill { height: 100%; border-radius: 999px; background: linear-gradient(90deg,#9350e0,#7626ca); transition: width .4s ease; }
+
+/* Students who need a nudge, surfaced from the enrollment panel */
+.overview-attention { width: 100%; margin-top: 18px; padding-top: 16px; border-top: 1px dashed #e8dfee; text-align: left; }
+.overview-attention-title { display: flex; align-items: center; gap: 6px; color: #c6552e; font-size: 9px; font-weight: 900; letter-spacing: 1px; }
+.overview-attention-title svg { width: 13px; }
+.overview-attention ul { list-style: none; margin: 10px 0 0; padding: 0; display: grid; gap: 8px; }
+.overview-attention li { display: flex; align-items: center; justify-content: space-between; gap: 8px; padding: 8px 10px; border-radius: 12px; background: #fdf6f3; }
+.overview-attention li b, .overview-attention li small { display: block; }
+.overview-attention li b { color: #44304d; font-size: 10px; }
+.overview-attention li small { color: #96899c; font-size: 8px; margin-top: 1px; }
+.overview-attention li > span { flex: none; color: #c6552e; font: 900 11px Nunito, sans-serif; }
 .overview-actions-head { margin-top: 28px; }
 .overview-action-cards { margin-top: 0; gap: 14px; }
 .overview-action-cards a { min-height: 92px; padding: 18px; border-radius: 20px; transition: transform .2s ease, box-shadow .2s ease, border-color .2s ease; }
@@ -4223,6 +4253,7 @@ a {
   .overview-dashboard-grid { grid-template-columns: 1fr; }
   .overview-insight-panel { display: grid; grid-template-columns: 1fr auto; text-align: left; }
   .overview-insight-panel .overview-ring { grid-row: 1/5; grid-column: 2; margin: 0 10px 0 30px; }
+  .overview-attention { grid-column: 1/-1; }
 }
 @media (max-width: 720px) {
   .portal:has(.welcome-card) .page-body { padding: 20px 18px 45px; }

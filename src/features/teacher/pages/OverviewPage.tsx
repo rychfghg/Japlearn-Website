@@ -1,5 +1,6 @@
 import {
   Activity,
+  AlertCircle,
   ArrowRight,
   BarChart3,
   BookOpen,
@@ -13,23 +14,38 @@ import {
   TrendingUp,
   Users,
 } from "lucide-react";
-import { type CSSProperties, useEffect, useState } from "react";
+import { type CSSProperties, useEffect, useMemo, useState } from "react";
 import { Link } from "react-router-dom";
 import mascot from "../../../assets/hello.png";
 import { session } from "../../../lib/auth";
 import { teacherApi } from "../services/teacherApi";
-import type { ClassRecord, Student } from "../types";
+import type { ClassRecord, Student, StudentLessonProgress } from "../types";
+
+const LESSON_STAGES = [
+  { key: "hiragana", label: "Hiragana", fields: ["hiragana1", "hiragana2", "hiragana3"] as const },
+  { key: "katakana", label: "Katakana", fields: ["katakana1", "katakana2", "katakana3"] as const },
+  { key: "vocab", label: "Vocabulary", fields: ["vocab1", "vocab2", "vocab3"] as const },
+  { key: "sentence", label: "Grammar", fields: ["sentence"] as const },
+] satisfies Array<{ key: string; label: string; fields: ReadonlyArray<keyof StudentLessonProgress> }>;
+
+const ALL_LESSON_FIELDS = LESSON_STAGES.flatMap((stage) => stage.fields);
 
 export default function OverviewPage() {
   const user = session.get()!;
   const [classes, setClasses] = useState<ClassRecord[]>([]);
   const [students, setStudents] = useState<Student[]>([]);
+  const [lessonProgress, setLessonProgress] = useState<StudentLessonProgress[]>([]);
 
   useEffect(() => {
-    Promise.all([teacherApi.getClasses(), teacherApi.getAllStudents()])
-      .then(([classData, studentData]) => {
+    Promise.all([
+      teacherApi.getClasses(),
+      teacherApi.getAllStudents(),
+      teacherApi.getAllLessonProgress(),
+    ])
+      .then(([classData, studentData, progressData]) => {
         setClasses(classData);
         setStudents(studentData);
+        setLessonProgress(progressData);
       })
       .catch(() => undefined);
   }, []);
@@ -39,6 +55,51 @@ export default function OverviewPage() {
   const enrollmentRate = students.length
     ? Math.round((studentsWithClasses / students.length) * 100)
     : 0;
+
+  const progressByEmail = useMemo(() => {
+    const map = new Map<string, StudentLessonProgress>();
+    lessonProgress.forEach((entry) => map.set(entry.email, entry));
+    return map;
+  }, [lessonProgress]);
+
+  const studentMastery = useMemo(
+    () =>
+      students.map((student) => {
+        const progress = progressByEmail.get(student.email);
+        const completed = progress
+          ? ALL_LESSON_FIELDS.filter((field) => progress[field]).length
+          : 0;
+        return { ...student, percent: Math.round((completed / ALL_LESSON_FIELDS.length) * 100) };
+      }),
+    [students, progressByEmail],
+  );
+
+  const avgMastery = studentMastery.length
+    ? Math.round(studentMastery.reduce((sum, student) => sum + student.percent, 0) / studentMastery.length)
+    : 0;
+
+  const stageStats = useMemo(
+    () =>
+      LESSON_STAGES.map((stage) => {
+        if (!students.length) return { ...stage, percent: 0 };
+        const total = students.reduce((sum, student) => {
+          const progress = progressByEmail.get(student.email);
+          const completed = progress ? stage.fields.filter((field) => progress[field]).length : 0;
+          return sum + completed / stage.fields.length;
+        }, 0);
+        return { ...stage, percent: Math.round((total / students.length) * 100) };
+      }),
+    [students, progressByEmail],
+  );
+
+  const needsAttention = useMemo(
+    () =>
+      studentMastery
+        .filter((student) => student.classCode && student.percent < 100)
+        .sort((a, b) => a.percent - b.percent)
+        .slice(0, 3),
+    [studentMastery],
+  );
 
   return (
     <>
@@ -108,9 +169,9 @@ export default function OverviewPage() {
             <BookOpen />
           </span>
           <div>
-            <small>LESSONS</small>
-            <b>—</b>
-            <p>Class learning plans</p>
+            <small>CURRICULUM MASTERY</small>
+            <b>{avgMastery}%</b>
+            <p>Avg. lesson completion</p>
           </div>
           <BookOpen className="metric-trend" />
         </article>
@@ -125,6 +186,26 @@ export default function OverviewPage() {
           </div>
           <Sparkles className="metric-trend" />
         </article>
+      </section>
+
+      <section className="overview-mastery">
+        <header>
+          <div><span>CLASS PROGRESS</span><h3>How your class is progressing</h3></div>
+          <Link to="/teacher/lessons/progress">Full masterlist <ArrowRight /></Link>
+        </header>
+        <div className="mastery-bars">
+          {stageStats.map((stage) => (
+            <div key={stage.key}>
+              <div className="mastery-bar-label">
+                <span>{stage.label}</span>
+                <b>{stage.percent}%</b>
+              </div>
+              <div className="mastery-bar-track">
+                <div className="mastery-bar-fill" style={{ width: `${stage.percent}%` }} />
+              </div>
+            </div>
+          ))}
+        </div>
       </section>
 
       <div className="overview-dashboard-grid">
@@ -161,6 +242,23 @@ export default function OverviewPage() {
           </div>
           <p><CircleCheck /> {studentsWithClasses} of {students.length} learners are connected to a class.</p>
           <Link to="/teacher/students">Review learners <ArrowRight /></Link>
+
+          {needsAttention.length > 0 && (
+            <div className="overview-attention">
+              <span className="overview-attention-title"><AlertCircle /> Needs a nudge</span>
+              <ul>
+                {needsAttention.map((student) => (
+                  <li key={student.email}>
+                    <div>
+                      <b>{student.fname} {student.lname}</b>
+                      <small>{student.classCode || "Unassigned"}</small>
+                    </div>
+                    <span>{student.percent}%</span>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          )}
         </aside>
       </div>
 
