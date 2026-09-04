@@ -80,7 +80,7 @@ export default function ClassesPage() {
   return (
     <section className="class-directory-page">
       <div className="directory-title-row">
-        <div><span>MY CLASSES</span><h2>Classrooms</h2><p>Open a class or create a new space for your learners.</p></div>
+        <div><span>MY CLASSES</span><h2>Your classrooms</h2><p>Everything you need to organize and open your classes.</p></div>
         <button type="button" className="primary" onClick={() => setModalOpen(true)}><Plus /> New class</button>
       </div>
 
@@ -96,19 +96,21 @@ export default function ClassesPage() {
       ) : filteredClasses.length > 0 ? (
         <div className="class-grid">
           {filteredClasses.map((classItem, index) => (
-            <article key={classItem.classCodes}>
-              <div className={`class-cover cover-${index % 4}`}>
-                <span>{["日", "本", "語", "学"][index % 4]}</span>
-                <small>ACTIVE CLASS</small>
+            <article className={`class-directory-card accent-${index % 4}`} key={classItem.classCodes}>
+              <div className="class-card-heading">
+                <span className="class-kanji">{["日", "本", "語", "学"][index % 4]}</span>
+                <span className="class-ready"><i /> Active</span>
+                <small>CLASS {String(index + 1).padStart(2, "0")}</small>
               </div>
-              <div className="class-info">
+              <div className="class-card-content">
                 <h3>{classItem.classCodes}</h3>
-                <p>Japanese language classroom</p>
-                <div>
+                <p>Japanese learning classroom</p>
+              </div>
+              <div className="class-card-footer">
                   <Link
                     to={`/teacher/classes/${encodeURIComponent(classItem.classCodes)}`}
                   >
-                    Open classroom
+                    Enter classroom
                     <ChevronRight />
                   </Link>
                   <button
@@ -119,7 +121,6 @@ export default function ClassesPage() {
                   >
                     <Trash2 />
                   </button>
-                </div>
               </div>
             </article>
           ))}
