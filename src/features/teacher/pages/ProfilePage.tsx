@@ -11,19 +11,12 @@ import {
 } from "lucide-react";
 import { Link } from "react-router-dom";
 import { session } from "../../../lib/auth";
-import PageHeader from "../components/PageHeader";
 
 export default function ProfilePage() {
   const user = session.get()!;
 
   return (
     <section className="teacher-profile-page">
-      <PageHeader
-        eyebrow="TEACHER ACCOUNT"
-        title="Your profile"
-        description="Your educator identity and account information in one place."
-      />
-
       <div className="profile-hero-card">
         <div className="profile-hero-pattern" aria-hidden="true"><span>あ</span><span>学</span><span>話</span></div>
         <div className="profile-avatar-large">
