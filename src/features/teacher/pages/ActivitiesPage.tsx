@@ -6,7 +6,6 @@ import {
   Smartphone,
 } from "lucide-react";
 import { Link } from "react-router-dom";
-import PageHeader from "../components/PageHeader";
 
 const families = [
   {
@@ -35,12 +34,6 @@ const families = [
 export default function ActivitiesPage() {
   return (
     <section className="activities-page">
-      <PageHeader
-        eyebrow="ACTIVITY MANAGEMENT"
-        title="Interactive learning activities"
-        description="Access the activity families already managed by the React Native teacher application."
-      />
-
       <div className="tile-head">
         <div>
           <span className="eyebrow">GAME CONTENT</span>
