@@ -6,6 +6,7 @@ import {
   EyeOff,
   LockKeyhole,
   Mail,
+  Sparkles,
   ShieldCheck,
 } from "lucide-react";
 import { Link, useNavigate } from "react-router-dom";
@@ -61,18 +62,20 @@ export default function Login({ role }: LoginProps) {
         </Link>
         <Brand light />
         <div className="login-scene">
-          <div className="moon" />
-          <div className="login-fuji" />
           <div className="login-message">
             <span>{isTeacher ? "先生、おかえりなさい" : "管理者ポータル"}</span>
             <b>
-              {isTeacher ? "Welcome back, teacher." : "Secure admin access."}
+              {isTeacher ? "A clearer view of every learner." : "Your JapLearn command center."}
             </b>
             <p>
               {isTeacher
-                ? "Your classes, lessons, and learners are ready."
+                ? "Pick up where you left off—review progress, guide practice, and keep your class moving forward."
                 : "Manage JapLearn through the authorized administration portal."}
             </p>
+            <div className="login-benefits" aria-label="Portal benefits">
+              <span><Sparkles /> Learning insights</span>
+              <span><ShieldCheck /> Secure access</span>
+            </div>
           </div>
           <img src={mascot} alt="JapLearn mascot" />
         </div>
@@ -87,11 +90,13 @@ export default function Login({ role }: LoginProps) {
 
       <section className="login-panel">
         <form onSubmit={submit}>
+          <div className="auth-form-heading">
           <span className="portal-pill">
             <LockKeyhole /> {role.toUpperCase()} PORTAL
           </span>
-          <h1>Sign in to JapLearn</h1>
-          <p>Use your existing {role} account credentials.</p>
+          <h1>Welcome back</h1>
+          <p>Sign in to continue to your {role} workspace.</p>
+          </div>
 
           {error && <div className="form-error">{error}</div>}
 
@@ -133,7 +138,7 @@ export default function Login({ role }: LoginProps) {
           </label>
 
           <button className="submit" disabled={loading}>
-            {loading ? "Signing in…" : `Continue as ${role}`}
+            {loading ? "Signing you in…" : "Sign in"}
             {!loading && <ArrowRight />}
           </button>
 

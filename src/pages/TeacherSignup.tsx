@@ -77,15 +77,17 @@ export default function TeacherSignup() {
         </Link>
         <Brand light />
         <div className="login-scene signup-scene">
-          <div className="moon" />
-          <div className="login-fuji" />
           <div className="login-message">
-            <span>JAPLEARN EDUCATOR COMMUNITY</span>
-            <b>Build a classroom where practice feels rewarding.</b>
+            <span>教える。つながる。成長する。</span>
+            <b>Turn practice into visible progress.</b>
             <p>
-              Create your teacher profile, organize learners, and guide every
-              Japanese learning milestone from one connected workspace.
+              Bring your class into one focused space for Japanese practice,
+              feedback, and meaningful learning milestones.
             </p>
+            <div className="login-benefits" aria-label="Teacher account benefits">
+              <span><GraduationCap /> Classroom ready</span>
+              <span><BadgeCheck /> Teacher profile</span>
+            </div>
           </div>
           <img src={mascot} alt="Ahiru welcoming a JapLearn teacher" />
         </div>
@@ -114,11 +116,20 @@ export default function TeacherSignup() {
           </div>
         ) : (
           <form onSubmit={submit}>
+            <div className="signup-progress" aria-label="Account setup steps">
+              <span className="active"><b>1</b> Profile</span>
+              <i />
+              <span><b>2</b> Verify email</span>
+              <i />
+              <span><b>3</b> Start teaching</span>
+            </div>
+            <div className="auth-form-heading">
             <span className="portal-pill">
               <GraduationCap /> TEACHER REGISTRATION
             </span>
-            <h1>Create your teacher account</h1>
-            <p>Enter your basic information to begin using the teacher portal.</p>
+            <h1>Create your account</h1>
+            <p>Set up your teacher profile. It only takes a moment.</p>
+            </div>
 
             {error && <div className="form-error">{error}</div>}
 
