@@ -2953,8 +2953,15 @@ a {
   background: #fff;
   padding: 0 11px;
 }
-.student-search {
+.student-search-field {
   flex: 1;
+  display: grid;
+  gap: 6px;
+  color: #77697d;
+  font-size: 9px;
+  font-weight: 900;
+}
+.student-search {
   height: 42px;
   border: 1px solid #dfd6e4;
   border-radius: 11px;
@@ -3806,6 +3813,41 @@ a {
 .communication-strip div {
   flex: 1;
 }
+
+/* Activities hub: activity families + the communication gateway */
+.activity-hub-grid { display: grid; grid-template-columns: repeat(3, minmax(0,1fr)); gap: 14px; margin-top: 4px; }
+.activity-hub-card { display: flex; flex-direction: column; gap: 6px; padding: 22px; border: 1px solid #e6dce9; border-radius: 20px; background: #fff; box-shadow: 0 7px 22px rgba(53,28,64,.04); transition: transform .2s ease, box-shadow .2s ease, border-color .2s ease; }
+.activity-hub-card:hover { transform: translateY(-4px); border-color: #d4c0e1; box-shadow: 0 16px 32px rgba(53,28,64,.09); }
+.activity-hub-glyph { width: 52px; height: 52px; display: grid; place-items: center; border-radius: 16px; font: 900 22px "Nunito"; color: #fff; margin-bottom: 4px; }
+.activity-hub-card.tone-purple .activity-hub-glyph { background: linear-gradient(135deg,#8430d2,#6420a8); }
+.activity-hub-card.tone-green .activity-hub-glyph { background: linear-gradient(135deg,#75b44d,#4f8c30); }
+.activity-hub-card.tone-orange .activity-hub-glyph { background: linear-gradient(135deg,#e99a36,#c46d13); }
+.activity-hub-card > small { color: #a093a5; font-size: 8px; font-weight: 900; letter-spacing: .8px; text-transform: uppercase; }
+.activity-hub-card h3 { margin: 0; color: #3b2744; font: 900 18px "Nunito"; }
+.activity-hub-card p { margin: 0; flex: 1; color: #887a8e; font-size: 10px; line-height: 1.6; }
+.activity-hub-action { margin-top: 6px; display: inline-flex; align-items: center; justify-content: center; gap: 7px; padding: 11px 14px; border-radius: 12px; background: #7626ca; color: #fff; font-size: 10px; font-weight: 900; transition: transform .18s ease, box-shadow .18s ease; }
+.activity-hub-action:hover { transform: translateY(-2px); box-shadow: 0 10px 20px rgba(118,38,202,.25); }
+.activity-hub-action svg { width: 15px; }
+.activity-hub-note { margin-top: 6px; display: inline-flex; align-items: center; gap: 7px; padding: 10px 12px; border-radius: 12px; border: 1px dashed #ddd0e3; background: #faf7fb; color: #948799; font-size: 9px; font-weight: 800; }
+.activity-hub-note svg { width: 14px; flex: none; }
+.activity-spotlight {
+  margin-top: 18px;
+  display: flex;
+  align-items: center;
+  gap: 18px;
+  padding: 26px;
+  border-radius: 22px;
+  background: linear-gradient(120deg, #5f20b5, #8429dc);
+  color: #fff;
+  transition: transform .2s ease, box-shadow .2s ease;
+}
+.activity-spotlight:hover { transform: translateY(-3px); box-shadow: 0 18px 36px rgba(60,15,110,.28); }
+.activity-spotlight > svg:first-child { width: 34px; height: 34px; flex: none; opacity: .9; }
+.activity-spotlight div { flex: 1; }
+.activity-spotlight small { color: #d8c3ef; font-size: 9px; font-weight: 900; letter-spacing: 1.2px; }
+.activity-spotlight h3 { margin: 6px 0 5px; font: 900 20px "Nunito"; color: #fff; }
+.activity-spotlight p { margin: 0; color: #e6d9f5; font-size: 10px; line-height: 1.6; max-width: 520px; }
+.activity-spotlight > svg:last-child { width: 20px; flex: none; }
 .teacher-profile-card {
   border: 1px solid #e8e0ec;
   border-radius: 20px;
@@ -4434,8 +4476,12 @@ a {
   .report-metrics,
   .overview-links,
   .assignment-grid,
-  .activity-web-grid {
+  .activity-web-grid,
+  .activity-hub-grid {
     grid-template-columns: 1fr 1fr;
+  }
+  .activity-spotlight {
+    align-items: flex-start;
   }
 }
 @media (max-width: 600px) {
@@ -4460,8 +4506,16 @@ a {
   .overview-links,
   .assignment-grid,
   .activity-web-grid,
+  .activity-hub-grid,
   .class-games > div {
     grid-template-columns: 1fr;
+  }
+  .activity-spotlight {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+  .activity-spotlight > svg:last-child {
+    align-self: flex-end;
   }
 }
 
@@ -4553,3 +4607,680 @@ a {
 .danger-link svg{width:16px;height:16px}.admin-preview-overlay{position:fixed;inset:0;background:rgba(30,13,39,.72);z-index:100;display:grid;place-items:center;padding:25px}.admin-story-preview{position:relative;width:min(700px,95vw);max-height:90vh;overflow:auto;background:linear-gradient(145deg,#fff,#f7eefc);border-radius:28px;padding:30px}.preview-close{position:absolute;right:18px;top:14px;border:0;background:transparent;font-size:30px;color:#6d4b79;cursor:pointer}.admin-story-preview>small{color:#68b841;letter-spacing:.14em;font-weight:800}.preview-flow{display:flex;flex-wrap:wrap;gap:10px;margin:20px 0}.preview-flow span{min-width:130px;border:1px solid #e1d1e6;border-radius:14px;padding:10px;color:#8a7292;font-size:9px;display:grid;gap:4px}.preview-flow b{color:#442550;font-size:12px}.reply-empty-studio+.primary-button{margin-top:10px}
 @media(max-width:1050px){.reply-studio-shell{grid-template-columns:1fr}.reply-chapter-list{position:static;display:flex;overflow:auto}.reply-chapter-list .reply-panel-heading{display:none}.reply-chapter-list>button{min-width:210px}.reply-graph-layout{grid-template-columns:1fr}.reply-node-list{position:static;max-height:none}.node-flow{grid-template-columns:repeat(3,minmax(170px,1fr));overflow:auto}.flow-connector{display:none}}
 @media(max-width:700px){.reply-studio{padding:16px}.reply-studio-hero,.reply-section-title{align-items:flex-start;flex-direction:column}.reply-studio-hero h1{font-size:27px}.reply-meta-grid{grid-template-columns:1fr}.reply-meta-grid label.wide{grid-column:auto}.choice-branch-head{grid-template-columns:34px 1fr}.choice-branch-head select,.choice-branch-head input[type=number],.choice-branch-head button{grid-row:2}.node-flow{grid-template-columns:1fr}}
+
+/* =========================================================================
+   Teacher workspace v2 - bento layouts, gradient page heroes, roster lists
+   Applied to: My classes (+ classroom detail), Students, Lessons
+   (+ progress masterlist) and Activities.
+   ========================================================================= */
+
+/* ---- Gradient page hero ---- */
+.hero-banner {
+  position: relative;
+  overflow: hidden;
+  margin-bottom: 18px;
+  padding: 30px 34px;
+  border-radius: 28px;
+  background: linear-gradient(135deg, #4c1580 0%, #7223bd 52%, #8b2fd8 100%);
+  color: #fff;
+  isolation: isolate;
+}
+.hero-banner::before {
+  content: "";
+  position: absolute;
+  z-index: -1;
+  width: 360px;
+  height: 360px;
+  right: -90px;
+  top: -160px;
+  border-radius: 50%;
+  border: 1px solid rgba(255,255,255,.14);
+  box-shadow: 0 0 0 46px rgba(255,255,255,.04), 0 0 0 92px rgba(255,255,255,.025);
+}
+.hero-glyph {
+  position: absolute;
+  z-index: -1;
+  right: 26px;
+  bottom: -46px;
+  font: 900 160px "Nunito";
+  color: rgba(255,255,255,.07);
+  line-height: 1;
+  pointer-events: none;
+  user-select: none;
+}
+.hero-top { display: flex; align-items: flex-start; justify-content: space-between; gap: 22px; }
+.hero-banner .hero-kicker {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  padding: 6px 11px;
+  border-radius: 999px;
+  border: 1px solid rgba(196,240,142,.32);
+  background: rgba(26,5,44,.24);
+  color: #cdf49c;
+  font-size: 9px;
+  font-weight: 900;
+  letter-spacing: 1.2px;
+}
+.hero-banner .hero-kicker svg { width: 13px; }
+.hero-banner h2 {
+  margin: 13px 0 7px;
+  font: 900 clamp(28px, 3vw, 40px)/1.05 "Nunito";
+  letter-spacing: -.025em;
+  color: #fff;
+}
+.hero-banner p {
+  margin: 0;
+  max-width: 520px;
+  color: #e4d6f2;
+  font-size: 11px;
+  line-height: 1.65;
+}
+.hero-action {
+  flex: none;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  height: 44px;
+  padding: 0 18px;
+  border: 0;
+  border-radius: 14px;
+  background: #fff;
+  color: #6a1fb4;
+  font-size: 11px;
+  font-weight: 900;
+  cursor: pointer;
+  transition: transform .18s ease, box-shadow .18s ease;
+}
+.hero-action:hover { transform: translateY(-2px); box-shadow: 0 12px 26px rgba(20,3,38,.34); }
+.hero-action svg { width: 16px; }
+.hero-stats { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 22px; }
+.hero-stats > div {
+  min-width: 122px;
+  padding: 12px 15px;
+  border-radius: 16px;
+  border: 1px solid rgba(255,255,255,.14);
+  background: rgba(255,255,255,.09);
+}
+.hero-stats b { display: block; font: 900 22px "Nunito"; line-height: 1.1; color: #fff; }
+.hero-stats small { display: block; margin-top: 2px; color: #dcc9ee; font-size: 8px; font-weight: 900; letter-spacing: .7px; text-transform: uppercase; }
+.hero-back {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  margin-bottom: 14px;
+  padding: 8px 12px;
+  border-radius: 11px;
+  border: 1px solid rgba(255,255,255,.18);
+  background: rgba(255,255,255,.08);
+  color: #eee2fa;
+  font-size: 10px;
+  font-weight: 800;
+}
+.hero-back:hover { background: rgba(255,255,255,.16); }
+.hero-back svg { width: 15px; }
+
+/* ---- Floating toolbar pill ---- */
+.tool-bar {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+  margin-bottom: 16px;
+  padding: 12px 14px;
+  border: 1px solid #e8dfea;
+  border-radius: 20px;
+  background: #fff;
+  box-shadow: 0 8px 24px rgba(53,28,64,.05);
+}
+.tool-search {
+  flex: 1;
+  min-width: 200px;
+  height: 42px;
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  padding: 0 14px;
+  border: 1px solid #e2d8e7;
+  border-radius: 13px;
+  background: #faf8fb;
+  transition: border-color .18s ease, box-shadow .18s ease, background .18s ease;
+}
+.tool-search:focus-within { border-color: #c6a8dc; background: #fff; box-shadow: 0 0 0 3px rgba(119,39,201,.08); }
+.tool-search > svg { width: 16px; color: #9a8c9f; flex: none; }
+.tool-search input { flex: 1; min-width: 0; border: 0; outline: 0; background: transparent; color: #46334d; font-size: 11px; }
+.tool-search button { width: 26px; height: 26px; flex: none; display: grid; place-items: center; border: 0; border-radius: 8px; color: #8d7e94; background: #eee8f1; cursor: pointer; }
+.tool-search button svg { width: 13px; }
+
+/* ---- Chip filters ---- */
+.chip-row { display: flex; align-items: center; gap: 7px; flex-wrap: wrap; }
+.chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  height: 34px;
+  padding: 0 13px;
+  border: 1px solid #e4dae9;
+  border-radius: 999px;
+  background: #fff;
+  color: #74657a;
+  font-size: 10px;
+  font-weight: 800;
+  cursor: pointer;
+  transition: background .16s ease, color .16s ease, border-color .16s ease, transform .16s ease;
+}
+.chip:hover { transform: translateY(-1px); border-color: #cbb2dd; color: #6f24bb; }
+.chip.on { border-color: #7626ca; background: #7626ca; color: #fff; box-shadow: 0 7px 16px rgba(118,38,202,.24); }
+.chip i { font-style: normal; opacity: .7; font-weight: 900; }
+
+/* ---- Bento grids ---- */
+.bento { display: grid; gap: 16px; }
+.bento-2 { grid-template-columns: minmax(0,1.6fr) minmax(0,1fr); }
+.bento-tile {
+  padding: 24px;
+  border: 1px solid #e8dfee;
+  border-radius: 26px;
+  background: #fff;
+  box-shadow: 0 10px 30px rgba(59,31,72,.05);
+}
+.bento-tile.tinted { background: linear-gradient(158deg, #fff 55%, #f8f2fd); }
+.tile-head { display: flex; align-items: flex-start; justify-content: space-between; gap: 14px; margin-bottom: 16px; }
+.tile-head span.eyebrow { display: block; color: #70ad43; font-size: 9px; font-weight: 900; letter-spacing: 1.25px; }
+.tile-head h3 { display: flex; align-items: center; gap: 8px; margin: 5px 0 0; color: #35203f; font: 900 19px "Nunito"; }
+.tile-head h3 svg { width: 18px; color: #7626ca; }
+.tile-head p { margin: 5px 0 0; color: #90839a; font-size: 10px; line-height: 1.55; }
+.tile-count {
+  flex: none;
+  padding: 6px 11px;
+  border-radius: 999px;
+  background: #f3ecf8;
+  color: #7326ca;
+  font-size: 9px;
+  font-weight: 900;
+}
+.tile-link { flex: none; display: inline-flex; align-items: center; gap: 6px; color: #7626ca; font-size: 10px; font-weight: 900; }
+.tile-link svg { width: 14px; transition: transform .18s ease; }
+.tile-link:hover svg { transform: translateX(3px); }
+
+/* ---- Classroom cards (My classes) ---- */
+.class-bento { display: grid; grid-template-columns: repeat(auto-fill, minmax(268px, 1fr)); gap: 16px; }
+.class-tile {
+  position: relative;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  border: 1px solid #e8dfee;
+  border-radius: 26px;
+  background: #fff;
+  box-shadow: 0 10px 30px rgba(59,31,72,.05);
+  transition: transform .22s ease, box-shadow .22s ease, border-color .22s ease;
+}
+.class-tile:hover { transform: translateY(-5px); border-color: #d4c0e1; box-shadow: 0 22px 44px rgba(59,31,72,.13); }
+.class-tile-cover {
+  position: relative;
+  overflow: hidden;
+  padding: 20px 22px 46px;
+  color: #fff;
+  background: linear-gradient(135deg, #5f209e, #8b30d4);
+}
+.class-tile.tone-2 .class-tile-cover { background: linear-gradient(135deg, #4f8c30, #78b74f); }
+.class-tile.tone-3 .class-tile-cover { background: linear-gradient(135deg, #c46d13, #eba33d); }
+.class-tile.tone-4 .class-tile-cover { background: linear-gradient(135deg, #b03d68, #dd6693); }
+.class-tile-cover::after {
+  content: "";
+  position: absolute;
+  width: 150px;
+  height: 150px;
+  right: -46px;
+  top: -66px;
+  border-radius: 50%;
+  border: 1px solid rgba(255,255,255,.2);
+  box-shadow: 0 0 0 26px rgba(255,255,255,.06);
+}
+.class-tile-kanji {
+  position: absolute;
+  right: 14px;
+  bottom: -26px;
+  font: 900 84px "Nunito";
+  color: rgba(255,255,255,.17);
+  line-height: 1;
+}
+.class-tile-cover small {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 5px 9px;
+  border-radius: 999px;
+  border: 1px solid rgba(255,255,255,.22);
+  background: rgba(28,6,44,.18);
+  font-size: 8px;
+  font-weight: 900;
+  letter-spacing: .7px;
+  text-transform: uppercase;
+}
+.class-tile-cover small i { width: 6px; height: 6px; border-radius: 50%; background: #bff082; }
+.class-tile-cover small.idle i { background: rgba(255,255,255,.55); }
+.class-tile-cover h3 {
+  position: relative;
+  margin: 14px 0 0;
+  font: 900 24px "Nunito";
+  letter-spacing: -.02em;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  color: #fff;
+}
+.class-tile-body { position: relative; margin-top: -28px; padding: 0 18px 18px; }
+.class-tile-meter {
+  padding: 14px 16px;
+  border: 1px solid #ece3f2;
+  border-radius: 18px;
+  background: #fff;
+  box-shadow: 0 8px 20px rgba(59,31,72,.07);
+}
+.class-tile-meter > div { display: flex; align-items: center; justify-content: space-between; gap: 8px; margin-bottom: 8px; }
+.class-tile-meter span { color: #8a7c90; font-size: 9px; font-weight: 800; }
+.class-tile-meter b { color: #382141; font: 900 13px "Nunito"; }
+.class-tile-roster { display: flex; align-items: center; gap: 9px; margin-top: 14px; padding: 0 4px; }
+.avatar-stack { display: flex; }
+.avatar-stack span {
+  width: 27px;
+  height: 27px;
+  margin-left: -8px;
+  display: grid;
+  place-items: center;
+  border: 2px solid #fff;
+  border-radius: 50%;
+  background: #efe5fa;
+  color: #7827ce;
+  font: 900 8px "Nunito";
+}
+.avatar-stack span:first-child { margin-left: 0; }
+.avatar-stack span.more { background: #f2eef5; color: #8a7c90; }
+.class-tile-roster > small { color: #96899b; font-size: 9px; font-weight: 800; }
+.class-tile-foot {
+  margin-top: auto;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 13px 18px;
+  border-top: 1px solid #f0e9f4;
+  background: #fdfbfe;
+}
+.class-tile-foot > a {
+  flex: 1;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+  height: 38px;
+  border-radius: 12px;
+  background: #7626ca;
+  color: #fff;
+  font-size: 10px;
+  font-weight: 900;
+  transition: transform .18s ease, box-shadow .18s ease;
+}
+.class-tile-foot > a:hover { transform: translateY(-2px); box-shadow: 0 10px 20px rgba(118,38,202,.25); }
+.class-tile-foot > a svg { width: 15px; }
+.class-tile-foot .trash {
+  width: 38px;
+  height: 38px;
+  flex: none;
+  display: grid;
+  place-items: center;
+  border: 1px solid #f0dfe4;
+  border-radius: 12px;
+  background: #fff;
+  color: #bb5a6c;
+  cursor: pointer;
+  transition: background .18s ease, color .18s ease;
+}
+.class-tile-foot .trash:hover { background: #fbe8ec; color: #a53d52; }
+.class-tile-foot .trash svg { width: 15px; }
+
+/* ---- Roster list (Students, card/list hybrid) ---- */
+.roster-list { display: grid; gap: 9px; }
+.roster-head {
+  display: grid;
+  grid-template-columns: minmax(0,2.1fr) minmax(0,1fr) 110px minmax(0,1.15fr) 44px;
+  gap: 14px;
+  padding: 0 18px 2px;
+  color: #a294a8;
+  font-size: 8px;
+  font-weight: 900;
+  letter-spacing: .9px;
+  text-transform: uppercase;
+}
+.roster-row {
+  display: grid;
+  grid-template-columns: minmax(0,2.1fr) minmax(0,1fr) 110px minmax(0,1.15fr) 44px;
+  gap: 14px;
+  align-items: center;
+  padding: 13px 18px;
+  border: 1px solid #ebe3ef;
+  border-radius: 18px;
+  background: #fff;
+  transition: transform .18s ease, box-shadow .18s ease, border-color .18s ease;
+}
+.roster-row:hover { transform: translateX(3px); border-color: #d9c8e6; box-shadow: 0 12px 26px rgba(59,31,72,.08); }
+.roster-who { display: flex; align-items: center; gap: 11px; min-width: 0; }
+.roster-avatar {
+  width: 40px;
+  height: 40px;
+  flex: none;
+  display: grid;
+  place-items: center;
+  border-radius: 14px;
+  font: 900 12px "Nunito";
+  background: #eee3f8;
+  color: #7828d0;
+}
+.roster-avatar.tone-2 { background: #edf7e6; color: #57952e; }
+.roster-avatar.tone-3 { background: #fff1dc; color: #d8841c; }
+.roster-avatar.tone-4 { background: #fbe7ee; color: #c64978; }
+.roster-who div { min-width: 0; }
+.roster-who b { display: block; color: #3b2744; font-size: 12px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.roster-who small { display: block; margin-top: 2px; color: #97899d; font-size: 9px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.roster-mail { color: #7c6e82; font-size: 10px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.roster-class {
+  justify-self: start;
+  padding: 6px 10px;
+  border-radius: 999px;
+  background: #f3ecf8;
+  color: #6f3aa0;
+  font-size: 9px;
+  font-weight: 900;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  max-width: 100%;
+}
+.roster-class.none { background: #f4f1f6; color: #9a8da0; }
+.roster-meter { display: flex; align-items: center; gap: 10px; }
+.roster-meter .mastery-bar-track { flex: 1; min-width: 54px; }
+.roster-meter b { flex: none; color: #382141; font: 900 11px "Nunito"; }
+.roster-row .row-delete {
+  width: 34px;
+  height: 34px;
+  justify-self: end;
+  display: grid;
+  place-items: center;
+  border: 0;
+  border-radius: 11px;
+  background: transparent;
+  color: #bb5a6c;
+  opacity: .55;
+  cursor: pointer;
+  transition: opacity .18s ease, background .18s ease;
+}
+.roster-row:hover .row-delete { opacity: 1; }
+.roster-row .row-delete:hover { background: #fbe8ec; }
+.roster-row .row-delete svg { width: 15px; }
+
+/* ---- Empty state ---- */
+.state-empty {
+  display: grid;
+  justify-items: center;
+  gap: 4px;
+  padding: 52px 24px;
+  border: 1px dashed #ddd0e3;
+  border-radius: 26px;
+  background: linear-gradient(160deg, #fdfbfe, #f9f4fc);
+  text-align: center;
+}
+.state-empty > span {
+  width: 62px;
+  height: 62px;
+  display: grid;
+  place-items: center;
+  border-radius: 22px;
+  background: #f1e7fa;
+  color: #7a2acb;
+  margin-bottom: 8px;
+}
+.state-empty > span svg { width: 26px; }
+.state-empty h3 { margin: 0; color: #3b2744; font: 900 18px "Nunito"; }
+.state-empty p { margin: 0; color: #93869a; font-size: 10px; }
+.state-empty button, .state-empty > a {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  margin-top: 12px;
+  padding: 11px 16px;
+  border: 0;
+  border-radius: 13px;
+  background: #7626ca;
+  color: #fff;
+  font-size: 10px;
+  font-weight: 900;
+  cursor: pointer;
+}
+.state-empty button svg, .state-empty > a svg { width: 15px; }
+
+/* ---- Curriculum path cards (Lessons) ---- */
+.path-grid { display: grid; grid-template-columns: repeat(3, minmax(0,1fr)); gap: 14px; }
+.path-card {
+  position: relative;
+  overflow: hidden;
+  padding: 20px;
+  border: 1px solid #e8dfee;
+  border-radius: 22px;
+  background: #fff;
+  transition: transform .2s ease, box-shadow .2s ease;
+}
+.path-card:hover { transform: translateY(-4px); box-shadow: 0 16px 32px rgba(59,31,72,.09); }
+.path-card::after {
+  content: "";
+  position: absolute;
+  left: 0; right: 0; top: 0;
+  height: 4px;
+  background: linear-gradient(90deg,#8430d2,#b168e8);
+}
+.path-card.tone-green::after { background: linear-gradient(90deg,#5b9c34,#8ecb62); }
+.path-card.tone-orange::after { background: linear-gradient(90deg,#d6811e,#f0ab52); }
+.path-card > span {
+  width: 46px;
+  height: 46px;
+  display: grid;
+  place-items: center;
+  border-radius: 15px;
+  background: #f0e6fa;
+  color: #7c29d4;
+  margin-bottom: 12px;
+}
+.path-card.tone-green > span { background: #eaf5e3; color: #5b9c34; }
+.path-card.tone-orange > span { background: #fff0df; color: #d6811e; }
+.path-card > span svg { width: 21px; }
+.path-card small { display: block; color: #a093a5; font-size: 8px; font-weight: 900; letter-spacing: .8px; }
+.path-card h3 { margin: 7px 0 5px; color: #35203f; font: 900 19px "Nunito"; }
+.path-card p { margin: 0; color: #8d8092; font-size: 9px; line-height: 1.6; }
+.path-meter { margin-top: 13px; }
+.path-meter > div { display: flex; align-items: center; justify-content: space-between; margin-bottom: 5px; }
+.path-meter span { color: #8a7c90; font-size: 8px; font-weight: 900; letter-spacing: .5px; text-transform: uppercase; }
+.path-meter b { color: #382141; font: 900 11px "Nunito"; }
+
+/* ---- Masterlist (progress subpage) ---- */
+.master-shell { border: 1px solid #e8dfee; border-radius: 26px; background: #fff; box-shadow: 0 10px 30px rgba(59,31,72,.05); overflow: hidden; }
+.master-shell .master-table-wrap { overflow: auto; max-height: 62vh; }
+.master-shell .master-table thead th { position: sticky; top: 0; z-index: 2; background: #faf7fc; }
+.legend-row { display: flex; align-items: center; flex-wrap: wrap; gap: 14px; padding: 14px 20px; border-top: 1px solid #f1eaf4; background: #fdfbfe; }
+.legend-row span { display: inline-flex; align-items: center; gap: 6px; color: #8a7c90; font-size: 9px; font-weight: 800; }
+.legend-row i { width: 9px; height: 9px; border-radius: 50%; display: inline-block; }
+.legend-row i.done { background: #6aaa42; }
+.legend-row i.pending { background: #ddd2e3; }
+
+/* ---- Activities gateway tiles ---- */
+.gateway-grid { display: grid; grid-template-columns: repeat(2, minmax(0,1fr)); gap: 16px; margin-top: 16px; }
+.gateway-tile {
+  position: relative;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  gap: 9px;
+  padding: 26px;
+  border-radius: 26px;
+  color: #fff;
+  background: linear-gradient(135deg, #5f20b5, #8b2fd8);
+  transition: transform .2s ease, box-shadow .2s ease;
+}
+.gateway-tile.alt { background: linear-gradient(135deg, #24124a, #55208c); }
+.gateway-tile:hover { transform: translateY(-4px); box-shadow: 0 20px 40px rgba(60,15,110,.28); }
+.gateway-tile::after {
+  content: "";
+  position: absolute;
+  width: 190px;
+  height: 190px;
+  right: -60px;
+  top: -80px;
+  border-radius: 50%;
+  border: 1px solid rgba(255,255,255,.16);
+  box-shadow: 0 0 0 34px rgba(255,255,255,.05);
+}
+.gateway-tile > span {
+  position: relative;
+  width: 50px;
+  height: 50px;
+  display: grid;
+  place-items: center;
+  border-radius: 16px;
+  background: rgba(255,255,255,.14);
+  border: 1px solid rgba(255,255,255,.18);
+}
+.gateway-tile > span svg { width: 23px; }
+.gateway-tile small { color: #d8c3ef; font-size: 9px; font-weight: 900; letter-spacing: 1.1px; }
+.gateway-tile h3 { margin: 0; font: 900 21px "Nunito"; color: #fff; }
+.gateway-tile p { margin: 0; flex: 1; max-width: 400px; color: #e3d6f2; font-size: 10px; line-height: 1.65; }
+.gateway-tags { display: flex; flex-wrap: wrap; gap: 7px; }
+.gateway-tags span { padding: 6px 10px; border-radius: 999px; background: rgba(255,255,255,.13); font-size: 8px; font-weight: 900; letter-spacing: .4px; }
+.gateway-cta {
+  margin-top: 4px;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  width: max-content;
+  height: 40px;
+  padding: 0 17px;
+  border-radius: 13px;
+  background: #fff;
+  color: #6a1fb4;
+  font-size: 10px;
+  font-weight: 900;
+}
+.gateway-cta svg { width: 15px; }
+
+/* ---- Activity family cards ---- */
+.family-grid { display: grid; grid-template-columns: repeat(3, minmax(0,1fr)); gap: 16px; }
+.family-card {
+  position: relative;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  gap: 7px;
+  padding: 24px;
+  border: 1px solid #e8dfee;
+  border-radius: 26px;
+  background: #fff;
+  box-shadow: 0 10px 30px rgba(59,31,72,.05);
+  transition: transform .2s ease, box-shadow .2s ease, border-color .2s ease;
+}
+.family-card:hover { transform: translateY(-5px); border-color: #d4c0e1; box-shadow: 0 20px 40px rgba(59,31,72,.11); }
+.family-glyph {
+  width: 58px;
+  height: 58px;
+  display: grid;
+  place-items: center;
+  border-radius: 20px;
+  font: 900 26px "Nunito";
+  color: #fff;
+  margin-bottom: 6px;
+  background: linear-gradient(135deg,#8430d2,#6420a8);
+}
+.family-card.tone-green .family-glyph { background: linear-gradient(135deg,#75b44d,#4f8c30); }
+.family-card.tone-orange .family-glyph { background: linear-gradient(135deg,#e99a36,#c46d13); }
+.family-card > small { color: #a093a5; font-size: 8px; font-weight: 900; letter-spacing: .8px; text-transform: uppercase; }
+.family-card h3 { margin: 0; color: #35203f; font: 900 20px "Nunito"; }
+.family-card p { margin: 0; flex: 1; color: #8d8092; font-size: 10px; line-height: 1.65; }
+.family-note {
+  margin-top: 8px;
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  padding: 10px 12px;
+  border: 1px dashed #ded1e4;
+  border-radius: 13px;
+  background: #faf7fb;
+  color: #948799;
+  font-size: 9px;
+  font-weight: 800;
+}
+.family-note svg { width: 14px; flex: none; }
+
+/* ---- Responsive ---- */
+@media (max-width: 1100px) {
+  .bento-2 { grid-template-columns: 1fr; }
+  .gateway-grid { grid-template-columns: 1fr; }
+  .family-grid { grid-template-columns: 1fr 1fr; }
+  .roster-head { display: none; }
+  .roster-row { grid-template-columns: minmax(0,1.6fr) 96px minmax(0,1fr) 40px; }
+  .roster-row > .roster-mail { display: none; }
+}
+@media (max-width: 860px) {
+  .path-grid { grid-template-columns: 1fr 1fr; }
+}
+@media (max-width: 720px) {
+  .hero-banner { padding: 24px 22px; border-radius: 24px; }
+  .hero-top { flex-direction: column; }
+  .hero-glyph { font-size: 116px; bottom: -32px; }
+  .path-grid, .family-grid { grid-template-columns: 1fr; }
+  .roster-row { grid-template-columns: minmax(0,1fr) 40px; row-gap: 10px; }
+  .roster-row > .roster-class, .roster-row > .roster-meter { grid-column: 1; }
+  .roster-row .row-delete { grid-row: 1; grid-column: 2; }
+}
+
+/* Compact roster (classroom detail) and misc v2 helpers */
+.roster-row.compact { grid-template-columns: minmax(0,1.7fr) minmax(0,1fr) 40px; }
+.lesson-page .lesson-composer { margin: 16px 0; }
+.lesson-page > .tile-head, .activities-page > .tile-head, .class-detail-page > .tile-head { margin: 24px 2px 14px; }
+.lesson-foot-link { margin-top: 18px; }
+.class-detail-page .mini-add { margin-bottom: 14px; }
+.class-detail-page .mini-add input { flex: 1; height: 42px; border: 1px solid #dfd6e4; border-radius: 12px; padding: 0 12px; }
+.class-detail-page .mini-add button { height: 42px; border-radius: 12px; }
+.lesson-page .lesson-cards article:first-child, .class-detail-page .lesson-cards article:first-child { margin-top: 0; }
+@media (max-width: 720px) {
+  .roster-row.compact { grid-template-columns: minmax(0,1fr) 40px; }
+  .roster-row.compact > .roster-meter { grid-column: 1; }
+}
+
+/* Databank rows inside bento tiles (were scoped to the old .lesson-layout aside) */
+.bento-tile > article {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-top: 8px;
+  padding: 11px 12px;
+  border: 1px solid #f0e9f4;
+  border-radius: 14px;
+  background: #faf7fb;
+}
+.bento-tile > article > div { flex: 1; min-width: 0; }
+.bento-tile > article b { display: block; color: #44304d; font: 900 11px "Nunito"; }
+.bento-tile > article small { display: block; margin-top: 3px; color: #948799; font-size: 9px; line-height: 1.5; }
+
+/* The icon badge rule must not capture the CTA span in the same tile */
+.gateway-tile > span.gateway-cta {
+  width: max-content;
+  height: 40px;
+  padding: 0 17px;
+  border: 0;
+  border-radius: 13px;
+  background: #fff;
+  color: #6a1fb4;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  font-size: 10px;
+  font-weight: 900;
+}
+.gateway-tile > span.gateway-cta svg { width: 15px; }

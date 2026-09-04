@@ -10,12 +10,12 @@ import {
   Trash2,
   Wand2,
 } from "lucide-react";
-import { FormEvent, useEffect, useRef, useState } from "react";
+import { FormEvent, useEffect, useMemo, useRef, useState } from "react";
 import { Link, useSearchParams } from "react-router-dom";
-import PageHeader from "../components/PageHeader";
 import StatusMessage from "../components/StatusMessage";
 import { teacherApi } from "../services/teacherApi";
-import type { ClassRecord, Lesson } from "../types";
+import type { ClassRecord, Lesson, Student, StudentLessonProgress } from "../types";
+import { LESSON_STAGES, progressMapByEmail } from "../utils/mastery";
 
 const LESSON_TYPES: Record<string, { label: string; tone: string; icon: typeof Languages }> = {
   KANA: { label: "Kana", tone: "purple", icon: Languages },
@@ -28,12 +28,45 @@ function typeMeta(type?: string) {
   return LESSON_TYPES[type || ""] ?? { label: "Lesson", tone: "purple", icon: BookOpen };
 }
 
+/** The three built-in learning paths, mapped onto the curriculum milestones. */
+const PATHS = [
+  {
+    key: "kana",
+    tone: "",
+    icon: Languages,
+    eyebrow: "PATH 01 · 6 SETS",
+    title: "Kana",
+    text: "Hiragana Basics 1–3 and Katakana Basics 1–3, each followed by a character exercise.",
+    stages: ["hiragana", "katakana"],
+  },
+  {
+    key: "words",
+    tone: "tone-green",
+    icon: MessageCircleMore,
+    eyebrow: "PATH 02 · 3 LESSONS",
+    title: "Words",
+    text: "Three vocabulary collections recorded through the vocab1, vocab2, and vocab3 milestones.",
+    stages: ["vocab"],
+  },
+  {
+    key: "grammar",
+    tone: "tone-orange",
+    icon: BookOpen,
+    eyebrow: "PATH 03 · 1 LESSON",
+    title: "Grammar",
+    text: "The sentence and grammar lesson recorded through the existing sentence milestone.",
+    stages: ["sentence"],
+  },
+] as const;
+
 export default function LessonsPage() {
   const [params] = useSearchParams();
   const [classes, setClasses] = useState<ClassRecord[]>([]);
   const [classCode, setClassCode] = useState(params.get("class") || "");
   const [lessons, setLessons] = useState<Lesson[]>([]);
   const [databank, setDatabank] = useState<Lesson[]>([]);
+  const [students, setStudents] = useState<Student[]>([]);
+  const [lessonProgress, setLessonProgress] = useState<StudentLessonProgress[]>([]);
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
   const [lessonType, setLessonType] = useState("WORDS");
@@ -49,6 +82,13 @@ export default function LessonsPage() {
         if (!classCode && classData[0]) setClassCode(classData[0].classCodes);
       })
       .catch((requestError) => setError(requestError.message));
+
+    Promise.all([teacherApi.getAllStudents(), teacherApi.getAllLessonProgress()])
+      .then(([studentData, progressData]) => {
+        setStudents(studentData);
+        setLessonProgress(progressData);
+      })
+      .catch(() => undefined);
   }, []);
 
   const loadLessons = () => {
@@ -60,6 +100,29 @@ export default function LessonsPage() {
   };
 
   useEffect(loadLessons, [classCode]);
+
+  const progressByEmail = useMemo(() => progressMapByEmail(lessonProgress), [lessonProgress]);
+
+  /** Average completion of each built-in path across every student. */
+  const pathStats = useMemo(() => {
+    const map = new Map<string, number>();
+    PATHS.forEach((path) => {
+      const fields = LESSON_STAGES.filter((stage) =>
+        (path.stages as readonly string[]).includes(stage.key),
+      ).flatMap((stage) => stage.fields);
+      if (!students.length || !fields.length) {
+        map.set(path.key, 0);
+        return;
+      }
+      const total = students.reduce((sum, student) => {
+        const progress = progressByEmail.get(student.email);
+        const done = progress ? fields.filter((field) => progress[field]).length : 0;
+        return sum + done / fields.length;
+      }, 0);
+      map.set(path.key, Math.round((total / students.length) * 100));
+    });
+    return map;
+  }, [students, progressByEmail]);
 
   const createLesson = async (event: FormEvent) => {
     event.preventDefault();
@@ -96,78 +159,73 @@ export default function LessonsPage() {
   };
 
   return (
-    <section className="full-panel">
-      <PageHeader
-        eyebrow="LESSON MANAGEMENT"
-        title="Class lessons"
-        description="Create original lessons or reference the reusable lesson databank from the mobile teacher workflow."
-      />
-      {error && <StatusMessage>{error}</StatusMessage>}
-
-      <div className="automatic-curriculum">
-        <div className="automatic-heading">
+    <section className="lesson-page">
+      <div className="hero-banner">
+        <span className="hero-glyph">課</span>
+        <div className="hero-top">
           <div>
-            <small>JAPLEARN BUILT-IN CURRICULUM</small>
-            <h3>Automatic student lessons</h3>
+            <span className="hero-kicker"><BookOpen /> LESSON MANAGEMENT</span>
+            <h2>Class lessons</h2>
             <p>
-              These three learning paths are available to students automatically
-              and are monitored through their required exercises.
+              Create original lessons or reference the reusable lesson databank
+              from the mobile teacher workflow.
             </p>
           </div>
-          <Link to="/teacher/lessons/progress">
-            <FileSpreadsheet /> Open progress masterlist <ArrowRight />
+          <Link to="/teacher/lessons/progress" className="hero-action">
+            <FileSpreadsheet /> Progress masterlist
           </Link>
         </div>
-        <div className="automatic-grid">
-          <article>
-            <span className="purple">
-              <Languages />
-            </span>
-            <div>
-              <small>PATH 01 · 6 SETS</small>
-              <h3>Kana</h3>
-              <p>
-                Hiragana Basics 1–3 and Katakana Basics 1–3, each followed by a
-                character exercise.
-              </p>
-            </div>
-          </article>
-          <article>
-            <span className="green">
-              <MessageCircleMore />
-            </span>
-            <div>
-              <small>PATH 02 · 3 LESSONS</small>
-              <h3>Words</h3>
-              <p>
-                Three vocabulary collections recorded through the vocab1,
-                vocab2, and vocab3 milestones.
-              </p>
-            </div>
-          </article>
-          <article>
-            <span className="orange">
-              <BookOpen />
-            </span>
-            <div>
-              <small>PATH 03 · 1 LESSON</small>
-              <h3>Grammar</h3>
-              <p>
-                The sentence and grammar lesson recorded through the existing
-                sentence milestone.
-              </p>
-            </div>
-          </article>
+        <div className="hero-stats">
+          <div><b>10</b><small>Built-in milestones</small></div>
+          <div><b>{lessons.length}</b><small>Custom in {classCode || "class"}</small></div>
+          <div><b>{databank.length}</b><small>Databank lessons</small></div>
         </div>
       </div>
 
-      <section className="lesson-composer" ref={composerRef}>
-        <header>
+      {error && <StatusMessage>{error}</StatusMessage>}
+
+      <div className="tile-head">
+        <div>
+          <span className="eyebrow">JAPLEARN BUILT-IN CURRICULUM</span>
+          <h3><Sparkles /> Automatic student lessons</h3>
+          <p>
+            These three learning paths are available to students automatically
+            and are monitored through their required exercises.
+          </p>
+        </div>
+      </div>
+
+      <div className="path-grid">
+        {PATHS.map((path) => {
+          const Icon = path.icon;
+          const percent = pathStats.get(path.key) ?? 0;
+          return (
+            <article key={path.key} className={`path-card ${path.tone}`}>
+              <span><Icon /></span>
+              <small>{path.eyebrow}</small>
+              <h3>{path.title}</h3>
+              <p>{path.text}</p>
+              <div className="path-meter">
+                <div>
+                  <span>Class completion</span>
+                  <b>{percent}%</b>
+                </div>
+                <div className="mastery-bar-track small">
+                  <div className="mastery-bar-fill" style={{ width: `${percent}%` }} />
+                </div>
+              </div>
+            </article>
+          );
+        })}
+      </div>
+
+      <section className="bento-tile tinted lesson-composer" ref={composerRef}>
+        <div className="tile-head">
           <div>
-            <span>CUSTOM LESSONS</span>
-            <h3>Add a lesson to a class</h3>
+            <span className="eyebrow">CUSTOM LESSONS</span>
+            <h3><Plus /> Add a lesson to a class</h3>
           </div>
-        </header>
+        </div>
         <form className="lesson-composer-form" onSubmit={createLesson}>
           <label>
             Class
@@ -210,20 +268,21 @@ export default function LessonsPage() {
         </form>
       </section>
 
-      <div className="lesson-layout">
-        <section>
-          <header className="lesson-panel-head">
+      <div className="bento bento-2">
+        <section className="bento-tile">
+          <div className="tile-head">
             <div>
-              <span>CUSTOM LESSONS</span>
+              <span className="eyebrow">CUSTOM LESSONS</span>
               <h3><BookOpen /> Lessons in {classCode || "class"}</h3>
             </div>
-            <small>{lessons.length} lesson{lessons.length === 1 ? "" : "s"}</small>
-          </header>
+            <span className="tile-count">
+              {lessons.length} lesson{lessons.length === 1 ? "" : "s"}
+            </span>
+          </div>
           <div className="lesson-cards">
             {lessons.length ? (
               lessons.map((lesson) => {
-                const type = lesson.lesson_type;
-                const meta = typeMeta(type);
+                const meta = typeMeta(lesson.lesson_type);
                 const Icon = meta.icon;
                 return (
                   <article key={lesson.id}>
@@ -253,24 +312,22 @@ export default function LessonsPage() {
                 <BookOpen />
                 <div>
                   <b>No custom lessons yet</b>
-                  <small>Use the form above, or pull one from the databank on the right.</small>
+                  <small>Use the form above, or pull one from the databank.</small>
                 </div>
               </div>
             )}
           </div>
         </section>
-        <aside>
-          <header className="lesson-panel-head">
+
+        <aside className="bento-tile">
+          <div className="tile-head">
             <div>
-              <span>REUSABLE CONTENT</span>
+              <span className="eyebrow">REUSABLE CONTENT</span>
               <h3><BookCopy /> Lesson databank</h3>
+              <p>Pull a ready-made lesson into {classCode || "your class"}.</p>
             </div>
-            <small>{databank.length} available</small>
-          </header>
-          <p>
-            Pull a ready-made lesson into {classCode || "your class"} instead of
-            writing one from scratch.
-          </p>
+            <span className="tile-count">{databank.length}</span>
+          </div>
           {databank.length ? (
             databank.slice(0, 8).map((lesson) => (
               <article key={lesson.id}>
@@ -298,6 +355,10 @@ export default function LessonsPage() {
           )}
         </aside>
       </div>
+
+      <Link className="tile-link lesson-foot-link" to="/teacher/lessons/progress">
+        Open the full progress masterlist <ArrowRight />
+      </Link>
     </section>
   );
 }

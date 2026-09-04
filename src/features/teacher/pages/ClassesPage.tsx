@@ -1,10 +1,20 @@
-import { ChevronRight, GraduationCap, Plus, Search, Trash2, Users, X } from "lucide-react";
+import {
+  ArrowRight,
+  GraduationCap,
+  Plus,
+  Search,
+  Sparkles,
+  Trash2,
+  X,
+} from "lucide-react";
 import { FormEvent, useEffect, useMemo, useState } from "react";
 import { Link } from "react-router-dom";
 import StatusMessage from "../components/StatusMessage";
 import { teacherApi } from "../services/teacherApi";
 import type { ClassRecord, Student, StudentLessonProgress } from "../types";
 import { masteryPercent, progressMapByEmail } from "../utils/mastery";
+
+const KANJI = ["日", "本", "語", "学"];
 
 export default function ClassesPage() {
   const [classes, setClasses] = useState<ClassRecord[]>([]);
@@ -52,7 +62,7 @@ export default function ClassesPage() {
   const progressByEmail = useMemo(() => progressMapByEmail(lessonProgress), [lessonProgress]);
 
   const classStats = useMemo(() => {
-    const map = new Map<string, { count: number; avgMastery: number }>();
+    const map = new Map<string, { roster: Student[]; avgMastery: number }>();
     classes.forEach((item) => {
       const roster = students.filter((student) => student.classCode === item.classCodes);
       const avgMastery = roster.length
@@ -61,10 +71,18 @@ export default function ClassesPage() {
               roster.length,
           )
         : 0;
-      map.set(item.classCodes, { count: roster.length, avgMastery });
+      map.set(item.classCodes, { roster, avgMastery });
     });
     return map;
   }, [classes, students, progressByEmail]);
+
+  const enrolled = students.filter((student) => student.classCode).length;
+  const overallMastery = students.length
+    ? Math.round(
+        students.reduce((sum, student) => sum + masteryPercent(progressByEmail.get(student.email)), 0) /
+          students.length,
+      )
+    : 0;
 
   const createClass = async (event: FormEvent) => {
     event.preventDefault();
@@ -105,14 +123,40 @@ export default function ClassesPage() {
 
   return (
     <section className="class-directory-page">
-      <div className="directory-title-row">
-        <div><span>MY CLASSES</span><h2>Your classrooms</h2><p>Everything you need to organize and open your classes.</p></div>
-        <button type="button" className="primary" onClick={() => setModalOpen(true)}><Plus /> New class</button>
+      <div className="hero-banner">
+        <span className="hero-glyph">教</span>
+        <div className="hero-top">
+          <div>
+            <span className="hero-kicker"><Sparkles /> MY CLASSES</span>
+            <h2>Your classrooms</h2>
+            <p>Everything you need to organize and open your classes.</p>
+          </div>
+          <button type="button" className="hero-action" onClick={() => setModalOpen(true)}>
+            <Plus /> New class
+          </button>
+        </div>
+        <div className="hero-stats">
+          <div><b>{classes.length}</b><small>Active classes</small></div>
+          <div><b>{enrolled}</b><small>Enrolled learners</small></div>
+          <div><b>{overallMastery}%</b><small>Avg. mastery</small></div>
+        </div>
       </div>
 
-      <div className="class-directory-toolbar">
-        <div className="directory-count"><span><GraduationCap /></span><div><b>{classes.length}</b><small>Active classroom{classes.length === 1 ? "" : "s"}</small></div></div>
-        <label className="directory-search"><Search /><input value={search} onChange={(event) => setSearch(event.target.value)} placeholder="Search class codes…" aria-label="Search classrooms" />{search && <button type="button" onClick={() => setSearch("")} aria-label="Clear classroom search"><X /></button>}</label>
+      <div className="tool-bar">
+        <label className="tool-search">
+          <Search />
+          <input
+            value={search}
+            onChange={(event) => setSearch(event.target.value)}
+            placeholder="Search class codes…"
+            aria-label="Search classrooms"
+          />
+          {search && (
+            <button type="button" onClick={() => setSearch("")} aria-label="Clear classroom search">
+              <X />
+            </button>
+          )}
+        </label>
       </div>
 
       {error && <StatusMessage>{error}</StatusMessage>}
@@ -120,35 +164,58 @@ export default function ClassesPage() {
       {loading ? (
         <div className="skeleton-list tall" />
       ) : filteredClasses.length > 0 ? (
-        <div className="class-grid">
+        <div className="class-bento">
           {filteredClasses.map((classItem, index) => {
-            const stats = classStats.get(classItem.classCodes) ?? { count: 0, avgMastery: 0 };
+            const stats = classStats.get(classItem.classCodes) ?? { roster: [], avgMastery: 0 };
+            const active = stats.roster.length > 0;
             return (
-            <article className={`class-directory-card accent-${index % 4}`} key={classItem.classCodes}>
-              <div className="class-card-heading">
-                <span className="class-kanji">{["日", "本", "語", "学"][index % 4]}</span>
-                {stats.count > 0 ? (
-                  <span className="class-ready"><i /> Active</span>
-                ) : (
-                  <span className="class-ready muted"><i /> Awaiting learners</span>
-                )}
-                <small>CLASS {String(index + 1).padStart(2, "0")}</small>
-              </div>
-              <div className="class-card-content">
-                <h3>{classItem.classCodes}</h3>
-                <div className="class-card-stats">
-                  <span><Users /> {stats.count} learner{stats.count === 1 ? "" : "s"}</span>
-                  {stats.count > 0 && (
-                    <span className="class-card-mastery"><b>{stats.avgMastery}%</b> mastery</span>
-                  )}
+              <article className={`class-tile tone-${(index % 4) + 1}`} key={classItem.classCodes}>
+                <div className="class-tile-cover">
+                  <span className="class-tile-kanji">{KANJI[index % 4]}</span>
+                  <small className={active ? "" : "idle"}>
+                    <i /> {active ? "Active" : "Awaiting learners"}
+                  </small>
+                  <h3>{classItem.classCodes}</h3>
                 </div>
-              </div>
-              <div className="class-card-footer">
-                  <Link
-                    to={`/teacher/classes/${encodeURIComponent(classItem.classCodes)}`}
-                  >
-                    Enter classroom
-                    <ChevronRight />
+
+                <div className="class-tile-body">
+                  <div className="class-tile-meter">
+                    <div>
+                      <span>Class mastery</span>
+                      <b>{stats.avgMastery}%</b>
+                    </div>
+                    <div className="mastery-bar-track small">
+                      <div className="mastery-bar-fill" style={{ width: `${stats.avgMastery}%` }} />
+                    </div>
+                  </div>
+
+                  <div className="class-tile-roster">
+                    {stats.roster.length ? (
+                      <>
+                        <div className="avatar-stack">
+                          {stats.roster.slice(0, 4).map((student) => (
+                            <span key={student.email}>
+                              {student.fname?.[0]}
+                              {student.lname?.[0]}
+                            </span>
+                          ))}
+                          {stats.roster.length > 4 && (
+                            <span className="more">+{stats.roster.length - 4}</span>
+                          )}
+                        </div>
+                        <small>
+                          {stats.roster.length} learner{stats.roster.length === 1 ? "" : "s"} enrolled
+                        </small>
+                      </>
+                    ) : (
+                      <small>Share this code so learners can join.</small>
+                    )}
+                  </div>
+                </div>
+
+                <div className="class-tile-foot">
+                  <Link to={`/teacher/classes/${encodeURIComponent(classItem.classCodes)}`}>
+                    Enter classroom <ArrowRight />
                   </Link>
                   <button
                     type="button"
@@ -158,25 +225,27 @@ export default function ClassesPage() {
                   >
                     <Trash2 />
                   </button>
-              </div>
-            </article>
+                </div>
+              </article>
             );
           })}
         </div>
       ) : classes.length === 0 ? (
-        <div className="empty">
-          <span>
-            <GraduationCap />
-          </span>
+        <div className="state-empty">
+          <span><GraduationCap /></span>
           <h3>Create your first classroom</h3>
           <p>Class codes connect students to lessons and activities.</p>
           <button type="button" onClick={() => setModalOpen(true)}>
-            <Plus />
-            Create class
+            <Plus /> Create class
           </button>
         </div>
       ) : (
-        <div className="directory-no-results"><Search /><h3>No matching classroom</h3><p>Try another class code or clear your search.</p><button type="button" onClick={() => setSearch("")}>Clear search</button></div>
+        <div className="state-empty">
+          <span><Search /></span>
+          <h3>No matching classroom</h3>
+          <p>Try another class code or clear your search.</p>
+          <button type="button" onClick={() => setSearch("")}>Clear search</button>
+        </div>
       )}
 
       {modalOpen && (

@@ -1,6 +1,12 @@
-import { CheckCircle2, Download, FileSpreadsheet, Search } from "lucide-react";
+import {
+  CheckCircle2,
+  ChevronLeft,
+  Download,
+  FileSpreadsheet,
+  Search,
+} from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
-import PageHeader from "../components/PageHeader";
+import { Link } from "react-router-dom";
 import { teacherApi } from "../services/teacherApi";
 import type { Student, StudentLessonProgress } from "../types";
 
@@ -113,13 +119,45 @@ export default function LessonProgressPage() {
     URL.revokeObjectURL(link.href);
   };
 
+  const completedCounts = filteredRows.map(
+    (row) => columns.filter(([, field]) => Boolean(row.progress?.[field])).length,
+  );
+  const avgCompletion = completedCounts.length
+    ? Math.round(
+        (completedCounts.reduce((sum, count) => sum + count, 0) /
+          (completedCounts.length * TOTAL_RECORDS)) *
+          100,
+      )
+    : 0;
+  const fullyComplete = completedCounts.filter((count) => count === TOTAL_RECORDS).length;
+
   return (
-    <section className="full-panel">
-      <PageHeader
-        eyebrow="AUTOMATIC CURRICULUM RECORD"
-        title="Student lesson masterlist"
-        description="Detailed progress for every built-in JapLearn lesson and its required exercise."
-      />
+    <section className="progress-master-page">
+      <div className="hero-banner">
+        <span className="hero-glyph">録</span>
+        <Link className="hero-back" to="/teacher/lessons">
+          <ChevronLeft /> Back to lessons
+        </Link>
+        <div className="hero-top">
+          <div>
+            <span className="hero-kicker"><FileSpreadsheet /> AUTOMATIC CURRICULUM RECORD</span>
+            <h2>Student lesson masterlist</h2>
+            <p>
+              Detailed progress for every built-in JapLearn lesson and its
+              required exercise.
+            </p>
+          </div>
+          <button type="button" className="hero-action" onClick={exportCsv}>
+            <Download /> Export CSV
+          </button>
+        </div>
+        <div className="hero-stats">
+          <div><b>{filteredRows.length}</b><small>Students shown</small></div>
+          <div><b>{avgCompletion}%</b><small>Avg. completion</small></div>
+          <div><b>{fullyComplete}</b><small>Fully complete</small></div>
+        </div>
+      </div>
+
       <div className="master-toolbar">
         <label>
           Class
@@ -160,9 +198,6 @@ export default function LessonProgressPage() {
             placeholder="Search student, email, or class…"
           />
         </div>
-        <button onClick={exportCsv}>
-          <Download /> Export CSV for Excel
-        </button>
       </div>
       <div className="score-guide">
         <FileSpreadsheet />
@@ -177,6 +212,7 @@ export default function LessonProgressPage() {
       {loading ? (
         <div className="skeleton-list tall" />
       ) : (
+        <div className="master-shell">
         <div className="master-table-wrap">
           <table className="master-table">
             <thead>
@@ -246,6 +282,12 @@ export default function LessonProgressPage() {
               })}
             </tbody>
           </table>
+        </div>
+        <div className="legend-row">
+          <span><i className="done" /> Completed exercise · {SCORE_PER_RECORD} pts</span>
+          <span><i className="pending" /> Not completed · 0 pts</span>
+          <span>Maximum score {MAXIMUM_SCORE} across {TOTAL_RECORDS} records</span>
+        </div>
         </div>
       )}
     </section>

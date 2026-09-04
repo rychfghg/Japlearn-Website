@@ -1,4 +1,4 @@
-import { Search, Trash2, UserPlus, Users } from "lucide-react";
+import { Search, Trash2, UserPlus, Users, X } from "lucide-react";
 import { FormEvent, useEffect, useMemo, useState } from "react";
 import StatusMessage from "../components/StatusMessage";
 import { teacherApi } from "../services/teacherApi";
@@ -85,6 +85,23 @@ export default function StudentsPage() {
     );
   }, [search, students]);
 
+  const rows = useMemo(
+    () =>
+      filteredStudents.map((student) => {
+        const progress = lessonProgress.find(
+          (item) => item.email?.toLowerCase() === student.email?.toLowerCase(),
+        );
+        const percent = masteryPercent(progress);
+        return { student, percent, status: statusFor(percent) };
+      }),
+    [filteredStudents, lessonProgress],
+  );
+
+  const connected = students.filter((student) => student.classCode || selectedClass).length;
+  const avgMastery = rows.length
+    ? Math.round(rows.reduce((sum, row) => sum + row.percent, 0) / rows.length)
+    : 0;
+
   const addStudent = async (event: FormEvent) => {
     event.preventDefault();
     if (!selectedClass || !email.trim()) return;
@@ -125,36 +142,58 @@ export default function StudentsPage() {
 
   return (
     <section className="student-directory-page">
-      <div className="directory-title-row student-directory-title">
-        <div><span>LEARNER DIRECTORY</span><h2>Students</h2><p>Find learners and manage enrollment from one focused view.</p></div>
-        <div className="student-summary"><span><Users /></span><div><b>{students.length}</b><small>{selectedClass ? `In ${selectedClass}` : "Learners shown"}</small></div></div>
+      <div className="hero-banner">
+        <span className="hero-glyph">生</span>
+        <div className="hero-top">
+          <div>
+            <span className="hero-kicker"><Users /> LEARNER DIRECTORY</span>
+            <h2>Students</h2>
+            <p>Find learners and manage enrollment from one focused view.</p>
+          </div>
+        </div>
+        <div className="hero-stats">
+          <div><b>{students.length}</b><small>{selectedClass ? `In ${selectedClass}` : "Learners shown"}</small></div>
+          <div><b>{connected}</b><small>Connected</small></div>
+          <div><b>{avgMastery}%</b><small>Avg. mastery</small></div>
+        </div>
       </div>
 
       {error && <StatusMessage>{error}</StatusMessage>}
 
-      <div className="student-toolbar directory-student-toolbar">
-        <label>
-          Class
-          <select
-            value={selectedClass}
-            onChange={(event) => setSelectedClass(event.target.value)}
+      <div className="tool-bar">
+        <div className="chip-row">
+          <button
+            type="button"
+            className={`chip ${selectedClass ? "" : "on"}`}
+            onClick={() => setSelectedClass("")}
           >
-            <option value="">All students</option>
-            {classes.map((item) => (
-              <option key={item.classCodes} value={item.classCodes}>
-                {item.classCodes}
-              </option>
-            ))}
-          </select>
-        </label>
-        <div className="student-search">
+            All students <i>{students.length}</i>
+          </button>
+          {classes.map((item) => (
+            <button
+              key={item.classCodes}
+              type="button"
+              className={`chip ${selectedClass === item.classCodes ? "on" : ""}`}
+              onClick={() => setSelectedClass(item.classCodes)}
+            >
+              {item.classCodes}
+            </button>
+          ))}
+        </div>
+        <label className="tool-search">
           <Search />
           <input
             value={search}
             onChange={(event) => setSearch(event.target.value)}
             placeholder="Search by name or email…"
+            aria-label="Search students"
           />
-        </div>
+          {search && (
+            <button type="button" onClick={() => setSearch("")} aria-label="Clear search">
+              <X />
+            </button>
+          )}
+        </label>
       </div>
 
       {selectedClass && (
@@ -177,75 +216,69 @@ export default function StudentsPage() {
 
       {loading ? (
         <div className="skeleton-list tall" />
-      ) : filteredStudents.length > 0 ? (
-        <div className="student-table-wrap">
-          <table className="student-table">
-            <thead>
-              <tr>
-                <th>Student</th>
-                <th>Email</th>
-                <th>Class</th>
-                <th>Status</th>
-                <th>Lesson progress</th>
-                <th />
-              </tr>
-            </thead>
-            <tbody>
-              {filteredStudents.map((student, index) => {
-                const progress = lessonProgress.find(
-                  (item) => item.email?.toLowerCase() === student.email?.toLowerCase(),
-                );
-                const percent = masteryPercent(progress);
-                const status = statusFor(percent);
-                return (
-                <tr key={student.id || student.email}>
-                  <td>
-                    <span className={`student-avatar tone-${(index % 4) + 1}`}>
-                      {student.fname?.[0]}
-                      {student.lname?.[0]}
-                    </span>
+      ) : rows.length > 0 ? (
+        <>
+          <div className="roster-head">
+            <span>Student</span>
+            <span>Email</span>
+            <span>Class</span>
+            <span>Lesson mastery</span>
+            <span />
+          </div>
+          <div className="roster-list">
+            {rows.map(({ student, percent, status }, index) => (
+              <article className="roster-row" key={student.id || student.email}>
+                <div className="roster-who">
+                  <span className={`roster-avatar tone-${(index % 4) + 1}`}>
+                    {student.fname?.[0]}
+                    {student.lname?.[0]}
+                  </span>
+                  <div>
                     <b>
                       {student.fname} {student.lname}
                     </b>
-                  </td>
-                  <td>{student.email}</td>
-                  <td>
-                    {student.classCode || selectedClass || "Not assigned"}
-                  </td>
-                  <td>
-                    <span className={`student-status-pill tone-${status.tone}`}>{status.label}</span>
-                  </td>
-                  <td>
-                    <div className="student-progress-cell">
-                      <div className="mastery-bar-track small">
-                        <div className="mastery-bar-fill" style={{ width: `${percent}%` }} />
-                      </div>
-                      <b>{percent}%</b>
-                    </div>
-                  </td>
-                  <td>
-                    {selectedClass && (
-                      <button
-                        type="button"
-                        className="row-delete"
-                        onClick={() => deleteStudent(student)}
-                        aria-label={`Remove ${student.fname}`}
-                      >
-                        <Trash2 />
-                      </button>
-                    )}
-                  </td>
-                </tr>
-                );
-              })}
-            </tbody>
-          </table>
-        </div>
+                    <small>
+                      <span className={`student-status-pill tone-${status.tone}`}>
+                        {status.label}
+                      </span>
+                    </small>
+                  </div>
+                </div>
+
+                <div className="roster-mail">{student.email}</div>
+
+                <span
+                  className={`roster-class ${student.classCode || selectedClass ? "" : "none"}`}
+                >
+                  {student.classCode || selectedClass || "Unassigned"}
+                </span>
+
+                <div className="roster-meter">
+                  <div className="mastery-bar-track small">
+                    <div className="mastery-bar-fill" style={{ width: `${percent}%` }} />
+                  </div>
+                  <b>{percent}%</b>
+                </div>
+
+                {selectedClass ? (
+                  <button
+                    type="button"
+                    className="row-delete"
+                    onClick={() => deleteStudent(student)}
+                    aria-label={`Remove ${student.fname}`}
+                  >
+                    <Trash2 />
+                  </button>
+                ) : (
+                  <span />
+                )}
+              </article>
+            ))}
+          </div>
+        </>
       ) : (
-        <div className="empty">
-          <span>
-            <Users />
-          </span>
+        <div className="state-empty">
+          <span><Users /></span>
           <h3>No students found</h3>
           <p>Try another search or add a student to the selected class.</p>
         </div>
