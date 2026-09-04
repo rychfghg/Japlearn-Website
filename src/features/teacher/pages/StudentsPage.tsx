@@ -1,6 +1,5 @@
 import { Search, Trash2, UserPlus, Users } from "lucide-react";
 import { FormEvent, useEffect, useMemo, useState } from "react";
-import PageHeader from "../components/PageHeader";
 import StatusMessage from "../components/StatusMessage";
 import { teacherApi } from "../services/teacherApi";
 import type { ClassRecord, Student, StudentLessonProgress } from "../types";
@@ -117,16 +116,15 @@ export default function StudentsPage() {
   };
 
   return (
-    <section className="full-panel">
-      <PageHeader
-        eyebrow="LIVE ENROLLMENT"
-        title="Student directory"
-        description="Search all learners or select a class to manage its live enrollment list."
-      />
+    <section className="student-directory-page">
+      <div className="directory-title-row student-directory-title">
+        <div><span>LEARNER DIRECTORY</span><h2>Students</h2><p>Find learners and manage enrollment from one focused view.</p></div>
+        <div className="student-summary"><span><Users /></span><div><b>{students.length}</b><small>{selectedClass ? `In ${selectedClass}` : "Learners shown"}</small></div></div>
+      </div>
 
       {error && <StatusMessage>{error}</StatusMessage>}
 
-      <div className="student-toolbar">
+      <div className="student-toolbar directory-student-toolbar">
         <label>
           Class
           <select

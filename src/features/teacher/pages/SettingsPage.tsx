@@ -30,11 +30,6 @@ export default function SettingsPage() {
 
   return (
     <section className="teacher-settings-page">
-      <header className="settings-hero">
-        <div><span><Sparkles /> YOUR WORKSPACE</span><h2>Make JapLearn feel right for you.</h2><p>Adjust how your teacher workspace looks and moves. Changes apply immediately and are remembered on this device.</p></div>
-        <div className="settings-hero-mark" aria-hidden="true"><span>設</span><b>定</b></div>
-      </header>
-
       <div className="settings-layout">
         <main className="settings-content-card">
           <header><div><small>DISPLAY & EXPERIENCE</small><h3>Workspace preferences</h3></div>{saved && <span className="settings-saved"><Check /> Saved</span>}</header>

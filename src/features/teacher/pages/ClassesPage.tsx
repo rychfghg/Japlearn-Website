@@ -1,7 +1,6 @@
-import { ChevronRight, GraduationCap, Plus, Trash2, X } from "lucide-react";
-import { FormEvent, useEffect, useState } from "react";
+import { ChevronRight, GraduationCap, Plus, Search, Trash2, X } from "lucide-react";
+import { FormEvent, useEffect, useMemo, useState } from "react";
 import { Link } from "react-router-dom";
-import PageHeader from "../components/PageHeader";
 import StatusMessage from "../components/StatusMessage";
 import { teacherApi } from "../services/teacherApi";
 import type { ClassRecord } from "../types";
@@ -13,6 +12,7 @@ export default function ClassesPage() {
   const [modalOpen, setModalOpen] = useState(false);
   const [classCode, setClassCode] = useState("");
   const [saving, setSaving] = useState(false);
+  const [search, setSearch] = useState("");
 
   const loadClasses = async () => {
     setLoading(true);
@@ -34,6 +34,11 @@ export default function ClassesPage() {
   useEffect(() => {
     loadClasses();
   }, []);
+
+  const filteredClasses = useMemo(() => {
+    const query = search.trim().toLowerCase();
+    return classes.filter((item) => item.classCodes.toLowerCase().includes(query));
+  }, [classes, search]);
 
   const createClass = async (event: FormEvent) => {
     event.preventDefault();
@@ -73,30 +78,24 @@ export default function ClassesPage() {
   };
 
   return (
-    <section className="full-panel">
-      <PageHeader
-        eyebrow="CLASS MANAGEMENT"
-        title="All classrooms"
-        description="Create, open, and manage the classrooms connected to your students."
-        action={
-          <button
-            type="button"
-            className="primary"
-            onClick={() => setModalOpen(true)}
-          >
-            <Plus />
-            New class
-          </button>
-        }
-      />
+    <section className="class-directory-page">
+      <div className="directory-title-row">
+        <div><span>MY CLASSES</span><h2>Classrooms</h2><p>Open a class or create a new space for your learners.</p></div>
+        <button type="button" className="primary" onClick={() => setModalOpen(true)}><Plus /> New class</button>
+      </div>
+
+      <div className="class-directory-toolbar">
+        <div className="directory-count"><span><GraduationCap /></span><div><b>{classes.length}</b><small>Active classroom{classes.length === 1 ? "" : "s"}</small></div></div>
+        <label className="directory-search"><Search /><input value={search} onChange={(event) => setSearch(event.target.value)} placeholder="Search class codes…" aria-label="Search classrooms" />{search && <button type="button" onClick={() => setSearch("")} aria-label="Clear classroom search"><X /></button>}</label>
+      </div>
 
       {error && <StatusMessage>{error}</StatusMessage>}
 
       {loading ? (
         <div className="skeleton-list tall" />
-      ) : classes.length > 0 ? (
+      ) : filteredClasses.length > 0 ? (
         <div className="class-grid">
-          {classes.map((classItem, index) => (
+          {filteredClasses.map((classItem, index) => (
             <article key={classItem.classCodes}>
               <div className={`class-cover cover-${index % 4}`}>
                 <span>{["日", "本", "語", "学"][index % 4]}</span>
@@ -125,7 +124,7 @@ export default function ClassesPage() {
             </article>
           ))}
         </div>
-      ) : (
+      ) : classes.length === 0 ? (
         <div className="empty">
           <span>
             <GraduationCap />
@@ -137,6 +136,8 @@ export default function ClassesPage() {
             Create class
           </button>
         </div>
+      ) : (
+        <div className="directory-no-results"><Search /><h3>No matching classroom</h3><p>Try another class code or clear your search.</p><button type="button" onClick={() => setSearch("")}>Clear search</button></div>
       )}
 
       {modalOpen && (
