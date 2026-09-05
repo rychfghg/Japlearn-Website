@@ -1,4 +1,6 @@
 import {
+  ChevronLeft,
+  ChevronRight,
   Download,
   FileBarChart,
   Loader2,
@@ -19,6 +21,25 @@ import {
 } from "../utils/reportBuilder";
 
 const ALL_SECTION_KEYS = REPORT_SECTIONS.map((section) => section.key);
+const PAGE_SIZE = 5;
+
+/**
+ * The backend returns raw Spring Boot error JSON (timestamp/status/path).
+ * Turn that into something a teacher can actually read.
+ */
+function friendlyError(error: unknown, fallback: string): string {
+  if (!(error instanceof Error) || !error.message) return fallback;
+  try {
+    const parsed = JSON.parse(error.message);
+    if (parsed && typeof parsed === "object") {
+      if (parsed.status === 404) return `${fallback} (endpoint not available on the backend yet)`;
+      return parsed.message || parsed.error || fallback;
+    }
+  } catch {
+    // Not JSON — the message was already plain text.
+  }
+  return error.message;
+}
 
 export default function ReportsPage() {
   const [students, setStudents] = useState<Student[]>([]);
@@ -28,6 +49,7 @@ export default function ReportsPage() {
   const [scope, setScope] = useState(""); // "" = all students
   const [sections, setSections] = useState<SectionKey[]>(ALL_SECTION_KEYS);
   const [cards, setCards] = useState<Scorecard[] | null>(null);
+  const [page, setPage] = useState(0);
   const [building, setBuilding] = useState(false);
   const [progress, setProgress] = useState({ done: 0, total: 0 });
   const [buildError, setBuildError] = useState("");
@@ -62,9 +84,7 @@ export default function ReportsPage() {
       setReport(await teacherApi.generateReport(selectedEmail));
       setMessage("Communication progress report generated successfully.");
     } catch (error) {
-      setMessage(
-        error instanceof Error ? error.message : "Could not generate report.",
-      );
+      setMessage(friendlyError(error, "Could not generate report."));
     }
   };
 
@@ -95,6 +115,7 @@ export default function ReportsPage() {
         setProgress({ done, total }),
       );
       setCards(results);
+      setPage(0);
 
       const csv = scorecardsToCsv(results, sections);
       const stamp = new Date().toISOString().slice(0, 10);
@@ -103,9 +124,7 @@ export default function ReportsPage() {
         : "all-students";
       downloadCsv(`japlearn-masterlist-${scopeLabel}-${stamp}.csv`, csv);
     } catch (error) {
-      setBuildError(
-        error instanceof Error ? error.message : "Could not build the masterlist.",
-      );
+      setBuildError(friendlyError(error, "Could not build the masterlist."));
     } finally {
       setBuilding(false);
     }
@@ -119,6 +138,9 @@ export default function ReportsPage() {
       : "all-students";
     downloadCsv(`japlearn-masterlist-${scopeLabel}-${stamp}.csv`, scorecardsToCsv(cards, sections));
   };
+
+  const pageCount = cards ? Math.max(1, Math.ceil(cards.length / PAGE_SIZE)) : 1;
+  const pagedCards = cards?.slice(page * PAGE_SIZE, page * PAGE_SIZE + PAGE_SIZE) ?? [];
 
   const measuredCards = cards?.filter((card) => card.overall != null) ?? [];
   const avgOverall = measuredCards.length
@@ -202,10 +224,15 @@ export default function ReportsPage() {
             <div><b>{sections.length}</b><small>Sources included</small></div>
           </div>
           <div className="score-list">
-            {cards.map((card, index) => (
+            {pagedCards.map((card, index) => (
               <article className="score-row" key={card.student.email}>
                 <div className="score-who">
-                  <span style={{ background: TONES[index % 4].bg, color: TONES[index % 4].fg }}>
+                  <span
+                    style={{
+                      background: TONES[(page * PAGE_SIZE + index) % 4].bg,
+                      color: TONES[(page * PAGE_SIZE + index) % 4].fg,
+                    }}
+                  >
                     {card.student.fname?.[0]}
                     {card.student.lname?.[0]}
                   </span>
@@ -248,6 +275,29 @@ export default function ReportsPage() {
               </article>
             ))}
           </div>
+
+          {pageCount > 1 && (
+            <div className="pager">
+              <button
+                type="button"
+                onClick={() => setPage((current) => Math.max(0, current - 1))}
+                disabled={page === 0}
+              >
+                <ChevronLeft /> Prev
+              </button>
+              <span>
+                Page {page + 1} of {pageCount} · {cards.length} student{cards.length === 1 ? "" : "s"}
+              </span>
+              <button
+                type="button"
+                onClick={() => setPage((current) => Math.min(pageCount - 1, current + 1))}
+                disabled={page >= pageCount - 1}
+              >
+                Next <ChevronRight />
+              </button>
+            </div>
+          )}
+
           <button type="button" className="tile-link" onClick={redownload} style={{ marginTop: 14 }}>
             Download this masterlist again <Download />
           </button>
