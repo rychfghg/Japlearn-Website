@@ -5638,3 +5638,109 @@ a {
   .matrix-select { justify-content: space-between; }
   .matrix-sticky { min-width: 170px; }
 }
+
+/* =======================================================================
+   Report center - masterlist builder (lessons + games, all or one student)
+   ======================================================================= */
+.report-scope-row { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
+.report-scope-row select {
+  height: 46px;
+  min-width: 220px;
+  padding: 0 13px;
+  border: 1px solid #e2d8e7;
+  border-radius: 14px;
+  background: #fff;
+  color: #3b2744;
+  font: 900 11px "Nunito";
+  cursor: pointer;
+}
+
+.build-action {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  height: 46px;
+  padding: 0 18px;
+  border: 0;
+  border-radius: 14px;
+  background: #7626ca;
+  color: #fff;
+  font-size: 11px;
+  font-weight: 900;
+  cursor: pointer;
+  transition: transform .18s ease, box-shadow .18s ease, opacity .18s ease;
+}
+.build-action:hover { transform: translateY(-2px); box-shadow: 0 12px 24px rgba(118,38,202,.26); }
+.build-action:disabled { opacity: .6; cursor: not-allowed; transform: none; box-shadow: none; }
+.build-action svg { width: 16px; }
+.build-action .spin { animation: report-spin 1s linear infinite; }
+@keyframes report-spin { to { transform: rotate(360deg); } }
+
+.build-progress { margin-top: 4px; height: 6px; border-radius: 999px; background: #f0e9f5; overflow: hidden; }
+.build-progress > div { height: 100%; border-radius: 999px; background: linear-gradient(90deg,#9350e0,#7626ca); transition: width .25s ease; }
+.build-progress-label { margin-top: 6px; color: #97899d; font-size: 9px; font-weight: 800; }
+
+.score-list { display: grid; gap: 9px; }
+.score-row {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 13px 16px;
+  border: 1px solid #ebe3ef;
+  border-radius: 18px;
+  background: #fff;
+  transition: transform .18s ease, box-shadow .18s ease, border-color .18s ease;
+}
+.score-row:hover { transform: translateX(3px); border-color: #d9c8e6; box-shadow: 0 12px 26px rgba(59,31,72,.08); }
+.score-who { display: flex; align-items: center; gap: 10px; flex: none; width: 200px; min-width: 0; }
+.score-who > span {
+  width: 36px;
+  height: 36px;
+  flex: none;
+  display: grid;
+  place-items: center;
+  border-radius: 12px;
+  background: #eee3f8;
+  color: #7828d0;
+  font: 900 10px "Nunito";
+}
+.score-who div { min-width: 0; }
+.score-who b { display: block; color: #3b2744; font-size: 11px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.score-who small { display: block; margin-top: 1px; color: #97899d; font-size: 8px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.score-metrics { flex: 1; min-width: 0; display: flex; flex-wrap: wrap; gap: 6px; }
+.score-chip {
+  padding: 5px 9px;
+  border-radius: 999px;
+  background: #f3ecf8;
+  color: #6f3aa0;
+  font-size: 8px;
+  font-weight: 900;
+  white-space: nowrap;
+}
+.score-chip.muted { background: #f4f1f6; color: #9a8da0; }
+.score-overall { flex: none; width: 68px; text-align: right; }
+.score-overall b { display: block; color: #382141; font: 900 15px "Nunito"; }
+.score-overall small { display: block; color: #a294a8; font-size: 7px; font-weight: 900; letter-spacing: .5px; text-transform: uppercase; }
+
+.report-metric-row { display: flex; gap: 10px; flex-wrap: wrap; margin-bottom: 16px; }
+.report-metric-row > div { min-width: 130px; padding: 12px 15px; border-radius: 15px; background: #f8f5fb; border: 1px solid #efe7f3; }
+.report-metric-row b { display: block; color: #382141; font: 900 20px "Nunito"; }
+.report-metric-row small { display: block; margin-top: 2px; color: #97899d; font-size: 8px; font-weight: 900; letter-spacing: .5px; text-transform: uppercase; }
+
+.report-history { display: grid; gap: 8px; }
+.report-history article { display: flex; align-items: center; gap: 10px; padding: 10px 12px; border-radius: 13px; background: #faf7fb; }
+.report-history article > span:first-child {
+  width: 32px; height: 32px; flex: none; display: grid; place-items: center;
+  border-radius: 10px; background: #efe5fa; color: #7827ce; font: 900 10px "Nunito";
+}
+.report-history article > div { flex: 1; min-width: 0; }
+.report-history b { display: block; color: #3b2744; font-size: 10px; }
+.report-history small { display: block; margin-top: 1px; color: #97899d; font-size: 8px; text-transform: capitalize; }
+.report-history .mastery-bar-track { width: 90px; flex: none; }
+
+@media (max-width: 720px) {
+  .report-scope-row, .report-scope-row select, .build-action { width: 100%; }
+  .score-row { flex-wrap: wrap; }
+  .score-who { width: 100%; }
+  .score-overall { width: 100%; text-align: left; }
+}
