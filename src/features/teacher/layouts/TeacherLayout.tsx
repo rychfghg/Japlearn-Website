@@ -13,20 +13,20 @@ import {
   Users,
   X,
 } from "lucide-react";
-import { type FormEvent, useState } from "react";
+import { Fragment, type FormEvent, useState } from "react";
 import { NavLink, Outlet, useLocation, useNavigate } from "react-router-dom";
 import Brand from "../../../components/Brand";
 import { session } from "../../../lib/auth";
 
 const navigation = [
-  { to: "/teacher", label: "Overview", icon: LayoutDashboard, end: true },
-  { to: "/teacher/classes", label: "My classes", icon: GraduationCap },
-  { to: "/teacher/students", label: "Students", icon: Users },
-  { to: "/teacher/lessons", label: "Lessons", icon: BookOpen },
-  { to: "/teacher/activities", label: "Activities", icon: Activity },
-  { to: "/teacher/reports", label: "Reports", icon: BarChart3 },
-  { to: "/teacher/profile", label: "Profile", icon: UserCircle },
-  { to: "/teacher/settings", label: "Settings", icon: Settings },
+  { to: "/teacher", label: "Overview", icon: LayoutDashboard, end: true, group: "Workspace" },
+  { to: "/teacher/classes", label: "My classes", icon: GraduationCap, group: "Workspace" },
+  { to: "/teacher/students", label: "Students", icon: Users, group: "Workspace" },
+  { to: "/teacher/lessons", label: "Lessons", icon: BookOpen, group: "Workspace" },
+  { to: "/teacher/activities", label: "Activities", icon: Activity, group: "Workspace" },
+  { to: "/teacher/reports", label: "Reports", icon: BarChart3, group: "Insights" },
+  { to: "/teacher/profile", label: "Profile", icon: UserCircle, group: "Account" },
+  { to: "/teacher/settings", label: "Settings", icon: Settings, group: "Account" },
 ];
 
 const routeTitles: Record<string, string> = {
@@ -88,7 +88,7 @@ export default function TeacherLayout() {
           </button>
         </div>
 
-        <div className="teacher-mini">
+        <NavLink to="/teacher/profile" className="teacher-mini" onClick={() => setMenuOpen(false)}>
           <span>
             {user.fname?.[0]}
             {user.lname?.[0]}
@@ -99,25 +99,31 @@ export default function TeacherLayout() {
             </b>
             <small>Japanese language teacher</small>
           </div>
-        </div>
+        </NavLink>
 
         <nav>
-          {navigation.map(({ to, label, icon: Icon, end }) => (
-            <NavLink
-              key={to}
-              to={to}
-              end={end}
-              onClick={() => setMenuOpen(false)}
-              className={({ isActive }) => (isActive ? "active" : "")}
-            >
-              <Icon />
-              {label}
-            </NavLink>
-          ))}
+          {navigation.map((item, index) => {
+            const Icon = item.icon;
+            const showGroup = item.group !== navigation[index - 1]?.group;
+            return (
+              <Fragment key={item.to}>
+                {showGroup && <span className="nav-group-label">{item.group}</span>}
+                <NavLink
+                  to={item.to}
+                  end={item.end}
+                  onClick={() => setMenuOpen(false)}
+                  className={({ isActive }) => (isActive ? "active" : "")}
+                >
+                  <span className="nav-icon"><Icon /></span>
+                  {item.label}
+                </NavLink>
+              </Fragment>
+            );
+          })}
         </nav>
 
         <button type="button" className="logout" onClick={logout}>
-          <LogOut />
+          <span className="nav-icon"><LogOut /></span>
           Sign out
         </button>
       </aside>

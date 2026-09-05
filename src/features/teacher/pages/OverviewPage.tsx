@@ -8,10 +8,11 @@ import {
   CircleCheck,
   Clock3,
   GraduationCap,
+  Languages,
+  MessageCircleMore,
   MessageSquareText,
   Plus,
-  Sparkles,
-  TrendingUp,
+  Type,
   Users,
 } from "lucide-react";
 import { type CSSProperties, useEffect, useMemo, useState } from "react";
@@ -22,11 +23,30 @@ import { teacherApi } from "../services/teacherApi";
 import type { ClassRecord, Student, StudentLessonProgress } from "../types";
 import { LESSON_STAGES, masteryPercent, progressMapByEmail } from "../utils/mastery";
 
+const STAGE_ICON: Record<string, typeof Languages> = {
+  hiragana: Languages,
+  katakana: Type,
+  vocab: BookOpen,
+  sentence: MessageCircleMore,
+};
+const STAGE_TONE: Record<string, string> = {
+  hiragana: "purple",
+  katakana: "green",
+  vocab: "orange",
+  sentence: "pink",
+};
+
 export default function OverviewPage() {
   const user = session.get()!;
   const [classes, setClasses] = useState<ClassRecord[]>([]);
   const [students, setStudents] = useState<Student[]>([]);
   const [lessonProgress, setLessonProgress] = useState<StudentLessonProgress[]>([]);
+  const [now, setNow] = useState(() => new Date());
+
+  useEffect(() => {
+    const id = setInterval(() => setNow(new Date()), 30000);
+    return () => clearInterval(id);
+  }, []);
 
   useEffect(() => {
     Promise.all([
@@ -86,12 +106,16 @@ export default function OverviewPage() {
     [studentMastery],
   );
 
+  const hour = now.getHours();
+  const timeGreeting = hour < 11 ? "おはようございます" : hour < 17 ? "こんにちは" : "こんばんは";
+  const clockLabel = now.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
+
   return (
     <>
       <section className="welcome-card">
         <div>
           <span className="welcome-kicker">
-            おはようございます、{user.fname}先生
+            {timeGreeting}、{user.fname}先生
           </span>
           <h2>
             Ready to guide today’s
@@ -123,11 +147,12 @@ export default function OverviewPage() {
           <span>CLASSROOM PULSE</span>
           <h2>Today at a glance</h2>
         </div>
-        <small><Clock3 /> Live workspace summary</small>
+        <small><Clock3 /> {clockLabel} · Live workspace summary</small>
       </section>
 
       <section className="metric-grid overview-metrics">
         <article>
+          <Link to="/teacher/classes" className="metric-card-hit" aria-label="Open classes" />
           <span className="purple">
             <GraduationCap />
           </span>
@@ -136,9 +161,10 @@ export default function OverviewPage() {
             <b>{classes.length}</b>
             <p>Connected classrooms</p>
           </div>
-          <TrendingUp className="metric-trend" />
+          <ArrowRight className="metric-trend" />
         </article>
         <article>
+          <Link to="/teacher/students" className="metric-card-hit" aria-label="Open students" />
           <span className="green">
             <Users />
           </span>
@@ -147,9 +173,10 @@ export default function OverviewPage() {
             <b>{students.length}</b>
             <p>Live student accounts</p>
           </div>
-          <TrendingUp className="metric-trend" />
+          <ArrowRight className="metric-trend" />
         </article>
         <article>
+          <Link to="/teacher/lessons/progress" className="metric-card-hit" aria-label="Open lesson masterlist" />
           <span className="orange">
             <BookOpen />
           </span>
@@ -158,9 +185,10 @@ export default function OverviewPage() {
             <b>{avgMastery}%</b>
             <p>Avg. lesson completion</p>
           </div>
-          <BookOpen className="metric-trend" />
+          <ArrowRight className="metric-trend" />
         </article>
         <article>
+          <Link to="/teacher/activities" className="metric-card-hit" aria-label="Open activities" />
           <span className="pink">
             <Activity />
           </span>
@@ -169,7 +197,7 @@ export default function OverviewPage() {
             <b>6</b>
             <p>Game and communication tools</p>
           </div>
-          <Sparkles className="metric-trend" />
+          <ArrowRight className="metric-trend" />
         </article>
       </section>
 
@@ -179,17 +207,25 @@ export default function OverviewPage() {
           <Link to="/teacher/lessons/progress">Full masterlist <ArrowRight /></Link>
         </header>
         <div className="mastery-bars">
-          {stageStats.map((stage) => (
-            <div key={stage.key}>
-              <div className="mastery-bar-label">
-                <span>{stage.label}</span>
-                <b>{stage.percent}%</b>
+          {stageStats.map((stage) => {
+            const StageIcon = STAGE_ICON[stage.key] ?? BookOpen;
+            return (
+              <div key={stage.key}>
+                <div className="mastery-bar-label">
+                  <span className="mastery-bar-label-text">
+                    <span className={`mastery-stage-icon ${STAGE_TONE[stage.key] ?? "purple"}`}>
+                      <StageIcon />
+                    </span>
+                    {stage.label}
+                  </span>
+                  <b>{stage.percent}%</b>
+                </div>
+                <div className="mastery-bar-track">
+                  <div className="mastery-bar-fill" style={{ width: `${stage.percent}%` }} />
+                </div>
               </div>
-              <div className="mastery-bar-track">
-                <div className="mastery-bar-fill" style={{ width: `${stage.percent}%` }} />
-              </div>
-            </div>
-          ))}
+            );
+          })}
         </div>
       </section>
 
@@ -201,11 +237,18 @@ export default function OverviewPage() {
           </header>
           <div className="overview-class-list">
             {recentClasses.length ? recentClasses.map((classroom, index) => {
-              const classStudents = students.filter((student) => student.classCode === classroom.classCodes).length;
+              const classRoster = studentMastery.filter((student) => student.classCode === classroom.classCodes);
+              const classMastery = classRoster.length
+                ? Math.round(classRoster.reduce((sum, student) => sum + student.percent, 0) / classRoster.length)
+                : 0;
               return (
                 <Link to={`/teacher/classes/${encodeURIComponent(classroom.classCodes)}`} key={classroom.id ?? classroom.classCodes}>
                   <span className={`class-orb tone-${(index % 4) + 1}`}><GraduationCap /></span>
-                  <div><b>{classroom.classCodes}</b><small>{classStudents} learner{classStudents === 1 ? "" : "s"} enrolled</small></div>
+                  <div>
+                    <b>{classroom.classCodes}</b>
+                    <small>{classRoster.length} learner{classRoster.length === 1 ? "" : "s"} enrolled</small>
+                  </div>
+                  {classRoster.length > 0 && <span className="class-list-mastery">{classMastery}%</span>}
                   <span className="open-class">Open <ChevronRight /></span>
                 </Link>
               );
@@ -234,11 +277,13 @@ export default function OverviewPage() {
               <ul>
                 {needsAttention.map((student) => (
                   <li key={student.email}>
-                    <div>
-                      <b>{student.fname} {student.lname}</b>
-                      <small>{student.classCode || "Unassigned"}</small>
-                    </div>
-                    <span>{student.percent}%</span>
+                    <Link to="/teacher/lessons/progress" style={{ display: "contents" }}>
+                      <div>
+                        <b>{student.fname} {student.lname}</b>
+                        <small>{student.classCode || "Unassigned"}</small>
+                      </div>
+                      <span>{student.percent}%</span>
+                    </Link>
                   </li>
                 ))}
               </ul>

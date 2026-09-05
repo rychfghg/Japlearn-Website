@@ -1420,6 +1420,11 @@ a {
   display: flex;
   align-items: center;
   gap: 10px;
+  transition: background .15s ease, border-color .15s ease;
+}
+.teacher-mini:hover {
+  background: #4d275f;
+  border-color: #6d3f85;
 }
 .teacher-mini > span,
 .profile-chip > span {
@@ -1485,6 +1490,28 @@ a {
   border-top: 1px solid #4b2b5c;
   border-radius: 0;
   padding-top: 14px;
+  transition: color .15s ease;
+}
+.logout .nav-icon {
+  width: 30px;
+  height: 30px;
+  border-radius: 9px;
+  flex: none;
+  display: grid;
+  place-items: center;
+  background: rgba(255,255,255,.06);
+  color: inherit;
+  transition: background .15s ease, color .15s ease;
+}
+.logout .nav-icon svg {
+  width: 17px;
+}
+.logout:hover {
+  color: #f0a8b8;
+}
+.logout:hover .nav-icon {
+  background: rgba(219,77,120,.18);
+  color: #f0a8b8;
 }
 .portal-main {
   margin-left: 255px;
@@ -2887,22 +2914,55 @@ a {
   }
 }
 
+.nav-group-label {
+  display: block;
+  margin: 14px 13px 5px;
+  color: #9c85ac;
+  font-size: 9px;
+  font-weight: 900;
+  letter-spacing: 1.1px;
+  text-transform: uppercase;
+}
+.sidebar nav > .nav-group-label:first-child {
+  margin-top: 2px;
+}
 .sidebar nav a {
-  height: 42px;
-  border-radius: 11px;
+  height: 44px;
+  border-radius: 12px;
   color: #cbbbd4;
   display: flex;
   align-items: center;
   gap: 11px;
-  padding: 0 13px;
+  padding: 0 12px;
   font-size: 12px;
   font-weight: 700;
+  transition: background .15s ease, color .15s ease;
 }
-.sidebar nav a svg {
-  width: 18px;
+.sidebar nav a:hover {
+  background: rgba(255,255,255,.07);
+  color: #fff;
+}
+.sidebar nav a .nav-icon {
+  width: 30px;
+  height: 30px;
+  border-radius: 9px;
+  flex: none;
+  display: grid;
+  place-items: center;
+  background: rgba(255,255,255,.06);
+  color: #cbbbd4;
+  transition: background .15s ease, color .15s ease;
+}
+.sidebar nav a .nav-icon svg {
+  width: 17px;
 }
 .sidebar nav a.active {
   background: #7f29d6;
+  color: #fff;
+  box-shadow: 0 8px 18px rgba(127,41,214,.35);
+}
+.sidebar nav a.active .nav-icon {
+  background: rgba(255,255,255,.2);
   color: #fff;
 }
 .class-info a {
@@ -4333,6 +4393,7 @@ a {
 .overview-class-list small { margin-top: 2px; color: #96899c; font-size: 8px; }
 .open-class { display: flex; align-items: center; gap: 1px; color: #88788f; font-size: 8px; font-weight: 800; }
 .open-class svg { width: 13px; }
+.class-list-mastery { flex: none; padding: 4px 8px; border-radius: 999px; background: #f1e8fa; color: #7326ca; font-size: 8px; font-weight: 900; }
 .overview-empty-class { grid-column: 1/-1; display: flex; align-items: center; gap: 12px; padding: 22px; border: 1px dashed #d9cae2; border-radius: 17px; background: #fcf9fd; color: #7a2acb; }
 .overview-empty-class > svg { width: 26px; }
 .overview-empty-class div { flex: 1; }
@@ -4379,6 +4440,11 @@ a {
 .mastery-bar-label b { color: #382141; font: 900 12px Nunito, sans-serif; }
 .mastery-bar-track { height: 9px; border-radius: 999px; background: #f0e9f5; overflow: hidden; }
 .mastery-bar-fill { height: 100%; border-radius: 999px; background: linear-gradient(90deg,#9350e0,#7626ca); transition: width .4s ease; }
+.mastery-bar-label-text { display: flex; align-items: center; gap: 8px; }
+.mastery-stage-icon { width: 24px; height: 24px; border-radius: 8px; display: grid; place-items: center; flex: none; }
+.mastery-stage-icon svg { width: 13px; }
+.metric-card-hit { position: absolute; inset: 0; border-radius: inherit; z-index: 1; }
+.overview-metrics article { cursor: pointer; }
 
 /* Students who need a nudge, surfaced from the enrollment panel */
 .overview-attention { width: 100%; margin-top: 18px; padding-top: 16px; border-top: 1px dashed #e8dfee; text-align: left; }
