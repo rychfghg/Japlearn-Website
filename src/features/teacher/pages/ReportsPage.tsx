@@ -324,7 +324,7 @@ export default function ReportsPage() {
         </StatusMessage>
       )}
 
-      <div className="tool-bar">
+      <div className="tool-bar report-scope-row">
         <select value={selectedEmail} onChange={(event) => setSelectedEmail(event.target.value)}>
           {students.map((student) => (
             <option key={student.email} value={student.email}>
