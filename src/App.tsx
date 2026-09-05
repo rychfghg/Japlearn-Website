@@ -6,6 +6,9 @@ import TeacherSignup from "./pages/TeacherSignup";
 import SeoManager from "./components/SeoManager";
 import AdminQuestionBankPage from "./features/admin/pages/AdminQuestionBankPage";
 import AdminQuackResponsePage from "./features/admin/pages/AdminQuackResponsePage";
+import AdminQuackResponseShell from "./features/admin/pages/AdminQuackResponseShell";
+import AdminResponseRushPage from "./features/admin/pages/AdminResponseRushPage";
+import AdminDialogueRelayPage from "./features/admin/pages/AdminDialogueRelayPage";
 import AdminQuackTalkPage from "./features/admin/pages/AdminQuackTalkPage";
 import AdminSituationalContentPage from "./features/admin/pages/AdminSituationalContentPage";
 import AdminGamePage from "./features/admin/pages/AdminGamePage";
@@ -89,7 +92,12 @@ export default function App() {
           <Route path="teachers" element={<AdminUsersPage role="teacher" />} />
           <Route path="quacksituate" element={<AdminSituationalContentPage />} />
           <Route path="quackslate" element={<AdminQuestionBankPage />} />
-          <Route path="quackresponse" element={<AdminQuackResponsePage />} />
+          <Route path="quackresponse" element={<AdminQuackResponseShell />}>
+            <Route index element={<Navigate to="reply-coach" replace />} />
+            <Route path="reply-coach" element={<AdminQuackResponsePage />} />
+            <Route path="response-rush" element={<AdminResponseRushPage />} />
+            <Route path="dialogue-relay" element={<AdminDialogueRelayPage />} />
+          </Route>
           <Route
             path="expression-match"
             element={<Navigate to="/admin/quacksituate" replace />}
