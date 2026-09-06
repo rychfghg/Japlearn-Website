@@ -1,9 +1,27 @@
 import { useEffect, useState } from "react";
-import { BookOpenCheck, CheckCircle2, GraduationCap, Users } from "lucide-react";
+import {
+  BookOpenCheck,
+  CheckCircle2,
+  Compass,
+  Gamepad2,
+  GraduationCap,
+  MessageCircleQuestion,
+  Mic2,
+  Users,
+} from "lucide-react";
 import { Link } from "react-router-dom";
 import { API_URL } from "../../../lib/api";
 
 type UserRecord = { role: string; approved: boolean; emailConfirmed: boolean };
+
+const GAME_LINKS = [
+  { to: "/admin/quacksituate", label: "QuackSituate", text: "Situational dialogue content", icon: Compass, tone: "violet" },
+  { to: "/admin/quackresponse", label: "QuackResponse", text: "Response and reply content", icon: MessageCircleQuestion, tone: "green" },
+  { to: "/admin/quacktalk", label: "QuackTalk", text: "Speaking practice sessions", icon: Mic2, tone: "orange" },
+  { to: "/admin/quackamole", label: "Quack-a-Mole", text: "Character recognition game", icon: Gamepad2, tone: "blue" },
+  { to: "/admin/quackslate", label: "QuackSlate", text: "Grammar question bank", icon: BookOpenCheck, tone: "violet" },
+  { to: "/admin/quackman", label: "Quackman", text: "Vocabulary arcade content", icon: Gamepad2, tone: "green" },
+] as const;
 
 export default function AdminOverviewPage() {
   const [users, setUsers] = useState<UserRecord[]>([]);
@@ -31,5 +49,17 @@ export default function AdminOverviewPage() {
       <Link to="/admin/quackslate"><span className="blue"><BookOpenCheck /></span><div><b>{questions.length}</b><p>QuackSlate questions</p></div></Link>
     </div>
     <section className="admin-action-panel"><div><small>ACCOUNT REVIEW</small><h2>{pending.length ? `${pending.length} account${pending.length === 1 ? "" : "s"} need attention` : "All confirmed accounts are reviewed"}</h2><p>Approve verified registrations before learners or teachers use protected JapLearn features.</p></div><Link to="/admin/students">Review accounts</Link></section>
+
+    <section className="admin-games-panel">
+      <header><small>GAME CONTENT</small><h2>Manage the shared content library</h2></header>
+      <div className="admin-games-grid">
+        {GAME_LINKS.map(({ to, label, text, icon: Icon, tone }) => (
+          <Link key={to} to={to} className="admin-game-card">
+            <span className={tone}><Icon /></span>
+            <div><b>{label}</b><p>{text}</p></div>
+          </Link>
+        ))}
+      </div>
+    </section>
   </div>;
 }

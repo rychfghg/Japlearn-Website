@@ -2,6 +2,7 @@ import { type FormEvent, useState } from "react";
 import {
   ArrowLeft,
   ArrowRight,
+  DatabaseZap,
   Eye,
   EyeOff,
   LockKeyhole,
@@ -56,28 +57,45 @@ export default function Login({ role }: LoginProps) {
 
   return (
     <main className="login-page">
-      <section className="login-visual">
+      <section className={`login-visual ${isTeacher ? "" : "login-visual-admin"}`}>
         <Link to="/" className="back-home">
           <ArrowLeft /> Back to website
         </Link>
         <Brand light />
         <div className="login-scene">
           <div className="login-message">
-            <span>{isTeacher ? "先生、お疲れ様です" : "管理者ポータル"}</span>
+            <span className={isTeacher ? "" : "login-message-tag-admin"}>
+              {isTeacher ? "先生、お疲れ様です" : "管理者ポータル"}
+            </span>
             <b>
               {isTeacher ? "Your classroom, all in one place." : "Your JapLearn command center."}
             </b>
             <p>
               {isTeacher
                 ? "Sign in to track every student's progress, review their practice, and plan what comes next for your class."
-                : "Manage JapLearn through the authorized administration portal."}
+                : "Manage accounts, content, and access across the entire JapLearn platform."}
             </p>
             <div className="login-benefits" aria-label="Portal benefits">
-              <span><Sparkles /> Learning insights</span>
-              <span><ShieldCheck /> Secure access</span>
+              {isTeacher ? (
+                <>
+                  <span><Sparkles /> Learning insights</span>
+                  <span><ShieldCheck /> Secure access</span>
+                </>
+              ) : (
+                <>
+                  <span><ShieldCheck /> Verified access only</span>
+                  <span><DatabaseZap /> Full platform control</span>
+                </>
+              )}
             </div>
           </div>
-          <img src={mascot} alt="JapLearn mascot" />
+          {isTeacher ? (
+            <img src={mascot} alt="JapLearn mascot" />
+          ) : (
+            <div className="admin-login-badge" aria-hidden="true">
+              <ShieldCheck />
+            </div>
+          )}
         </div>
         <div className="secure-note">
           <ShieldCheck />
