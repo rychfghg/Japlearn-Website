@@ -9,6 +9,7 @@ export default function AdminUsersPage({ role }: { role: "student" | "teacher" }
   const [query, setQuery] = useState("");
   const [editing, setEditing] = useState<ManagedUser | null>(null);
   const [message, setMessage] = useState("");
+  const [accessUpdating, setAccessUpdating] = useState<string[]>([]);
 
   const load = async () => {
     setMessage("");
@@ -39,10 +40,26 @@ export default function AdminUsersPage({ role }: { role: "student" | "teacher" }
     if (!response.ok) { setMessage("The account could not be deleted."); return; }
     setMessage("Account deleted."); await load();
   };
+  const toggleGuidedAccess = async (user: ManagedUser) => {
+    if (accessUpdating.includes(user.id)) return;
+    const enabled = !user.guidedPhraseEnabled;
+    setUsers((current) => current.map((item) => item.id === user.id ? { ...item, guidedPhraseEnabled: enabled } : item));
+    setAccessUpdating((current) => [...current, user.id]);
+    try {
+      const response = await fetch(`${API_URL}/api/users/${user.id}/guided-phrase-access`, { method: "PUT", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ enabled }) });
+      if (!response.ok) throw new Error(await response.text());
+      setMessage(`Guided Phrase Practice ${enabled ? "allowed" : "blocked"} for ${user.fname}.`);
+    } catch {
+      setUsers((current) => current.map((item) => item.id === user.id ? { ...item, guidedPhraseEnabled: user.guidedPhraseEnabled } : item));
+      setMessage("Guided Phrase access could not be changed. Deploy the updated backend, then try again.");
+    } finally {
+      setAccessUpdating((current) => current.filter((id) => id !== user.id));
+    }
+  };
   const setGuidedAccessForAll = async (enabled: boolean) => {
     if (!window.confirm(`${enabled ? "Allow" : "Block"} Guided Phrase Practice for all student accounts?`)) return;
     setMessage("Updating Guided Phrase access…");
-    const results = await Promise.all(users.map((user) => fetch(`${API_URL}/api/users/${user.id}`, { method: "PUT", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ guidedPhraseEnabled: enabled }) })));
+    const results = await Promise.all(users.map((user) => fetch(`${API_URL}/api/users/${user.id}/guided-phrase-access`, { method: "PUT", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ enabled }) })));
     setMessage(results.some((response) => !response.ok) ? "Some student accounts could not be updated. Please try again." : `Guided Phrase Practice is now ${enabled ? "allowed" : "blocked"} for all students.`);
     await load();
   };
@@ -64,7 +81,7 @@ export default function AdminUsersPage({ role }: { role: "student" | "teacher" }
         <span className="user-cell"><i>{user.fname?.[0]}{user.lname?.[0]}</i><b>{user.fname} {user.lname}</b></span><span>{user.email}</span>
         <span><em className={user.emailConfirmed ? "status approved" : "status waiting"}><MailCheck />{user.emailConfirmed ? "Confirmed" : "Unconfirmed"}</em></span>
         <span>{user.approved ? <em className="status approved"><Check />Approved</em> : <button className="approve-button" onClick={() => approve(user)} disabled={!user.emailConfirmed}>Approve</button>}</span>
-        {role === "student" && <span className="guided-access-cell"><button type="button" className={`guided-access-toggle ${user.guidedPhraseEnabled ? "on" : "off"}`} role="switch" aria-checked={user.guidedPhraseEnabled} aria-label={`${user.guidedPhraseEnabled ? "Disable" : "Allow"} Guided Phrase for ${user.fname}`} onClick={() => void update(user, { guidedPhraseEnabled: !user.guidedPhraseEnabled })}><i><b /></i><span><Mic2 />{user.guidedPhraseEnabled ? "Allowed" : "Blocked"}</span></button></span>}
+        {role === "student" && <span className="guided-access-cell"><button type="button" disabled={accessUpdating.includes(user.id)} className={`guided-access-toggle ${user.guidedPhraseEnabled ? "on" : "off"}`} role="switch" aria-checked={user.guidedPhraseEnabled} aria-label={`${user.guidedPhraseEnabled ? "Disable" : "Allow"} Guided Phrase for ${user.fname}`} onClick={() => void toggleGuidedAccess(user)}><i><b /></i><span><Mic2 />{accessUpdating.includes(user.id) ? "Saving…" : user.guidedPhraseEnabled ? "Allowed" : "Blocked"}</span></button></span>}
         <span className="row-actions"><button onClick={() => setEditing(user)} aria-label="Edit"><Edit3 /></button><button className="danger" onClick={() => remove(user)} aria-label="Delete"><Trash2 /></button></span>
       </div>)}
       {!visible.length && <div className="empty-users">No matching {role} accounts.</div>}
