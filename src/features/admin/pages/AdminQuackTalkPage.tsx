@@ -7,6 +7,7 @@ export default function AdminQuackTalkPage() {
   const [sessions, setSessions] = useState<QuackTalkSession[]>([]);
   const [query, setQuery] = useState("");
   const [error, setError] = useState("");
+  const [guidedStatus, setGuidedStatus] = useState<{configured:boolean;provider:string;azurePronunciationEnabled:boolean}|null>(null);
 
   useEffect(() => {
     fetch(`${API_URL}/api/quackTalkSessions/all`)
@@ -19,6 +20,13 @@ export default function AdminQuackTalkPage() {
       })
       .then(setSessions)
       .catch(() => setError("Speaking practice records could not be loaded."));
+  }, []);
+
+  useEffect(() => {
+    fetch(`${API_URL}/api/guided-phrase/status?email=admin-status-check`)
+      .then((response) => response.ok ? response.json() : Promise.reject())
+      .then(setGuidedStatus)
+      .catch(() => setGuidedStatus(null));
   }, []);
 
   const visibleSessions = useMemo(() => {
@@ -53,7 +61,9 @@ export default function AdminQuackTalkPage() {
         </div>
         <div className="admin-talk-live">
           <Radio />
-          Practice records
+          {guidedStatus?.configured && guidedStatus.azurePronunciationEnabled
+            ? "Gemini Live + Azure ready"
+            : "Guided Phrase setup required"}
         </div>
       </header>
 

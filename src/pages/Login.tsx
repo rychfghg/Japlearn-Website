@@ -7,7 +7,6 @@ import {
   EyeOff,
   LockKeyhole,
   Mail,
-  Sparkles,
   ShieldCheck,
 } from "lucide-react";
 import { Link, useNavigate } from "react-router-dom";
@@ -62,32 +61,21 @@ export default function Login({ role }: LoginProps) {
           <ArrowLeft /> Back to website
         </Link>
         <Brand light />
-        <div className="login-scene">
+        <div className={`login-scene ${isTeacher ? "login-scene-minimal" : ""}`}>
           <div className="login-message">
-            <span className={isTeacher ? "" : "login-message-tag-admin"}>
-              {isTeacher ? "先生、お疲れ様です" : "管理者ポータル"}
-            </span>
-            <b>
-              {isTeacher ? "Your classroom, all in one place." : "Your JapLearn command center."}
-            </b>
-            <p>
-              {isTeacher
-                ? "Sign in to track every student's progress, review their practice, and plan what comes next for your class."
-                : "Manage accounts, content, and access across the entire JapLearn platform."}
-            </p>
-            <div className="login-benefits" aria-label="Portal benefits">
-              {isTeacher ? (
-                <>
-                  <span><Sparkles /> Learning insights</span>
-                  <span><ShieldCheck /> Secure access</span>
-                </>
-              ) : (
-                <>
+            {isTeacher ? (
+              <b className="login-message-minimal">Welcome back, sensei.</b>
+            ) : (
+              <>
+                <span className="login-message-tag-admin">管理者ポータル</span>
+                <b>Your JapLearn command center.</b>
+                <p>Manage accounts, content, and access across the entire JapLearn platform.</p>
+                <div className="login-benefits" aria-label="Portal benefits">
                   <span><ShieldCheck /> Verified access only</span>
                   <span><DatabaseZap /> Full platform control</span>
-                </>
-              )}
-            </div>
+                </div>
+              </>
+            )}
           </div>
           {isTeacher ? (
             <img src={mascot} alt="JapLearn mascot" />
@@ -97,27 +85,27 @@ export default function Login({ role }: LoginProps) {
             </div>
           )}
         </div>
-        <div className="secure-note">
-          <ShieldCheck />
-          <span>
-            <b>{isTeacher ? "Your classroom is secure" : "Protected workspace"}</b>
-            <small>
-              {isTeacher
-                ? "Only verified teacher accounts can access student data."
-                : `Only verified ${role} accounts can continue.`}
-            </small>
-          </span>
-        </div>
+        {!isTeacher && (
+          <div className="secure-note">
+            <ShieldCheck />
+            <span>
+              <b>Protected workspace</b>
+              <small>Only verified {role} accounts can continue.</small>
+            </span>
+          </div>
+        )}
       </section>
 
       <section className="login-panel">
         <form onSubmit={submit}>
-          <div className="auth-form-heading">
-          <span className="portal-pill">
-            <LockKeyhole /> {role.toUpperCase()} PORTAL
-          </span>
-          <h1>Welcome back</h1>
-          <p>Sign in to continue to your {role} workspace.</p>
+          <div className={`auth-form-heading ${isTeacher ? "auth-form-heading-minimal" : ""}`}>
+          {!isTeacher && (
+            <span className="portal-pill">
+              <LockKeyhole /> {role.toUpperCase()} PORTAL
+            </span>
+          )}
+          <h1>{isTeacher ? "Sign in" : "Welcome back"}</h1>
+          {!isTeacher && <p>Sign in to continue to your {role} workspace.</p>}
           </div>
 
           {error && <div className="form-error">{error}</div>}
@@ -166,10 +154,7 @@ export default function Login({ role }: LoginProps) {
 
           <div className="role-switch">
             {isTeacher ? (
-              <>
-                New to the teacher portal?{" "}
-                <Link to="/teacher/create-account">Create a teacher account</Link>
-              </>
+              <Link to="/teacher/create-account">Create an account</Link>
             ) : (
               <>Authorized administrators only.</>
             )}
