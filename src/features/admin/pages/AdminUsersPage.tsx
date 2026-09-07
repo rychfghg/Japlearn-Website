@@ -1,8 +1,8 @@
 import { useEffect, useMemo, useState } from "react";
-import { Check, Edit3, MailCheck, Plus, RefreshCw, Search, Trash2, X } from "lucide-react";
+import { Check, Edit3, MailCheck, Mic2, Plus, RefreshCw, Search, Trash2, X } from "lucide-react";
 import { API_URL } from "../../../lib/api";
 
-type ManagedUser = { id: string; fname: string; lname: string; email: string; role: string; approved: boolean; emailConfirmed: boolean; password?: string };
+type ManagedUser = { id: string; fname: string; lname: string; email: string; role: string; approved: boolean; emailConfirmed: boolean; guidedPhraseEnabled: boolean; password?: string };
 
 export default function AdminUsersPage({ role }: { role: "student" | "teacher" }) {
   const [users, setUsers] = useState<ManagedUser[]>([]);
@@ -39,7 +39,14 @@ export default function AdminUsersPage({ role }: { role: "student" | "teacher" }
     if (!response.ok) { setMessage("The account could not be deleted."); return; }
     setMessage("Account deleted."); await load();
   };
-  const create = () => setEditing({ id: "", fname: "", lname: "", email: "", role, approved: true, emailConfirmed: true, password: "" });
+  const setGuidedAccessForAll = async (enabled: boolean) => {
+    if (!window.confirm(`${enabled ? "Allow" : "Block"} Guided Phrase Practice for all student accounts?`)) return;
+    setMessage("Updating Guided Phrase access…");
+    const results = await Promise.all(users.map((user) => fetch(`${API_URL}/api/users/${user.id}`, { method: "PUT", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ guidedPhraseEnabled: enabled }) })));
+    setMessage(results.some((response) => !response.ok) ? "Some student accounts could not be updated. Please try again." : `Guided Phrase Practice is now ${enabled ? "allowed" : "blocked"} for all students.`);
+    await load();
+  };
+  const create = () => setEditing({ id: "", fname: "", lname: "", email: "", role, approved: true, emailConfirmed: true, guidedPhraseEnabled: false, password: "" });
   const save = async (user: ManagedUser) => {
     if (!user.id && (!user.password || user.password.length < 6)) { setMessage("A temporary password of at least 6 characters is required."); return; }
     const response = await fetch(user.id ? `${API_URL}/api/users/${user.id}` : `${API_URL}/api/users/admin-create`, { method: user.id ? "PUT" : "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(user) });
@@ -51,12 +58,13 @@ export default function AdminUsersPage({ role }: { role: "student" | "teacher" }
   return <div className="admin-users-page">
     <header><div><small>ACCOUNT DIRECTORY</small><h1>{title}</h1><p>Review contact details, confirmation status, approval, and account access.</p></div><div className="header-actions"><button className="soft-button" onClick={() => void load()}><RefreshCw size={16} />Refresh</button><button className="primary-button" onClick={create}><Plus size={16} />Add {role}</button></div></header>
     {message && <div className="admin-notice">{message}</div>}
-    <div className="admin-user-toolbar"><Search /><input placeholder={`Search ${role}s by name or email`} value={query} onChange={(event) => setQuery(event.target.value)} /><span>{visible.length} records</span></div>
-    <div className="admin-user-table"><div className="admin-user-row headings"><span>Account</span><span>Email</span><span>Verification</span><span>Access</span><span>Actions</span></div>
+    <div className="admin-user-toolbar"><Search /><input placeholder={`Search ${role}s by name or email`} value={query} onChange={(event) => setQuery(event.target.value)} /><span>{visible.length} records</span>{role === "student" && <><button className="bulk-guided allow" onClick={() => void setGuidedAccessForAll(true)}>Allow all</button><button className="bulk-guided block" onClick={() => void setGuidedAccessForAll(false)}>Block all</button></>}</div>
+    <div className={`admin-user-table ${role === "student" ? "has-guided-access" : ""}`}><div className="admin-user-row headings"><span>Account</span><span>Email</span><span>Verification</span><span>Access</span>{role === "student" && <span>Guided Phrase</span>}<span>Actions</span></div>
       {visible.map((user) => <div className="admin-user-row" key={user.id}>
         <span className="user-cell"><i>{user.fname?.[0]}{user.lname?.[0]}</i><b>{user.fname} {user.lname}</b></span><span>{user.email}</span>
         <span><em className={user.emailConfirmed ? "status approved" : "status waiting"}><MailCheck />{user.emailConfirmed ? "Confirmed" : "Unconfirmed"}</em></span>
         <span>{user.approved ? <em className="status approved"><Check />Approved</em> : <button className="approve-button" onClick={() => approve(user)} disabled={!user.emailConfirmed}>Approve</button>}</span>
+        {role === "student" && <span className="guided-access-cell"><button type="button" className={`guided-access-toggle ${user.guidedPhraseEnabled ? "on" : "off"}`} role="switch" aria-checked={user.guidedPhraseEnabled} aria-label={`${user.guidedPhraseEnabled ? "Disable" : "Allow"} Guided Phrase for ${user.fname}`} onClick={() => void update(user, { guidedPhraseEnabled: !user.guidedPhraseEnabled })}><i><b /></i><span><Mic2 />{user.guidedPhraseEnabled ? "Allowed" : "Blocked"}</span></button></span>}
         <span className="row-actions"><button onClick={() => setEditing(user)} aria-label="Edit"><Edit3 /></button><button className="danger" onClick={() => remove(user)} aria-label="Delete"><Trash2 /></button></span>
       </div>)}
       {!visible.length && <div className="empty-users">No matching {role} accounts.</div>}

@@ -7,7 +7,7 @@ export default function AdminQuackTalkPage() {
   const [sessions, setSessions] = useState<QuackTalkSession[]>([]);
   const [query, setQuery] = useState("");
   const [error, setError] = useState("");
-  const [guidedStatus, setGuidedStatus] = useState<{configured:boolean;provider:string;azurePronunciationEnabled:boolean}|null>(null);
+  const [guidedStatus, setGuidedStatus] = useState<{conversationReady:boolean;pronunciationReady:boolean}|null>(null);
 
   useEffect(() => {
     fetch(`${API_URL}/api/quackTalkSessions/all`)
@@ -23,7 +23,7 @@ export default function AdminQuackTalkPage() {
   }, []);
 
   useEffect(() => {
-    fetch(`${API_URL}/api/guided-phrase/status?email=admin-status-check`)
+    fetch(`${API_URL}/api/guided-phrase/status`)
       .then((response) => response.ok ? response.json() : Promise.reject())
       .then(setGuidedStatus)
       .catch(() => setGuidedStatus(null));
@@ -61,8 +61,8 @@ export default function AdminQuackTalkPage() {
         </div>
         <div className="admin-talk-live">
           <Radio />
-          {guidedStatus?.configured && guidedStatus.azurePronunciationEnabled
-            ? "Gemini Live + Azure ready"
+          {guidedStatus?.conversationReady && guidedStatus.pronunciationReady
+            ? "Guided Phrase ready"
             : "Guided Phrase setup required"}
         </div>
       </header>
