@@ -2671,6 +2671,10 @@ a {
   .nav-cta svg {
     margin: 0;
   }
+  .nav-cta span,
+  .nav-cta-arrow {
+    display: none;
+  }
   .hero-copy h1 {
     font-size: 44px;
   }
@@ -3123,6 +3127,29 @@ a {
 }
 .landing .nav-links a:not(.nav-cta):hover::after {
   transform: scaleX(1);
+}
+.landing .nav-cta {
+  min-height: 46px;
+  padding: 0 18px;
+  border: 1px solid #7e25d8;
+  border-radius: 999px;
+  background: linear-gradient(135deg, #7020c7 0%, #922ce6 100%);
+  box-shadow: 0 10px 24px #7627d82b;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+.landing .nav-cta:hover {
+  color: #fff;
+  transform: translateY(-2px);
+  box-shadow: 0 14px 30px #7627d83d;
+}
+.landing .nav-cta span {
+  white-space: nowrap;
+}
+.landing .nav-cta-arrow {
+  transition: transform 0.2s ease;
+}
+.landing .nav-cta:hover .nav-cta-arrow {
+  transform: translateX(2px);
 }
 .landing .nav-links .nav-download {
   display: inline-flex;

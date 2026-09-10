@@ -140,8 +140,14 @@ export default function Landing() {
             <a href="#experience">App experience</a>
             <a href="#students">Students</a>
             <a href="#teachers">Teachers</a>
-            <Link className="nav-cta" to="/teacher/login">
-              Teacher sign in <ArrowRight size={16} />
+            <Link
+              className="nav-cta"
+              to="/teacher/login"
+              aria-label="Open the JapLearn teacher portal"
+            >
+              <GraduationCap size={17} strokeWidth={2.2} />
+              <span>Teacher portal</span>
+              <ArrowRight className="nav-cta-arrow" size={16} />
             </Link>
           </div>
         </nav>
