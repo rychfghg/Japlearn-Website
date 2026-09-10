@@ -55,8 +55,15 @@ export default function Login({ role }: LoginProps) {
   const isTeacher = role === "teacher";
 
   return (
-    <main className="login-page">
-      <section className={`login-visual ${isTeacher ? "" : "login-visual-admin"}`}>
+    <main className={`login-page ${isTeacher ? "login-page-teacher" : ""}`}>
+      <section className={`login-visual ${isTeacher ? "login-visual-teacher" : "login-visual-admin"}`}>
+        {isTeacher && (
+          <>
+            <span className="login-blob login-blob-1" />
+            <span className="login-blob login-blob-2" />
+            <span className="login-blob login-blob-3" />
+          </>
+        )}
         <Link to="/" className="back-home">
           <ArrowLeft /> Back to website
         </Link>
@@ -96,7 +103,7 @@ export default function Login({ role }: LoginProps) {
         )}
       </section>
 
-      <section className="login-panel">
+      <section className={`login-panel ${isTeacher ? "login-panel-teacher" : ""}`}>
         <form onSubmit={submit}>
           <div className={`auth-form-heading ${isTeacher ? "auth-form-heading-minimal" : ""}`}>
           {!isTeacher && (
@@ -110,42 +117,84 @@ export default function Login({ role }: LoginProps) {
 
           {error && <div className="form-error">{error}</div>}
 
-          <label>
-            Email address
-            <div className="field">
-              <Mail />
-              <input
-                type="email"
-                value={email}
-                onChange={(event) => setEmail(event.target.value)}
-                placeholder={`${role}@japlearn.com`}
-                required
-                autoComplete="email"
-              />
-            </div>
-          </label>
+          {isTeacher ? (
+            <>
+              <div className="field-float">
+                <span className="field-icon"><Mail /></span>
+                <input
+                  type="email"
+                  id="teacher-email"
+                  value={email}
+                  onChange={(event) => setEmail(event.target.value)}
+                  placeholder=" "
+                  required
+                  autoComplete="email"
+                />
+                <label htmlFor="teacher-email">Email address</label>
+              </div>
 
-          <label>
-            Password
-            <div className="field">
-              <LockKeyhole />
-              <input
-                type={showPassword ? "text" : "password"}
-                value={password}
-                onChange={(event) => setPassword(event.target.value)}
-                placeholder="Enter your password"
-                required
-                autoComplete="current-password"
-              />
-              <button
-                type="button"
-                onClick={() => setShowPassword((visible) => !visible)}
-                aria-label={showPassword ? "Hide password" : "Show password"}
-              >
-                {showPassword ? <EyeOff /> : <Eye />}
-              </button>
-            </div>
-          </label>
+              <div className="field-float">
+                <span className="field-icon"><LockKeyhole /></span>
+                <input
+                  type={showPassword ? "text" : "password"}
+                  id="teacher-password"
+                  value={password}
+                  onChange={(event) => setPassword(event.target.value)}
+                  placeholder=" "
+                  required
+                  autoComplete="current-password"
+                />
+                <label htmlFor="teacher-password">Password</label>
+                <button
+                  type="button"
+                  className="field-toggle"
+                  onClick={() => setShowPassword((visible) => !visible)}
+                  aria-label={showPassword ? "Hide password" : "Show password"}
+                >
+                  {showPassword ? <EyeOff /> : <Eye />}
+                </button>
+              </div>
+            </>
+          ) : (
+            <>
+              <label>
+                Email address
+                <div className="field">
+                  <Mail />
+                  <input
+                    type="email"
+                    value={email}
+                    onChange={(event) => setEmail(event.target.value)}
+                    placeholder={`${role}@japlearn.com`}
+                    required
+                    autoComplete="email"
+                  />
+                </div>
+              </label>
+
+              <label>
+                Password
+                <div className="field">
+                  <LockKeyhole />
+                  <input
+                    type={showPassword ? "text" : "password"}
+                    value={password}
+                    onChange={(event) => setPassword(event.target.value)}
+                    placeholder="Enter your password"
+                    required
+                    autoComplete="current-password"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowPassword((visible) => !visible)}
+                    aria-label={showPassword ? "Hide password" : "Show password"}
+                  >
+                    {showPassword ? <EyeOff /> : <Eye />}
+                  </button>
+                </div>
+              </label>
+            </>
+          )}
 
           <button className="submit" disabled={loading}>
             {loading ? "Signing you in…" : "Sign in"}

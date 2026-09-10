@@ -7,6 +7,7 @@ import {
   Gamepad2,
   GraduationCap,
   MessageCircleMore,
+  MonitorSmartphone,
   ShieldCheck,
   Sparkles,
   Users,
@@ -168,7 +169,11 @@ export default function Landing() {
           </p>
           <div className="hero-actions">
             <a className="primary apk-download" href={androidDownloadUrl}>
-              <Download size={18} /> Download for Android
+              <span className="download-button-icon"><Download size={18} /></span>
+              <span>
+                <small>AVAILABLE NOW</small>
+                Download for Android
+              </span>
             </a>
             <Link className="secondary" to="/teacher/login">
               Teacher portal
@@ -246,6 +251,19 @@ export default function Landing() {
               <small>Skills that grow naturally</small>
             </span>
           </div>
+        </div>
+      </section>
+
+      <section className="learning-journey" aria-label="How JapLearn supports learning" data-reveal>
+        <div className="journey-intro">
+          <span className="section-kicker purple-kicker">ONE CONNECTED JOURNEY</span>
+          <strong>From first lesson to confident response.</strong>
+        </div>
+        <div className="journey-steps">
+          <article><span>01</span><BookOpen /><div><b>Learn</b><small>Build the foundation</small></div></article>
+          <article><span>02</span><Gamepad2 /><div><b>Practice</b><small>Reinforce through play</small></div></article>
+          <article><span>03</span><MessageCircleMore /><div><b>Speak</b><small>Use Japanese naturally</small></div></article>
+          <article><span>04</span><BarChart3 /><div><b>Grow</b><small>See meaningful progress</small></div></article>
         </div>
       </section>
 
@@ -458,6 +476,18 @@ export default function Landing() {
         </Link>
       </section>
 
+      <section className="final-download" data-reveal>
+        <div className="final-download-icon"><MonitorSmartphone /></div>
+        <div>
+          <span className="section-kicker purple-kicker">START YOUR JAPLEARN JOURNEY</span>
+          <h2>Japanese practice, ready when you are.</h2>
+          <p>Download the Android app today. Google Play and App Store releases are coming soon.</p>
+        </div>
+        <a className="primary apk-download" href={androidDownloadUrl}>
+          <Download size={18} /> Get the Android APK
+        </a>
+      </section>
+
       <footer>
         <Brand />
         <p>Interactive Japanese learning for connected classrooms.</p>
@@ -466,6 +496,5 @@ export default function Landing() {
     </main>
   );
 }
-
 
 

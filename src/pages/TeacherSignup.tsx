@@ -71,32 +71,16 @@ export default function TeacherSignup() {
 
   return (
     <main className="login-page teacher-signup-page">
-      <section className="login-visual signup-visual">
+      <section className="login-visual signup-visual login-visual-teacher">
+        <span className="login-blob login-blob-1" />
+        <span className="login-blob login-blob-2" />
+        <span className="login-blob login-blob-3" />
         <Link to="/" className="back-home">
           <ArrowLeft /> Back to website
         </Link>
         <Brand light />
-        <div className="login-scene signup-scene">
-          <div className="login-message">
-            <span>教える。つながる。成長する。</span>
-            <b>Turn practice into visible progress.</b>
-            <p>
-              Bring your class into one focused space for Japanese practice,
-              feedback, and meaningful learning milestones.
-            </p>
-            <div className="login-benefits" aria-label="Teacher account benefits">
-              <span><GraduationCap /> Classroom ready</span>
-              <span><BadgeCheck /> Teacher profile</span>
-            </div>
-          </div>
+        <div className="login-scene signup-scene login-scene-minimal">
           <img src={mascot} alt="Ahiru welcoming a JapLearn teacher" />
-        </div>
-        <div className="secure-note">
-          <BadgeCheck />
-          <span>
-            <b>Teacher account</b>
-            <small>Your account is automatically assigned the teacher role.</small>
-          </span>
         </div>
       </section>
 
@@ -134,48 +118,38 @@ export default function TeacherSignup() {
             {error && <div className="form-error">{error}</div>}
 
             <div className="signup-name-grid">
-              <label>
-                First name
-                <div className="field">
-                  <UserRound />
-                  <input value={form.fname} onChange={(event) => update("fname", event.target.value)} placeholder="First name" required autoComplete="given-name" />
-                </div>
-              </label>
-              <label>
-                Last name
-                <div className="field">
-                  <UserRound />
-                  <input value={form.lname} onChange={(event) => update("lname", event.target.value)} placeholder="Last name" required autoComplete="family-name" />
-                </div>
-              </label>
+              <div className="field-float">
+                <span className="field-icon"><UserRound /></span>
+                <input id="signup-fname" value={form.fname} onChange={(event) => update("fname", event.target.value)} placeholder=" " required autoComplete="given-name" />
+                <label htmlFor="signup-fname">First name</label>
+              </div>
+              <div className="field-float">
+                <span className="field-icon"><UserRound /></span>
+                <input id="signup-lname" value={form.lname} onChange={(event) => update("lname", event.target.value)} placeholder=" " required autoComplete="family-name" />
+                <label htmlFor="signup-lname">Last name</label>
+              </div>
             </div>
 
-            <label>
-              Email address
-              <div className="field">
-                <Mail />
-                <input type="email" value={form.email} onChange={(event) => update("email", event.target.value)} placeholder="teacher@example.com" required autoComplete="email" />
-              </div>
-            </label>
+            <div className="field-float">
+              <span className="field-icon"><Mail /></span>
+              <input type="email" id="signup-email" value={form.email} onChange={(event) => update("email", event.target.value)} placeholder=" " required autoComplete="email" />
+              <label htmlFor="signup-email">Email address</label>
+            </div>
 
-            <label>
-              Password
-              <div className="field">
-                <LockKeyhole />
-                <input type={showPassword ? "text" : "password"} value={form.password} onChange={(event) => update("password", event.target.value)} placeholder="At least 8 characters" required autoComplete="new-password" />
-                <button type="button" onClick={() => setShowPassword((visible) => !visible)} aria-label={showPassword ? "Hide password" : "Show password"}>
-                  {showPassword ? <EyeOff /> : <Eye />}
-                </button>
-              </div>
-            </label>
+            <div className="field-float">
+              <span className="field-icon"><LockKeyhole /></span>
+              <input type={showPassword ? "text" : "password"} id="signup-password" value={form.password} onChange={(event) => update("password", event.target.value)} placeholder=" " required autoComplete="new-password" />
+              <label htmlFor="signup-password">Password (min. 8 characters)</label>
+              <button type="button" className="field-toggle" onClick={() => setShowPassword((visible) => !visible)} aria-label={showPassword ? "Hide password" : "Show password"}>
+                {showPassword ? <EyeOff /> : <Eye />}
+              </button>
+            </div>
 
-            <label>
-              Confirm password
-              <div className="field">
-                <LockKeyhole />
-                <input type={showPassword ? "text" : "password"} value={form.confirmPassword} onChange={(event) => update("confirmPassword", event.target.value)} placeholder="Enter the password again" required autoComplete="new-password" />
-              </div>
-            </label>
+            <div className="field-float">
+              <span className="field-icon"><LockKeyhole /></span>
+              <input type={showPassword ? "text" : "password"} id="signup-confirm" value={form.confirmPassword} onChange={(event) => update("confirmPassword", event.target.value)} placeholder=" " required autoComplete="new-password" />
+              <label htmlFor="signup-confirm">Confirm password</label>
+            </div>
 
             <button className="submit" disabled={loading}>
               {loading ? "Creating account…" : "Create teacher account"}

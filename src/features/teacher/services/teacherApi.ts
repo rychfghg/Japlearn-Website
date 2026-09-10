@@ -1,4 +1,5 @@
 import { API_URL } from "../../../lib/api";
+import { session } from "../../../lib/auth";
 import type {
   AssignableActivity,
   ClassRecord,
@@ -14,7 +15,11 @@ import type {
 } from "../types";
 
 async function request<T>(path: string, options?: RequestInit): Promise<T> {
-  const response = await fetch(`${API_URL}${path}`, options);
+  const token = session.get()?.portalSessionToken;
+  if (!token) throw new Error("Your teacher session has expired. Please sign in again.");
+  const headers = new Headers(options?.headers);
+  headers.set("X-Teacher-Token", token);
+  const response = await fetch(`${API_URL}${path}`, { ...options, headers });
 
   if (!response.ok) {
     const text = await response.text();
@@ -44,37 +49,45 @@ const json = (method: string, body: unknown): RequestInit => ({
   body: JSON.stringify(body),
 });
 
+const teacherEmail = () => {
+  const email = session.get()?.email?.trim().toLowerCase();
+  if (!email) throw new Error("Your teacher session has expired. Please sign in again.");
+  return email;
+};
+
+const teacherQuery = () => `teacherEmail=${encodeURIComponent(teacherEmail())}`;
+
 export const teacherApi = {
-  getClasses: () => request<ClassRecord[]>("/api/classes/getAllClasses"),
+  getClasses: () => request<ClassRecord[]>(`/api/classes/getAllClasses?${teacherQuery()}`),
   addClass: (classCodes: string) =>
-    request<void>("/api/classes/addClass", json("POST", { classCodes })),
+    request<void>(`/api/classes/addClass?${teacherQuery()}`, json("POST", { classCodes })),
   removeClass: (classCode: string) =>
     request<void>(
-      `/api/classes/removeClass?classCode=${encodeURIComponent(classCode)}`,
+      `/api/classes/removeClass?classCode=${encodeURIComponent(classCode)}&${teacherQuery()}`,
       {
         method: "DELETE",
       },
     ),
 
-  getAllStudents: () => request<Student[]>("/api/students/getAllStudents"),
-  getAllLessonProgress: () => request<StudentLessonProgress[]>("/api/progress"),
+  getAllStudents: () => request<Student[]>(`/api/students/getAllStudents?${teacherQuery()}`),
+  getAllLessonProgress: () => request<StudentLessonProgress[]>(`/api/progress/teacher?${teacherQuery()}`),
   getLessonProgress: (email: string) =>
     request<StudentLessonProgress>(
       `/api/progress/${encodeURIComponent(email)}`,
     ),
   getStudentsByClass: (classCode: string) =>
     request<Student[]>(
-      `/api/students/getByClassCode?classCode=${encodeURIComponent(classCode)}`,
+      `/api/students/getByClassCode?classCode=${encodeURIComponent(classCode)}&${teacherQuery()}`,
     ),
   joinStudent: (email: string, classCode: string) =>
     request<void>(
-      `/api/students/joinClass?email=${encodeURIComponent(email)}&classCode=${encodeURIComponent(classCode)}`,
+      `/api/students/joinClass?email=${encodeURIComponent(email)}&classCode=${encodeURIComponent(classCode)}&${teacherQuery()}`,
       { method: "POST" },
     ),
   removeStudent: (classCode: string, student: Student) =>
     request<void>(
       "/api/students/removeStudent",
-      json("DELETE", { classCode, name: `${student.fname} ${student.lname}` }),
+      json("DELETE", { classCode, name: `${student.fname} ${student.lname}`, teacherEmail: teacherEmail() }),
     ),
 
   getLessons: (classCode: string) =>
