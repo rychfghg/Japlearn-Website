@@ -2,11 +2,13 @@ import { type FormEvent, useState } from "react";
 import {
   ArrowLeft,
   ArrowRight,
+  BookOpenCheck,
   DatabaseZap,
   Eye,
   EyeOff,
   LockKeyhole,
   Mail,
+  Sparkles,
   ShieldCheck,
 } from "lucide-react";
 import { Link, useNavigate } from "react-router-dom";
@@ -71,7 +73,15 @@ export default function Login({ role }: LoginProps) {
         <div className={`login-scene ${isTeacher ? "login-scene-minimal" : ""}`}>
           <div className="login-message">
             {isTeacher ? (
-              <b className="login-message-minimal">Welcome back, sensei.</b>
+              <>
+                <span className="teacher-auth-kicker"><Sparkles /> TEACHER WORKSPACE</span>
+                <b>Guide every learner with clarity.</b>
+                <p>Lessons, classroom progress, and learning insights—organized in one calm workspace.</p>
+                <div className="teacher-auth-proof">
+                  <span><BookOpenCheck /> Plan with purpose</span>
+                  <span><ShieldCheck /> Your classes stay private</span>
+                </div>
+              </>
             ) : (
               <>
                 <span className="login-message-tag-admin">管理者ポータル</span>
@@ -105,14 +115,16 @@ export default function Login({ role }: LoginProps) {
 
       <section className={`login-panel ${isTeacher ? "login-panel-teacher" : ""}`}>
         <form onSubmit={submit}>
-          <div className={`auth-form-heading ${isTeacher ? "auth-form-heading-minimal" : ""}`}>
-          {!isTeacher && (
+          <div className="auth-form-heading">
+          {isTeacher ? (
+            <span className="portal-pill"><LockKeyhole /> TEACHER SIGN IN</span>
+          ) : (
             <span className="portal-pill">
               <LockKeyhole /> {role.toUpperCase()} PORTAL
             </span>
           )}
-          <h1>{isTeacher ? "Sign in" : "Welcome back"}</h1>
-          {!isTeacher && <p>Sign in to continue to your {role} workspace.</p>}
+          <h1>Welcome back</h1>
+          <p>{isTeacher ? "Sign in to continue to your teaching workspace." : `Sign in to continue to your ${role} workspace.`}</p>
           </div>
 
           {error && <div className="form-error">{error}</div>}
@@ -203,7 +215,7 @@ export default function Login({ role }: LoginProps) {
 
           <div className="role-switch">
             {isTeacher ? (
-              <Link to="/teacher/create-account">Create an account</Link>
+              <>New to JapLearn? <Link to="/teacher/create-account">Create a teacher account</Link></>
             ) : (
               <>Authorized administrators only.</>
             )}

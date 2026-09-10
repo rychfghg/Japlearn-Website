@@ -8,6 +8,7 @@ import {
   GraduationCap,
   LockKeyhole,
   Mail,
+  Sparkles,
   UserRound,
 } from "lucide-react";
 import { Link, useNavigate } from "react-router-dom";
@@ -80,6 +81,15 @@ export default function TeacherSignup() {
         </Link>
         <Brand light />
         <div className="login-scene signup-scene login-scene-minimal">
+          <div className="login-message">
+            <span className="teacher-auth-kicker"><Sparkles /> JOIN JAPLEARN</span>
+            <b>Build a classroom learners enjoy returning to.</b>
+            <p>Create your educator workspace, invite students, and turn progress into clear next steps.</p>
+            <div className="teacher-auth-proof">
+              <span><GraduationCap /> Classroom-ready tools</span>
+              <span><BadgeCheck /> Simple guided setup</span>
+            </div>
+          </div>
           <img src={mascot} alt="Ahiru welcoming a JapLearn teacher" />
         </div>
       </section>
@@ -100,19 +110,12 @@ export default function TeacherSignup() {
           </div>
         ) : (
           <form onSubmit={submit}>
-            <div className="signup-progress" aria-label="Account setup steps">
-              <span className="active"><b>1</b> Profile</span>
-              <i />
-              <span><b>2</b> Verify email</span>
-              <i />
-              <span><b>3</b> Start teaching</span>
-            </div>
             <div className="auth-form-heading">
             <span className="portal-pill">
-              <GraduationCap /> TEACHER REGISTRATION
+              <GraduationCap /> TEACHER ACCOUNT
             </span>
-            <h1>Create your account</h1>
-            <p>Set up your teacher profile. It only takes a moment.</p>
+            <h1>Create your workspace</h1>
+            <p>Tell us who you are. We’ll send one email to verify your account.</p>
             </div>
 
             {error && <div className="form-error">{error}</div>}
@@ -152,7 +155,7 @@ export default function TeacherSignup() {
             </div>
 
             <button className="submit" disabled={loading}>
-              {loading ? "Creating account…" : "Create teacher account"}
+              {loading ? "Creating your workspace…" : "Create my workspace"}
               {!loading && <ArrowRight />}
             </button>
 

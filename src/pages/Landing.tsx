@@ -169,11 +169,7 @@ export default function Landing() {
           </p>
           <div className="hero-actions">
             <a className="primary apk-download" href={androidDownloadUrl}>
-              <span className="download-button-icon"><Download size={18} /></span>
-              <span>
-                <small>AVAILABLE NOW</small>
-                Download for Android
-              </span>
+              <Download size={18} /> Download for Android
             </a>
             <Link className="secondary" to="/teacher/login">
               Teacher portal
@@ -251,19 +247,6 @@ export default function Landing() {
               <small>Skills that grow naturally</small>
             </span>
           </div>
-        </div>
-      </section>
-
-      <section className="learning-journey" aria-label="How JapLearn supports learning" data-reveal>
-        <div className="journey-intro">
-          <span className="section-kicker purple-kicker">ONE CONNECTED JOURNEY</span>
-          <strong>From first lesson to confident response.</strong>
-        </div>
-        <div className="journey-steps">
-          <article><span>01</span><BookOpen /><div><b>Learn</b><small>Build the foundation</small></div></article>
-          <article><span>02</span><Gamepad2 /><div><b>Practice</b><small>Reinforce through play</small></div></article>
-          <article><span>03</span><MessageCircleMore /><div><b>Speak</b><small>Use Japanese naturally</small></div></article>
-          <article><span>04</span><BarChart3 /><div><b>Grow</b><small>See meaningful progress</small></div></article>
         </div>
       </section>
 
@@ -496,5 +479,4 @@ export default function Landing() {
     </main>
   );
 }
-
 
