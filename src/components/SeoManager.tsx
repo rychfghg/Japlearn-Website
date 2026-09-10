@@ -28,6 +28,10 @@ const PUBLIC_ROUTES: Record<string, SeoDetails> = {
       "Create a JapLearn teacher account and start organizing Japanese classes, learners, lessons, communication activities, and reports.",
     index: true,
   },
+  "/privacy": { title: "Privacy Policy | JapLearn", description: "Learn how JapLearn handles account, classroom, progress, and speaking-practice information.", index: true },
+  "/terms": { title: "Terms of Use | JapLearn", description: "Read the terms for using the JapLearn Android app, web experience, and teacher portal.", index: true },
+  "/accessibility": { title: "Accessibility | JapLearn", description: "Learn about JapLearn's approach to accessible Japanese learning on Android and the web.", index: true },
+  "/contact": { title: "Help and Contact | JapLearn", description: "Contact JapLearn for account, classroom, technical, privacy, or general support.", index: true },
 };
 
 const PRIVATE_SEO: SeoDetails = {

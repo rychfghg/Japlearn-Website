@@ -3,6 +3,7 @@ import type { ReactNode } from "react";
 import Landing from "./pages/Landing";
 import Login from "./pages/Login";
 import TeacherSignup from "./pages/TeacherSignup";
+import PublicInfoPage from "./pages/PublicInfoPage";
 import SeoManager from "./components/SeoManager";
 import AdminQuestionBankPage from "./features/admin/pages/AdminQuestionBankPage";
 import AdminQuackResponsePage from "./features/admin/pages/AdminQuackResponsePage";
@@ -51,6 +52,10 @@ export default function App() {
         <Route path="/teacher/login" element={<Login role="teacher" />} />
         <Route path="/teacher/create-account" element={<TeacherSignup />} />
         <Route path="/admin/login" element={<Login role="admin" />} />
+        <Route path="/privacy" element={<PublicInfoPage />} />
+        <Route path="/terms" element={<PublicInfoPage />} />
+        <Route path="/accessibility" element={<PublicInfoPage />} />
+        <Route path="/contact" element={<PublicInfoPage />} />
 
         <Route
           path="/teacher"

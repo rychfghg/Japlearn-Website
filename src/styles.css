@@ -919,6 +919,68 @@ a {
 .landing footer p {
   flex: 1;
 }
+.landing .landing-footer {
+  display: grid;
+  grid-template-columns: minmax(240px, 1fr) minmax(420px, 1.5fr);
+  align-items: start;
+  gap: 45px;
+  padding: 38px 0 0;
+}
+.landing-footer-brand p { max-width: 310px; margin: 18px 0 8px; line-height: 1.6; }
+.landing-footer-brand > a { color: #7124c2; font-weight: 800; }
+.landing-footer-links { display: grid; grid-template-columns: repeat(3, 1fr); gap: 30px; }
+.landing-footer-links div { display: grid; align-content: start; gap: 10px; }
+.landing-footer-links b { margin-bottom: 4px; color: #35203f; font-size: 11px; letter-spacing: .7px; text-transform: uppercase; }
+.landing-footer-links a { color: #817486; font-size: 12px; }
+.landing-footer-links a:hover { color: #7725ca; }
+.landing-footer-bottom {
+  grid-column: 1 / -1;
+  padding: 20px 0 0;
+  border-top: 1px solid #eee7f1;
+  display: flex;
+  justify-content: space-between;
+  gap: 20px;
+}
+
+.public-info-page { min-height: 100vh; padding: 0 24px; background: #faf7fc; color: #34203f; }
+.public-info-nav { max-width: 1120px; height: 88px; margin: auto; display: flex; align-items: center; justify-content: space-between; }
+.public-info-nav > a { display: inline-flex; align-items: center; gap: 7px; color: #6f6076; font-size: 12px; font-weight: 800; }
+.public-info-nav > a svg { width: 16px; }
+.public-info-hero { max-width: 1120px; margin: 10px auto 35px; padding: 52px clamp(28px, 5vw, 68px); border-radius: 30px; background: linear-gradient(130deg, #351046, #7624bf 65%, #912ee0); color: #fff; }
+.public-info-hero > span { color: #c6f18f; font-size: 10px; font-weight: 900; letter-spacing: 1.5px; }
+.public-info-hero h1 { margin: 12px 0 10px; font-size: clamp(38px, 5vw, 58px); }
+.public-info-hero p { max-width: 700px; margin: 0 0 18px; color: #eadff0; line-height: 1.7; }
+.public-info-hero small { color: #d7c7e1; }
+.public-info-layout { max-width: 1120px; margin: auto; display: grid; grid-template-columns: minmax(0, 1fr) 300px; gap: 28px; align-items: start; }
+.public-info-content, .public-info-contact { border: 1px solid #ebe2ef; border-radius: 24px; background: #fff; box-shadow: 0 18px 55px rgba(56,29,68,.06); }
+.public-info-content { padding: clamp(28px, 5vw, 56px); }
+.public-info-content section + section { margin-top: 36px; padding-top: 32px; border-top: 1px solid #eee7f1; }
+.public-info-content h2 { margin: 0 0 12px; font-size: 21px; }
+.public-info-content p, .public-info-content li { color: #716477; line-height: 1.75; }
+.public-info-content ul { margin: 0; padding-left: 21px; }
+.public-info-content li + li { margin-top: 7px; }
+.public-info-contact { position: sticky; top: 24px; padding: 27px; }
+.public-info-contact > svg { width: 44px; height: 44px; padding: 11px; border-radius: 14px; background: #f0e4fa; color: #7926ce; }
+.public-info-contact > span { display: block; margin-top: 22px; color: #68a638; font-size: 9px; font-weight: 900; letter-spacing: 1.2px; }
+.public-info-contact h2 { margin: 7px 0; font-size: 23px; }
+.public-info-contact p { color: #817486; line-height: 1.6; }
+.public-info-contact a { display: flex; align-items: center; justify-content: space-between; gap: 8px; margin-top: 18px; padding: 12px; border-radius: 12px; background: #f7f1fb; color: #7124c2; font-size: 11px; font-weight: 900; word-break: break-all; }
+.public-info-contact a svg { width: 14px; flex: 0 0 auto; }
+.public-info-footer { max-width: 1120px; margin: 45px auto 0; padding: 25px 0 40px; border-top: 1px solid #e9e0ed; color: #908398; font-size: 11px; }
+@media (max-width: 760px) {
+  .landing .landing-footer { grid-template-columns: 1fr; padding-inline: 0; }
+  .landing-footer-links { grid-template-columns: repeat(2, 1fr); }
+  .landing-footer-bottom { flex-direction: column; }
+  .public-info-layout { grid-template-columns: 1fr; }
+  .public-info-contact { position: static; }
+}
+@media (max-width: 480px) {
+  .landing-footer-links { grid-template-columns: 1fr; }
+  .public-info-page { padding-inline: 16px; }
+  .public-info-nav { height: 74px; }
+  .public-info-nav .brand small { display: none; }
+  .public-info-hero { padding: 36px 24px; border-radius: 22px; }
+}
 .login-page {
   min-height: 100vh;
   display: grid;

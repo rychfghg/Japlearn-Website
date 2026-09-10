@@ -471,12 +471,22 @@ export default function Landing() {
         </a>
       </section>
 
-      <footer>
-        <Brand />
-        <p>Interactive Japanese learning for connected classrooms.</p>
-        <span>© 2026 JapLearn</span>
+      <footer className="landing-footer">
+        <div className="landing-footer-brand">
+          <Brand />
+          <p>Interactive Japanese learning for connected classrooms.</p>
+          <a href="mailto:japlearnofficial@gmail.com">japlearnofficial@gmail.com</a>
+        </div>
+        <div className="landing-footer-links">
+          <div><b>Explore</b><a href="#about">Why JapLearn</a><a href="#experience">App experience</a><a href="#teachers">For teachers</a></div>
+          <div><b>Support</b><Link to="/contact">Help & contact</Link><Link to="/accessibility">Accessibility</Link><Link to="/teacher/login">Teacher sign in</Link></div>
+          <div><b>Legal</b><Link to="/privacy">Privacy Policy</Link><Link to="/terms">Terms of Use</Link></div>
+        </div>
+        <div className="landing-footer-bottom">
+          <span>© 2026 JapLearn. All rights reserved.</span>
+          <span>Android and web · iPhone access through the web</span>
+        </div>
       </footer>
     </main>
   );
 }
-
