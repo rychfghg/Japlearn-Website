@@ -1,5 +1,6 @@
 import { BarChart3, CheckCircle2, Target, TriangleAlert } from "lucide-react";
 import { useEffect, useState } from "react";
+import { Link } from "react-router-dom";
 import PageHeader from "../components/PageHeader";
 import StatusMessage from "../components/StatusMessage";
 import { teacherApi } from "../services/teacherApi";
@@ -107,6 +108,9 @@ export default function PerformancePage() {
         title="Student communication performance"
         description="Live analytics from the existing communication analytics service."
       />
+      <Link to="/teacher/game-performance" className="game-performance-legacy-link">
+        View the complete game-score history, averages, personal bests, and speaking feedback →
+      </Link>
       {studentError && <StatusMessage>{studentError}</StatusMessage>}
       <label className="student-picker">
         Student

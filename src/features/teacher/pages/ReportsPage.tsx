@@ -267,6 +267,11 @@ export default function ReportsPage() {
                       Reply Coach {card.reply.completed}/{card.reply.chapters || 0} done
                     </span>
                   )}
+                  {card.response && (
+                    <span className={`score-chip ${card.response.attempts ? "" : "muted"}`}>
+                      Response games {card.response.attempts ? `${card.response.average ?? "—"}% avg` : "no attempts"}
+                    </span>
+                  )}
                 </div>
                 <div className="score-overall">
                   <b>{card.overall != null ? `${card.overall}%` : "—"}</b>

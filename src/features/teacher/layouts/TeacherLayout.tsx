@@ -25,6 +25,7 @@ const navigation = [
   { to: "/teacher/lessons", label: "Lessons", icon: BookOpen, group: "Workspace" },
   { to: "/teacher/activities", label: "Activities", icon: Activity, group: "Workspace" },
   { to: "/teacher/reports", label: "Reports", icon: BarChart3, group: "Insights" },
+  { to: "/teacher/game-performance", label: "Game scores", icon: BarChart3, group: "Insights" },
   { to: "/teacher/profile", label: "Profile", icon: UserCircle, group: "Account" },
   { to: "/teacher/settings", label: "Settings", icon: Settings, group: "Account" },
 ];
@@ -39,6 +40,7 @@ const routeTitles: Record<string, string> = {
   "/teacher/quackslate": "QuackSlate sessions",
   "/teacher/communication": "Communication management",
   "/teacher/communication/performance": "Communication performance",
+  "/teacher/game-performance": "Game scores",
   "/teacher/communication/assign": "Assign communication activities",
   "/teacher/reports": "Progress reports",
   "/teacher/profile": "Teacher profile",

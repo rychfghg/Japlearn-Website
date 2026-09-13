@@ -10,10 +10,10 @@ import PageHeader from "../components/PageHeader";
 
 const tools = [
   {
-    to: "/teacher/communication/performance",
+    to: "/teacher/game-performance",
     icon: BarChart3,
-    title: "Monitor student performance",
-    text: "Review QuackTalk, QuackSituate, and QuackResponse accuracy and recommendations.",
+    title: "Monitor game performance",
+    text: "See every saved game attempt, latest and average scores, personal bests, and QuackTalk feedback.",
     color: "purple",
   },
   {

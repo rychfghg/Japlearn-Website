@@ -12,6 +12,7 @@ import type {
   ArcadeScore,
   QuackTalkSession,
   ReplyCoachAttempt,
+  TeacherGamePerformance,
 } from "../types";
 
 async function request<T>(path: string, options?: RequestInit): Promise<T> {
@@ -144,5 +145,9 @@ export const teacherApi = {
   getReplyCoachAttempts: (email: string) =>
     request<ReplyCoachAttempt[]>(
       `/api/reply-coach/attempts?email=${encodeURIComponent(email)}`,
+    ),
+  getGamePerformance: (email: string) =>
+    request<TeacherGamePerformance>(
+      `/api/teacher/game-performance?studentEmail=${encodeURIComponent(email)}&${teacherQuery()}`,
     ),
 };

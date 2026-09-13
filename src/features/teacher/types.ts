@@ -71,6 +71,48 @@ export type QuackTalkSession = {
   practicedAt: string;
 };
 
+export type GameAttempt = {
+  id: string;
+  game: string;
+  activity: string;
+  score: number | null;
+  maxScore: number | null;
+  percentage: number | null;
+  playedAt: string | null;
+  status: "COMPLETED" | "IN_PROGRESS";
+  mode: string | null;
+  feedbackSummary: string | null;
+  pronunciationScore: number | null;
+  accuracyScore: number | null;
+  fluencyScore: number | null;
+  completenessScore: number | null;
+  contextualAccuracy: number | null;
+  areasForImprovement: string[];
+  expressionsPracticed: string[];
+  conversationTurns: number | null;
+};
+
+export type GameScoreSummary = {
+  label: string;
+  attempts: number;
+  scoredAttempts: number;
+  latest: number | null;
+  average: number | null;
+  highest: number | null;
+  latestAt: string | null;
+};
+
+export type TeacherGamePerformance = {
+  studentEmail: string;
+  totalAttempts: number;
+  games: Array<{
+    name: string;
+    summary: GameScoreSummary;
+    activities: GameScoreSummary[];
+  }>;
+  attempts: GameAttempt[];
+};
+
 export type ReplyCoachAttempt = {
   id: string;
   email: string;

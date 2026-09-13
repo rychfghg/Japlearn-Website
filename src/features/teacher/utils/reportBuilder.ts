@@ -6,6 +6,7 @@ import type {
   SituationalAttempt,
   Student,
   StudentLessonProgress,
+  TeacherGamePerformance,
 } from "../types";
 import { ALL_LESSON_FIELDS } from "./mastery";
 
@@ -44,6 +45,12 @@ export const REPORT_SECTIONS = [
     hint: "QuackResponse chapters and politeness results",
     perStudentCall: true,
   },
+  {
+    key: "response",
+    label: "Response games",
+    hint: "Response Rush and Dialogue Relay scored attempts",
+    perStudentCall: true,
+  },
 ] as const;
 
 export type SectionKey = (typeof REPORT_SECTIONS)[number]["key"];
@@ -78,6 +85,7 @@ export type Scorecard = {
     completed: number;
     bestPercent: number;
   };
+  response?: { attempts: number; latest: number | null; average: number | null; highest: number | null };
   /** Average of every percentage signal that could actually be measured. */
   overall: number | null;
 };
@@ -137,6 +145,7 @@ function lessonSummary(progress: StudentLessonProgress | undefined) {
 function arcadeSummary(scores: ArcadeScore[]) {
   const bestByGame = new Map<string, { game: string; score: number; max?: number }>();
   scores.forEach((entry) => {
+    if (!["QUACKAMOLE", "QUACKMAN", "QUACKSLATE"].includes(entry.game?.toUpperCase())) return;
     const current = bestByGame.get(entry.game);
     if (!current || entry.score > current.score) {
       bestByGame.set(entry.game, {
@@ -204,11 +213,24 @@ function replySummary(attempts: ReplyCoachAttempt[]) {
   return { chapters, completed, bestPercent };
 }
 
+function responseSummary(record: TeacherGamePerformance | null) {
+  const attempts = (record?.attempts || []).filter(item => item.game === "QuackResponse" &&
+    (item.activity === "Response Rush" || item.activity === "Dialogue Relay"));
+  const scored = attempts.filter(item => item.status === "COMPLETED" && item.percentage != null);
+  return {
+    attempts: attempts.length,
+    latest: scored[0]?.percentage ?? null,
+    average: scored.length ? Math.round(scored.reduce((sum, item) => sum + (item.percentage || 0), 0) / scored.length) : null,
+    highest: scored.length ? scored.reduce((best, item) => Math.max(best, item.percentage || 0), 0) : null,
+  };
+}
+
 function overallOf(card: Omit<Scorecard, "overall">): number | null {
   const signals: number[] = [];
   if (card.lessons) signals.push(card.lessons.percent);
   if (card.situate?.attempts) signals.push(card.situate.avgAccuracy);
   if (card.reply?.chapters) signals.push(card.reply.bestPercent);
+  if (card.response?.average != null) signals.push(card.response.average);
   if (card.talk?.evaluatedAvg != null) signals.push(card.talk.evaluatedAvg);
   if (card.arcade?.percent != null) signals.push(card.arcade.percent);
   if (!signals.length) return null;
@@ -257,7 +279,7 @@ export async function buildScorecards(
     4,
     async (student) => {
       const email = student.email;
-      const [arcade, situate, talk, reply] = await Promise.all([
+      const [arcade, situate, talk, reply, response] = await Promise.all([
         wants("arcade") ? safe(teacherApi.getArcadeScores(email), []) : Promise.resolve([]),
         wants("situate")
           ? safe(teacherApi.getSituationalAttempts(email), [])
@@ -268,6 +290,9 @@ export async function buildScorecards(
         wants("reply")
           ? safe(teacherApi.getReplyCoachAttempts(email), [])
           : Promise.resolve([]),
+        wants("response")
+          ? safe(teacherApi.getGamePerformance(email), null)
+          : Promise.resolve(null),
       ]);
 
       const base = {
@@ -279,6 +304,7 @@ export async function buildScorecards(
         situate: wants("situate") ? situateSummary(situate) : undefined,
         talk: wants("talk") ? talkSummary(talk) : undefined,
         reply: wants("reply") ? replySummary(reply) : undefined,
+        response: wants("response") ? responseSummary(response) : undefined,
       };
 
       return { ...base, overall: overallOf(base) };
@@ -308,6 +334,7 @@ export function scorecardsToCsv(cards: Scorecard[], sections: SectionKey[]): str
     header.push("QuackSituate attempts", "QuackSituate completed", "QuackSituate accuracy %", "QuackSituate best score");
   if (wants("talk")) header.push("QuackTalk sessions", "QuackTalk minutes", "QuackTalk evaluated average %");
   if (wants("reply")) header.push("Reply Coach chapters", "Reply Coach completed", "Reply Coach best %");
+  if (wants("response")) header.push("Response Rush / Relay attempts", "Latest response score %", "Average response score %", "Highest response score %");
   header.push("Overall %");
 
   const rows = cards.map((card) => {
@@ -349,6 +376,8 @@ export function scorecardsToCsv(cards: Scorecard[], sections: SectionKey[]): str
         card.reply?.completed ?? 0,
         card.reply?.bestPercent ?? 0,
       );
+    if (wants("response"))
+      cells.push(card.response?.attempts ?? 0, card.response?.latest ?? "n/a", card.response?.average ?? "n/a", card.response?.highest ?? "n/a");
 
     cells.push(card.overall ?? "No data");
     return cells;

@@ -26,6 +26,7 @@ import LessonsPage from "./features/teacher/pages/LessonsPage";
 import LessonProgressPage from "./features/teacher/pages/LessonProgressPage";
 import OverviewPage from "./features/teacher/pages/OverviewPage";
 import PerformancePage from "./features/teacher/pages/PerformancePage";
+import GamePerformancePage from "./features/teacher/pages/GamePerformancePage";
 import ProfilePage from "./features/teacher/pages/ProfilePage";
 import ReportsPage from "./features/teacher/pages/ReportsPage";
 import SettingsPage from "./features/teacher/pages/SettingsPage";
@@ -75,6 +76,7 @@ export default function App() {
           <Route path="quackslate" element={<QuackslatePage />} />
           <Route path="communication" element={<CommunicationPage />} />
           <Route path="communication/performance" element={<PerformancePage />} />
+          <Route path="game-performance" element={<GamePerformancePage />} />
           <Route
             path="communication/assign"
             element={<AssignCommunicationPage />}
