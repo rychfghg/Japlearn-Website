@@ -6535,6 +6535,23 @@ button.tile-link { border: 0; background: transparent; padding: 0; font-family: 
 .game-performance-feedback-scores{display:flex;flex-wrap:wrap;gap:7px;margin:8px 0}
 .game-performance-feedback-scores .game-performance-metric{min-width:88px}
 .game-performance-no-feedback{display:block;margin:8px 0 0 45px;color:#998a9f;font-size:10px}
+.game-score-sheet-scroll{overflow:auto;max-height:620px;border:1px solid #e7dced;border-radius:17px;background:#fff;box-shadow:0 10px 28px #4223580b}
+.game-score-sheet{width:100%;min-width:850px;border-collapse:separate;border-spacing:0;color:#46314f;font-size:12px}
+.game-score-sheet thead th{position:sticky;top:0;z-index:1;padding:13px 15px;background:#f6effb;border-bottom:1px solid #e5d8ed;color:#76538d;font-size:10px;font-weight:900;letter-spacing:.55px;text-align:left;text-transform:uppercase;white-space:nowrap}
+.game-score-sheet tbody th,.game-score-sheet tbody td{padding:12px 15px;border-bottom:1px solid #f0e9f3;text-align:left;vertical-align:middle;white-space:nowrap}
+.game-score-sheet tbody tr:last-child th,.game-score-sheet tbody tr:last-child td{border-bottom:0}
+.game-score-sheet tbody tr:hover{background:#fcf9fe}
+.game-score-sheet tbody th{font-weight:800;color:#3d254a}
+.game-score-sheet tbody th span,.game-score-sheet tbody td span{display:block}
+.game-score-sheet tbody th small,.game-score-sheet tbody td small{display:block;margin-top:3px;color:#92829a;font-size:10px;font-weight:500}
+.game-score-sheet-parent{background:#fbf7fe}
+.game-score-sheet-parent td:nth-child(2){font-weight:900;color:#612b90}
+.game-score-sheet-child td:nth-child(2){padding-left:30px;color:#6b5776}
+.game-score-sheet-child td:nth-child(2)>span:before{content:'↳';margin-right:9px;color:#b497c8}
+.game-score-history-sheet{min-width:970px}
+.game-score-history-sheet td:nth-child(4) strong{color:#67299b;font-size:15px}
+.game-score-history-sheet .game-performance-feedback,.game-score-history-sheet .game-performance-no-feedback{margin:7px 0 0;padding:0;border:0}
+.game-score-history-sheet .game-performance-feedback-body{min-width:250px;max-width:360px;white-space:normal}
 @media(max-width:1100px){.game-performance-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}
 @media(max-width:700px){.game-performance-toolbar{align-items:stretch;flex-direction:column}.game-performance-grid,.game-performance-overview{grid-template-columns:1fr}.game-performance-attempt-main{flex-wrap:wrap}.game-performance-attempt-title{min-width:calc(100% - 50px)}.game-performance-attempt-score{margin-left:45px;text-align:left}.game-performance-feedback,.game-performance-no-feedback{margin-left:0}}
 
