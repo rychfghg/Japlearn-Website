@@ -11,7 +11,7 @@ import {
   X,
 } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
-import { API_URL } from "../../../lib/api";
+import { API_URL, portalFetch as fetch } from "../../../lib/api";
 
 type Choice = { japanese: string; romaji: string };
 type Question = {

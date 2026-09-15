@@ -1,6 +1,6 @@
 import { Search, TimerReset } from "lucide-react";
 import { FormEvent, useState } from "react";
-import { API_URL } from "../../../lib/api";
+import { API_URL, portalFetch as fetch } from "../../../lib/api";
 
 type Progress = { email:string; currentNodeId:string; answers:unknown[]; timeLeft:number; bestPercentage:number; completed:boolean; updatedAt:string };
 

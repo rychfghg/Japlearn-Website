@@ -5,12 +5,14 @@ import {
   GraduationCap,
   LayoutDashboard,
   LogOut,
+  Menu,
   MessageCircleQuestion,
   Mic2,
   Users,
+  X,
 } from "lucide-react";
-import { Fragment } from "react";
-import { NavLink, Outlet, useNavigate } from "react-router-dom";
+import { Fragment, useEffect, useState } from "react";
+import { NavLink, Outlet, useLocation, useNavigate } from "react-router-dom";
 import Brand from "../../../components/Brand";
 import { session } from "../../../lib/auth";
 
@@ -28,15 +30,27 @@ const navigation = [
 
 export default function AdminLayout() {
   const navigate = useNavigate();
+  const location = useLocation();
+  const [menuOpen, setMenuOpen] = useState(false);
+  useEffect(() => setMenuOpen(false), [location.pathname]);
+  useEffect(() => {
+    if (!menuOpen) return;
+    const closeOnEscape = (event: KeyboardEvent) => {
+      if (event.key === "Escape") setMenuOpen(false);
+    };
+    window.addEventListener("keydown", closeOnEscape);
+    return () => window.removeEventListener("keydown", closeOnEscape);
+  }, [menuOpen]);
   const logout = () => {
     session.clear();
+    setMenuOpen(false);
     navigate("/admin/login", { replace: true });
   };
 
   return (
     <main className="admin-layout">
-      <aside className="admin-sidebar">
-        <Brand light />
+      <aside className={`admin-sidebar ${menuOpen ? "open" : ""}`} id="admin-navigation">
+        <div className="admin-side-head"><Brand light /><button type="button" onClick={() => setMenuOpen(false)} aria-label="Close admin menu"><X /></button></div>
         <NavLink to="/admin" end className="admin-identity">
           <span>AD</span>
           <div>
@@ -51,7 +65,7 @@ export default function AdminLayout() {
             return (
               <Fragment key={item.to}>
                 {showGroup && <span className="admin-nav-group">{item.group}</span>}
-                <NavLink to={item.to} end={item.end}>
+                <NavLink to={item.to} end={item.end} onClick={() => setMenuOpen(false)}>
                   <span className="admin-nav-icon"><Icon /></span>
                   {item.label}
                 </NavLink>
@@ -64,7 +78,9 @@ export default function AdminLayout() {
           Sign out
         </button>
       </aside>
+      {menuOpen && <button className="admin-side-scrim" type="button" onClick={() => setMenuOpen(false)} aria-label="Close admin navigation" />}
       <section className="admin-content">
+        <header className="admin-mobile-top"><button type="button" onClick={() => setMenuOpen(true)} aria-label="Open admin menu" aria-controls="admin-navigation" aria-expanded={menuOpen}><Menu /></button><div><small>JAPLEARN ADMIN</small><strong>{navigation.find((item) => item.to === location.pathname)?.label || "Content studio"}</strong></div><span className="admin-mobile-mark">AD</span></header>
         <Outlet />
       </section>
     </main>

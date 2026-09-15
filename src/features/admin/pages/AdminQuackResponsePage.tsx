@@ -12,7 +12,7 @@ import {
   TriangleAlert,
 } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
-import { API_URL } from "../../../lib/api";
+import { API_URL, portalFetch as fetch } from "../../../lib/api";
 
 type Choice = {
   id: string;

@@ -1,6 +1,6 @@
 import { CheckCircle2, Cloud, Search, ShieldCheck, TriangleAlert } from "lucide-react";
 import { FormEvent, useEffect, useState } from "react";
-import { API_URL } from "../../../lib/api";
+import { API_URL, portalFetch as fetch } from "../../../lib/api";
 
 type AzureStatus={provider:string;configured:boolean;region:string;rawAudioStored:boolean};
 type Assessment={id:string;email:string;promptId:string;promptTitle:string;provider:string;assessmentStatus:string;recognizedText:string;referenceText:string;responseAppropriate:boolean;contextVerdict:string;contextExplanation:string;pronunciationFeedback:string;pronunciationGuide:string;pronunciationScore:number;accuracyScore:number;fluencyScore:number;completenessScore:number;contextScore:number;feedback:string;wordIssues:string[];assessedAt:string};

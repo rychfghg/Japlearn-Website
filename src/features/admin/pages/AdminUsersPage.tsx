@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import { Check, Edit3, MailCheck, Mic2, Plus, RefreshCw, Search, Trash2, X } from "lucide-react";
-import { API_URL } from "../../../lib/api";
+import { API_URL, portalFetch as fetch } from "../../../lib/api";
 
 type ManagedUser = { id: string; fname: string; lname: string; email: string; role: string; approved: boolean; emailConfirmed: boolean; guidedPhraseEnabled: boolean; password?: string };
 

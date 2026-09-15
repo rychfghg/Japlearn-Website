@@ -1,6 +1,6 @@
 import { Headphones, Mic2, Radio, TimerReset } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
-import { API_URL } from "../../../lib/api";
+import { API_URL, portalFetch as fetch } from "../../../lib/api";
 import type { QuackTalkSession } from "../../teacher/types";
 
 export default function AdminQuackTalkPage() {

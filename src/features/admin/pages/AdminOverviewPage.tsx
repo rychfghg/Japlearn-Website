@@ -10,7 +10,7 @@ import {
   Users,
 } from "lucide-react";
 import { Link } from "react-router-dom";
-import { API_URL } from "../../../lib/api";
+import { API_URL, portalFetch as fetch } from "../../../lib/api";
 
 type UserRecord = { role: string; approved: boolean; emailConfirmed: boolean };
 

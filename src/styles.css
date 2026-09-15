@@ -6565,3 +6565,65 @@ button.tile-link { border: 0; background: transparent; padding: 0; font-family: 
 .bulk-guided{border:0;border-radius:10px;padding:8px 11px;font-size:10px;font-weight:900;white-space:nowrap;cursor:pointer}.bulk-guided.allow{background:#edf8e7;color:#55972f}.bulk-guided.block{background:#fbecef;color:#b6465a}
 /* QuackResponse admin game subpages */
 .quackresponse-admin-shell{display:grid;gap:18px}.quackresponse-subnav{display:flex;gap:8px;padding:7px;background:#fff;border:1px solid #e5dbe9;border-radius:17px;box-shadow:0 8px 25px #3514430a}.quackresponse-subnav a{display:flex;align-items:center;gap:8px;padding:11px 15px;border-radius:12px;color:#75637d;font-weight:800;font-size:13px}.quackresponse-subnav a svg{width:17px}.quackresponse-subnav a.active{color:#fff;background:#8423d9;box-shadow:0 7px 16px #8423d933}.response-admin-page{display:grid;gap:17px}.response-admin-page>header{display:flex;align-items:center;gap:16px;background:linear-gradient(135deg,#fff 58%,#f2e6fb);border:1px solid #e5dbe9;border-radius:23px;padding:22px}.response-admin-page header small{font-weight:900;letter-spacing:1.1px;color:#70ad45}.response-admin-page header h1{margin:4px 0;color:#34203e}.response-admin-page header p{margin:0;color:#817486}.response-page-icon{width:54px;height:54px;border-radius:17px;display:grid;place-items:center;color:#fff;flex:none}.response-page-icon svg{width:25px}.response-page-icon.rush{background:#df8b2c}.response-page-icon.relay{background:#8423d9}.response-lookup{display:flex;align-items:center;gap:10px;background:#fff;border:1px solid #e3d8e7;border-radius:16px;padding:6px 7px 6px 15px}.response-lookup svg{width:19px;color:#9a899f}.response-lookup input{flex:1;min-width:0;border:0;outline:0;padding:10px;background:transparent}.response-lookup button{border:0;border-radius:11px;background:#8423d9;color:#fff;padding:11px 15px;font-weight:800}.response-admin-message{margin:0;padding:13px 15px;border-radius:13px;background:#fff;color:#75677a;border:1px solid #e7ddea}.response-summary-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:12px}.response-summary-grid article{display:grid;gap:5px;background:#fff;border:1px solid #e4dae8;border-radius:18px;padding:18px}.response-summary-grid small{color:#927f98;font-weight:900}.response-summary-grid b{font-size:24px;color:#382142}.azure-status{margin-left:auto;display:flex;align-items:center;gap:9px;border-radius:14px;padding:10px 12px;min-width:205px}.azure-status svg{width:20px}.azure-status div{display:grid}.azure-status span{font-size:10px;margin-top:2px}.azure-status.ready{background:#edf8e8;color:#549333}.azure-status.missing{background:#fff0e8;color:#b86238}.audio-privacy-note{display:flex;align-items:center;gap:11px;padding:14px 16px;border-radius:16px;background:#f1e9fa;color:#613b73}.audio-privacy-note svg{width:22px;flex:none}.audio-privacy-note div{display:grid}.audio-privacy-note span{font-size:11px;color:#806d89;margin-top:2px}.assessment-list{display:grid;gap:13px}.assessment-card{background:#fff;border:1px solid #e4dae8;border-radius:20px;padding:18px;display:grid;gap:13px}.assessment-top{display:flex;align-items:flex-start;justify-content:space-between;gap:15px}.assessment-top>div{display:grid;gap:5px}.scan-pill{display:inline-flex;align-items:center;gap:5px;width:max-content;border-radius:20px;padding:5px 8px;background:#edf8e8;color:#579735;font-size:10px;font-weight:900}.scan-pill svg{width:12px}.assessment-top small{color:#8d7d92}.assessment-top>b{border-radius:20px;padding:7px 10px;font-size:11px}.assessment-top .fit{background:#edf8e8;color:#579735}.assessment-top .retry{background:#fff0f1;color:#bc4c59}.assessment-speech{display:grid;gap:4px;padding:13px;border-radius:14px;background:#faf7fc}.assessment-speech small{color:#917b99;font-weight:900}.assessment-speech strong{font-size:17px;color:#392044}.assessment-speech span{font-size:11px;color:#806f86}.assessment-scores{display:grid;grid-template-columns:repeat(4,1fr);gap:8px}.assessment-scores>div{display:grid;place-items:center;padding:10px;border-radius:13px;background:#f3eafb}.assessment-scores b{font-size:20px;color:#8423d9}.assessment-scores span{font-size:9px;color:#7f6b87}.assessment-card>p{margin:0;color:#66586b;line-height:1.5}.word-issues{color:#aa5c3e}@media(max-width:760px){.quackresponse-subnav{overflow-x:auto}.quackresponse-subnav a{white-space:nowrap}.response-admin-page>header{align-items:flex-start;flex-wrap:wrap}.azure-status{margin-left:0;width:100%}.response-summary-grid,.assessment-scores{grid-template-columns:repeat(2,1fr)}}
+
+/* Shared admin phone layout. Keep the desktop rail; use a compact drawer on phones. */
+.admin-mobile-top,.admin-side-head>button,.admin-side-scrim{display:none}
+.admin-side-head{display:flex;align-items:center;justify-content:space-between}
+.admin-layout,.admin-content,.admin-content>*,.admin-dashboard-page,.admin-users-page,.admin-question-page,.admin-response-page,.admin-talk-page,.response-admin-page{min-width:0}
+.admin-content :is(input,select,textarea){max-width:100%}
+@media(max-width:900px){
+  .admin-layout{display:block}
+  .admin-sidebar{position:fixed;inset:0 auto 0 0;z-index:52;width:min(290px,85vw);height:100dvh;overflow-y:auto;overscroll-behavior:contain;visibility:hidden;pointer-events:none;transform:translateX(-105%);transition:transform .22s ease,visibility .22s ease;box-shadow:16px 0 40px #1a0b2550}
+  .admin-sidebar.open{visibility:visible;pointer-events:auto;transform:translateX(0)}
+  .admin-sidebar nav{display:grid;grid-template-columns:1fr;gap:4px}
+  .admin-side-head>button{display:grid;place-items:center;width:38px;height:38px;border:1px solid #ffffff26;border-radius:11px;background:#ffffff12;color:#fff;cursor:pointer}
+  .admin-side-head>button svg{width:20px}
+  .admin-side-scrim{display:block;position:fixed;inset:0;z-index:51;border:0;background:#26132f99;cursor:pointer}
+  .admin-content{padding:0 20px 26px}
+  .admin-mobile-top{position:sticky;top:0;z-index:20;display:flex;align-items:center;gap:12px;min-height:72px;margin:0 -20px 20px;padding:10px 20px;background:#fff;border-bottom:1px solid #e9e1ed}
+  .admin-mobile-top>button{display:grid;place-items:center;width:42px;height:42px;flex:none;border:1px solid #e6d8ee;border-radius:12px;background:#f8f1fd;color:#7424b2;cursor:pointer}
+  .admin-mobile-top>button svg{width:21px}
+  .admin-mobile-top>div{display:grid;gap:2px;min-width:0}
+  .admin-mobile-top small{color:#6aa33d;font-size:9px;font-weight:900;letter-spacing:1.2px}
+  .admin-mobile-top strong{overflow:hidden;color:#382142;font-size:17px;text-overflow:ellipsis;white-space:nowrap}
+  .admin-mobile-mark{display:grid;place-items:center;width:34px;height:34px;flex:none;margin-left:auto;border-radius:10px;background:#8423d9;color:#fff;font-size:11px;font-weight:900}
+}
+@media(max-width:620px){
+  .admin-content{padding:0 14px 24px}
+  .admin-mobile-top{margin:0 -14px 16px;padding:10px 14px}
+  .admin-dashboard-page,.admin-users-page,.admin-question-page,.admin-response-page,.admin-talk-page,.quackresponse-admin-shell{gap:14px}
+  .admin-welcome,.admin-users-page>header,.admin-question-page>header,.response-admin-header,.admin-talk-header{padding:20px;border-radius:20px}
+  .admin-welcome h1,.admin-users-page h1,.admin-question-page h1,.response-admin-header h1,.admin-talk-header h1{font-size:clamp(23px,6vw,29px);line-height:1.16}
+  .admin-welcome p,.admin-users-page header p,.admin-question-page header p{line-height:1.45}
+  .admin-status{align-self:flex-start}
+  .admin-stat-grid{grid-template-columns:repeat(2,minmax(0,1fr));gap:9px}
+  .admin-stat-grid>a{display:grid;gap:8px;align-content:start;padding:14px;border-radius:16px}
+  .admin-stat-grid>a>span{width:38px;height:38px;border-radius:12px}
+  .admin-stat-grid>a>span svg{width:20px}
+  .admin-stat-grid b{font-size:22px}
+  .admin-stat-grid p{font-size:11px;line-height:1.3}
+  .admin-action-panel,.admin-games-panel,.response-editor,.response-mission-list,.admin-question-form,.recognition-records{padding:18px;border-radius:18px}
+  .admin-action-panel>a{display:block;width:100%;text-align:center}
+  .admin-games-grid{grid-template-columns:1fr;gap:9px}
+  .admin-game-card{min-height:64px;padding:12px 14px}
+  .admin-user-toolbar{flex-wrap:wrap}
+  .admin-user-toolbar input{min-width:0}
+  .admin-user-table{border-radius:16px}
+  .admin-user-row,.admin-user-table.has-guided-access .admin-user-row{grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:9px;padding:13px}
+  .admin-user-row>span,.admin-user-row>div{min-width:0;overflow-wrap:anywhere}
+  .response-tabs{flex-direction:row;overflow-x:auto;scrollbar-width:thin}
+  .response-tabs button{flex:none;white-space:nowrap}
+  .response-lookup{flex-wrap:wrap;padding:10px}
+  .response-lookup input{flex:1 1 calc(100% - 40px)}
+  .response-lookup button{width:100%}
+  .response-mission-list article{grid-template-columns:48px minmax(0,1fr);gap:10px}
+  .mission-actions{grid-column:1/-1;justify-content:flex-end;flex-wrap:wrap}
+  .admin-talk-toolbar{padding:16px}
+  .admin-talk-row,.recognition-record-row{gap:8px;padding:12px}
+  .assessment-card{padding:14px}
+  .assessment-top{flex-wrap:wrap}
+  .quackresponse-subnav{min-width:0;max-width:100%;overflow-x:auto}
+  .quackresponse-subnav a{flex:none}
+}
+@media(max-width:380px){.admin-stat-grid{grid-template-columns:1fr}.admin-mobile-mark{display:none}}
+@media(prefers-reduced-motion:reduce){.admin-sidebar{transition:none}}

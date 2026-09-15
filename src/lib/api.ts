@@ -17,6 +17,17 @@ export type User = {
   portalSessionToken?: string;
 };
 
+/** Adds the short-lived portal session to admin/teacher API requests. */
+export function portalFetch(input: RequestInfo | URL, init: RequestInit = {}) {
+  let token = "";
+  try {
+    token = String(JSON.parse(localStorage.getItem("japlearn_portal_user") || "null")?.portalSessionToken || "");
+  } catch { /* An invalid local session is handled as signed out by the route guard. */ }
+  const headers = new Headers(init.headers);
+  if (token) headers.set("X-Portal-Token", token);
+  return fetch(input, { ...init, headers });
+}
+
 async function readError(response: Response) {
   const text = await response.text();
 
