@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
-import { ArrowLeft, ArrowRight, BookOpen, CalendarClock, Check, Copy, FileSpreadsheet, Hash, Library, PencilLine, Plus, RefreshCw, Search, Trash2, Users } from "lucide-react";
+import { ArrowLeft, ArrowRight, BookOpen, CalendarClock, CalendarDays, Check, ClipboardList, Clock3, Copy, FileSpreadsheet, Hash, Library, PencilLine, Plus, RefreshCw, Search, Trash2, Users } from "lucide-react";
 import { confirmAction } from "../../../lib/confirmAction";
 import { teacherApi } from "../services/teacherApi";
 import type { SlateQuestion, SlateScoreSheet, SlateSession } from "../types";
@@ -32,6 +32,7 @@ export default function QuackslatePage() {
   const [source, setSource] = useState<"bank" | "custom" | "selected">("bank");
   const [search, setSearch] = useState("");
   const [busy, setBusy] = useState(false);
+  const [deleting, setDeleting] = useState(false);
   const [distractors, setDistractors] = useState("");
   const [custom, setCustom] = useState({prompt:"",translation:"",category:"Custom",difficulty:"Easy",options:"",correctAnswer:"",explanation:""});
 
@@ -135,10 +136,10 @@ export default function QuackslatePage() {
   const deleteCode = async () => {
     if (!session || busy) return;
     if (!await confirmAction(`Delete code ${gameCode}?`, { confirmLabel: "Delete code", description: "This unused code and its schedule will be removed. Questions stay in the bank." })) return;
-    setBusy(true);
-    try { await teacherApi.deleteSlateSession(gameCode); setSessions((items) => items.filter((item) => item.gameCode !== gameCode)); setGameCode(""); setSession(null); setStatus("Code deleted. Your question bank is unchanged."); }
+    setBusy(true); setDeleting(true);
+    try { await teacherApi.deleteSlateSession(gameCode); setSessions((items) => items.filter((item) => item.gameCode !== gameCode)); setGameCode(""); setSession(null); setSheet(null); setSelected([]); setStatus("Code deleted. Your question bank is unchanged."); }
     catch (error) { setStatus(error instanceof Error ? error.message : "Could not delete this code."); }
-    finally { setBusy(false); }
+    finally { setBusy(false); setDeleting(false); }
   };
   const visibleSessions = sessions.filter((item) => sessionFilter === "ACTIVE"
     ? item.status === "UPCOMING" || item.status === "LIVE"
@@ -160,7 +161,7 @@ export default function QuackslatePage() {
   return (
     <section className="slate-workbench">
       {!gameCode && <div className="slate-directory-heading">
-        <div><span className="slate-heading-icon"><Library size={24} /></span><h2>Your QuackSlate sessions</h2><p>Prepare an activity, share a code, and follow your class results.</p></div>
+        <div><span className="slate-heading-icon"><ClipboardList size={24} /></span><h2>Your QuackSlate sessions</h2><p>Prepare an activity, share a code, and follow your class results.</p></div>
         <button className="primary-button" onClick={generate} disabled={busy}><Plus size={18} />{busy ? "Creating…" : "Create a code"}</button>
       </div>}
       <div className="slate-studio">
@@ -173,12 +174,12 @@ export default function QuackslatePage() {
 
         {gameCode && session && <>
           <div className="slate-session-top"><button className="soft-button" disabled={busy} onClick={() => { setGameCode(""); setSession(null); setStatus(""); void load(); }}><ArrowLeft size={17} />All sessions</button>
-            {(session.status === "DRAFT" || session.status === "UPCOMING") && session.joinedCount === 0 && <button className="slate-delete" disabled={busy} onClick={() => void deleteCode()}><Trash2 size={16} />Delete code</button>}</div>
+            {(session.status === "DRAFT" || session.status === "UPCOMING") && session.joinedCount === 0 && <button className="slate-delete" disabled={busy} onClick={() => void deleteCode()}><Trash2 size={16} />{deleting ? "Deleting…" : "Delete code"}</button>}</div>
           <div className="slate-session-identity"><span className="slate-heading-icon"><Hash size={25} /></span><div><small>CLASS CODE · {session.status}</small><h2>{gameCode}</h2></div><button className="soft-button" onClick={() => void navigator.clipboard.writeText(gameCode).then(() => setStatus("Code copied.")).catch(() => setStatus(`Your code is ${gameCode}. Select the code to copy it.`))}><Copy size={16} />Copy</button><span className="slate-identity-count"><BookOpen size={16} />{selected.length} questions</span></div>
           <nav className="slate-step-navigation" aria-label="Session setup">
             <button className={step === "content" ? "active" : ""} onClick={() => setStep("content")}><Library size={18} /><span>Content<small>Bank or your own</small></span></button>
             <button className={step === "schedule" ? "active" : ""} onClick={() => setStep("schedule")}><CalendarClock size={18} /><span>Schedule<small>Start and end</small></span></button>
-            <button className={step === "results" ? "active" : ""} onClick={() => setStep("results")}><FileSpreadsheet size={18} /><span>Results<small>Students and scores</small></span></button>
+            <button className={step === "results" ? "active" : ""} onClick={() => setStep("results")}><Users size={18} /><span>Results<small>Students and scores</small></span></button>
           </nav>
           {status && <p className="bank-status" role="status">{status}</p>}
           {step === "content" && <>
@@ -201,7 +202,15 @@ export default function QuackslatePage() {
               {session.status === "DRAFT" && <div className="slate-step-footer"><span>{selected.length} questions in this activity</span><button className="primary-button" onClick={() => void saveSelection()} disabled={!selected.length || busy}>Save & schedule <ArrowRight size={17} /></button></div>}
             </div>
           </>}
-          {step === "schedule" && <div className="slate-panel slate-schedule-panel"><span className="slate-heading-icon"><CalendarClock size={25} /></span><h3>When can your class play?</h3><p>The activity opens and closes automatically. Times use your device’s local timezone.</p><div className="slate-schedule-grid"><label>Starts<input type="datetime-local" disabled={session.status !== "DRAFT"} value={startAt} onChange={(event) => setStartAt(event.target.value)} /></label><label>Ends<input type="datetime-local" disabled={session.status !== "DRAFT"} value={endAt} onChange={(event) => setEndAt(event.target.value)} /></label></div><div className="slate-schedule-note"><Users size={20} /><p>Late arrivals receive only the time remaining. Share <strong>{gameCode}</strong> when your activity is ready.</p></div>{session.status === "DRAFT" ? <div className="slate-step-footer"><button className="soft-button" onClick={() => setStep("content")}><ArrowLeft size={16} />Edit content</button><button className="primary-button" disabled={!startAt || !endAt || !selected.length || busy} onClick={() => void schedule()}>{busy ? "Publishing…" : "Publish schedule"}<Check size={17} /></button></div> : <p className="slate-selection-count">{session.status} · Schedule published</p>}</div>}
+          {step === "schedule" && <div className="slate-panel slate-schedule-panel"><span className="slate-heading-icon"><CalendarClock size={25} /></span><h3>When can your class play?</h3><p>The activity opens and closes automatically. Times use your device’s local timezone.</p>
+            <div className="slate-schedule-grid">
+              <label className="slate-date-card"><span><CalendarDays size={18} />Start date and time</span><input type="datetime-local" disabled={session.status !== "DRAFT"} value={startAt} onChange={(event) => setStartAt(event.target.value)} /></label>
+              <label className="slate-date-card"><span><Clock3 size={18} />End date and time</span><input type="datetime-local" disabled={session.status !== "DRAFT"} min={startAt || undefined} value={endAt} onChange={(event) => setEndAt(event.target.value)} /></label>
+            </div>
+            {session.status === "DRAFT" && <div className="slate-time-presets"><span>Quick timing</span><button type="button" onClick={() => { const now = new Date(); now.setMinutes(now.getMinutes() + 10); const end = new Date(now.getTime() + 30*60_000); setStartAt(localInputTime(now.toISOString())); setEndAt(localInputTime(end.toISOString())); }}>Starts in 10 min · 30 min round</button><button type="button" onClick={() => { if (startAt) setEndAt(localInputTime(new Date(new Date(startAt).getTime() + 60*60_000).toISOString())); }}>One hour from start</button></div>}
+            {startAt && endAt && <p className="slate-time-summary"><CalendarClock size={16} />{new Date(startAt).toLocaleString()} – {new Date(endAt).toLocaleTimeString()} · {Math.round((new Date(endAt).getTime() - new Date(startAt).getTime()) / 60_000)} minutes</p>}
+            <div className="slate-schedule-note"><Users size={20} /><p>Late arrivals receive only the time remaining. Share <strong>{gameCode}</strong> when your activity is ready.</p></div>
+            {session.status === "DRAFT" ? <div className="slate-step-footer"><button className="soft-button" onClick={() => setStep("content")}><ArrowLeft size={16} />Edit content</button><button className="primary-button" disabled={!startAt || !endAt || !selected.length || busy} onClick={() => void schedule()}>{busy ? "Publishing…" : "Publish schedule"}<Check size={17} /></button></div> : <p className="slate-selection-count">{session.status} · Schedule published</p>}</div>}
           {step === "results" && <div className="slate-panel"><div className="slate-panel-heading"><div><small>CLASS SCORE SHEET</small><h3>Students & results</h3><p>{session.joinedCount} joined · Latest, average and highest scores.</p></div><div className="session-controls"><button className="soft-button" onClick={exportSheet} disabled={!sheet?.rows.length}><FileSpreadsheet size={16} />Download CSV</button><button className="soft-button" onClick={() => void teacherApi.getSlateScoreSheet(gameCode).then(setSheet).catch((error) => setStatus(error.message))}><RefreshCw size={15} />Refresh</button></div></div>
             <label className="slate-student-select">View <select value={studentFilter} onChange={(event) => setStudentFilter(event.target.value)}><option value="all">All students</option>{sheet?.rows.map((row) => <option key={row.email} value={row.email}>{row.name || row.email}</option>)}</select></label>
             <div className="slate-sheet-scroll"><table className="slate-sheet"><thead><tr><th>Student</th><th>Attempts</th><th>Latest</th><th>Average</th><th>Highest</th><th>Last played</th></tr></thead><tbody>{sheet?.rows.filter((row) => studentFilter === "all" || row.email === studentFilter).map((row) => <tr key={row.email}><td><strong>{row.name || row.email}</strong><small>{row.email}</small></td><td>{row.attempts}</td><td>{row.latest === null ? "—" : `${row.latest}%`}</td><td>{row.average === null ? "—" : `${row.average}%`}</td><td>{row.highest === null ? "—" : `${row.highest}%`}</td><td>{row.latestAt ? new Date(row.latestAt).toLocaleString() : "Not played"}</td></tr>)}</tbody></table></div>
