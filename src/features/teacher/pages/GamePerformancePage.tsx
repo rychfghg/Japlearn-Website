@@ -48,6 +48,7 @@ export default function GamePerformancePage() {
   const [reload, setReload] = useState(0);
   const [selectedGame, setSelectedGame] = useState("All games");
   const [selectedActivity, setSelectedActivity] = useState("All activities");
+  const [sheetView, setSheetView] = useState<"results" | "attempts">("results");
 
   useEffect(() => {
     let active = true;
@@ -99,6 +100,9 @@ export default function GamePerformancePage() {
   ).sort((a, b) => new Date(b.attempt.playedAt || 0).getTime() - new Date(a.attempt.playedAt || 0).getTime()), [students, performances]);
   const games = useMemo(() => [...new Set(records.filter(row => !row.child).map(row => row.game))], [records]);
   const activities = useMemo(() => [...new Set(records.filter(row => row.game === selectedGame && row.child).map(row => row.activity))], [records, selectedGame]);
+  const resultRows = useMemo(() => selectedGame === "All games"
+    ? records.filter(row => !row.child)
+    : records.filter(row => row.game === selectedGame), [records, selectedGame]);
   const filtered = history.filter(({ attempt }) =>
     (selectedGame === "All games" || attempt.game === selectedGame) &&
     (selectedActivity === "All activities" || attempt.activity === selectedActivity ||
@@ -111,7 +115,7 @@ export default function GamePerformancePage() {
       description="A classroom-wide score sheet with every learner's latest, average and highest results." />
     {studentError && <StatusMessage>{studentError}</StatusMessage>}
     <div className="game-performance-toolbar">
-      <label className="student-picker">Show scores for
+      <label className="student-picker">Student
         <select value={selectedEmail} onChange={event => {
           setSelectedEmail(event.target.value); setSelectedGame("All games"); setSelectedActivity("All activities");
         }}>
@@ -131,39 +135,28 @@ export default function GamePerformancePage() {
         <div><BarChart3 size={20} /><b>{playedGames}</b><small>Games played</small></div>
         <div><Clock3 size={20} /><b>{history[0] ? when(history[0].attempt.playedAt) : "—"}</b><small>Most recent activity</small></div>
       </div>
-      <div className="game-performance-section-head">
-        <div><small>SCORE SHEET</small><h2>Game results</h2>
-          <p>Latest, average and highest use completed, scored attempts. Activity rows sit beneath their game.</p></div>
-      </div>
-      <div className="game-score-sheet-scroll" role="region" aria-label="Game scores by student" tabIndex={0}>
+      <div className="game-performance-workspace">
+        <div className="game-performance-workspace-head"><div><small>CLASSROOM RECORDS</small><h2>{sheetView === "results" ? "Game results" : "Every attempt"}</h2><p>{sheetView === "results" ? "Compare each learner's latest, average and highest score." : "Review each play in date order, including speaking feedback."}</p></div><span>{sheetView === "results" ? `${resultRows.length} rows` : `${filtered.length} attempts`}</span></div>
+        <div className="game-performance-viewbar">
+          <label>Show<select value={sheetView} onChange={event => setSheetView(event.target.value as "results" | "attempts")}><option value="results">Game results</option><option value="attempts">Every attempt</option></select></label>
+          <label>Game<select value={selectedGame} onChange={event => { setSelectedGame(event.target.value); setSelectedActivity("All activities"); }}><option>All games</option>{games.map(game => <option key={game} value={game}>{game}</option>)}</select></label>
+          {sheetView === "attempts" && selectedGame !== "All games" && activities.length > 0 && <label>Activity<select value={selectedActivity} onChange={event => setSelectedActivity(event.target.value)}><option>All activities</option>{activities.map(activity => <option key={activity}>{activity}</option>)}</select></label>}
+        </div>
+        {sheetView === "results" && <>
+          {selectedGame === "All games" && <p className="game-performance-view-tip">Showing one row per game. Choose a game above to see its activities.</p>}
+          {resultRows.length ? <div className="game-score-sheet-scroll" role="region" aria-label="Game scores by student" tabIndex={0}>
         <table className="game-score-sheet">
           <thead><tr><th scope="col">Student</th><th scope="col">Game / activity</th><th scope="col">Attempts</th><th scope="col">Latest</th><th scope="col">Average</th><th scope="col">Highest</th><th scope="col">Last played</th></tr></thead>
-          <tbody>{records.map(row => <tr key={`${row.email}-${row.game}-${row.activity}`} className={row.child ? "game-score-sheet-child" : "game-score-sheet-parent"}>
+          <tbody>{resultRows.map(row => <tr key={`${row.email}-${row.game}-${row.activity}`} className={row.child ? "game-score-sheet-child" : "game-score-sheet-parent"}>
             <th scope="row"><span>{studentName(row.email)}</span><small>{row.email}</small></th>
             <td><span>{row.child ? row.activity : row.game}</span>{row.child && <small>{row.game}</small>}</td>
             <td>{row.summary.attempts}<small>{row.summary.scoredAttempts} scored</small></td>
             <td>{scoreText(row.summary.latest)}</td><td>{scoreText(row.summary.average)}</td><td>{scoreText(row.summary.highest)}</td><td>{row.summary.latestAt ? when(row.summary.latestAt) : "—"}</td>
           </tr>)}</tbody>
         </table>
-      </div>
-      <div className="game-performance-section-head game-performance-history-head">
-        <div><small>COMPLETE HISTORY</small><h2>Every attempt</h2>
-          <p>Newest first. Repeat plays stay in the learner's account history.</p></div>
-        <span>{filtered.length} shown</span>
-      </div>
-      <div className="game-performance-filters">
-        <button type="button" className={selectedGame === "All games" ? "active" : ""}
-          onClick={() => { setSelectedGame("All games"); setSelectedActivity("All activities"); }}>All games</button>
-        {games.map(game => <button type="button" key={game}
-          className={selectedGame === game ? "active" : ""}
-          onClick={() => { setSelectedGame(game); setSelectedActivity("All activities"); }}>{game}</button>)}
-      </div>
-      {activities.length > 0 && <label className="game-performance-activity-picker">Activity
-        <select value={selectedActivity} onChange={event => setSelectedActivity(event.target.value)}>
-          <option>All activities</option>{activities.map(activity => <option key={activity}>{activity}</option>)}
-        </select>
-      </label>}
-      {filtered.length ? <div className="game-score-sheet-scroll" role="region" aria-label="Every game attempt" tabIndex={0}>
+          </div> : <div className="game-performance-empty">No game results match this selection yet.</div>}
+        </>}
+        {sheetView === "attempts" && (filtered.length ? <div className="game-score-sheet-scroll" role="region" aria-label="Every game attempt" tabIndex={0}>
         <table className="game-score-sheet game-score-history-sheet">
           <thead><tr><th scope="col">Student</th><th scope="col">Game</th><th scope="col">Activity</th><th scope="col">Score</th><th scope="col">Played</th><th scope="col">Status / feedback</th></tr></thead>
           <tbody>{filtered.map(({ studentEmail, attempt }, index) => <tr key={`${studentEmail}-${attempt.game}-${attempt.id || index}`}>
@@ -174,7 +167,8 @@ export default function GamePerformancePage() {
             <td><span className={`game-performance-status ${attempt.status === "COMPLETED" ? "done" : ""}`}>{attempt.status === "COMPLETED" ? "Completed" : "In progress"}</span>{attempt.game === "QuackTalk" && <SpeakingFeedback attempt={attempt} />}</td>
           </tr>)}</tbody>
         </table>
-      </div> : <div className="game-performance-empty">No attempts match this selection yet.</div>}
+        </div> : <div className="game-performance-empty">No attempts match this selection yet.</div>)}
+      </div>
     </>}
   </section>;
 }
