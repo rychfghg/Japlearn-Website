@@ -1,0 +1,63 @@
+/* Shared portal dialogs and focused teacher workspaces. */
+h1,h2,h3,h4 { font-family: "Nunito", "DM Sans", sans-serif; }
+.portal-confirm { position:fixed; inset:0; width:min(440px,calc(100vw - 32px)); border:1px solid #eadff1; border-radius:26px; padding:32px; color:#382044; background:#fff; box-shadow:0 30px 100px #1e0c4260; font-family:"DM Sans",sans-serif; }
+.portal-confirm::backdrop { background:#2615338c; backdrop-filter:blur(5px); }
+.portal-confirm-close { position:absolute; top:15px; right:15px; border:0; border-radius:50%; padding:7px; background:#f6f1fa; color:#80658c; cursor:pointer; }
+.portal-confirm-icon { display:grid; place-items:center; width:60px; height:60px; border-radius:20px; background:#fff0f1; color:#c84b65; margin-bottom:20px; }
+.portal-confirm h2 { font-size:23px; line-height:1.3; margin:0 0 12px; }
+.portal-confirm p { color:#806f89; font-size:14px; line-height:1.7; margin:0 0 28px; }
+.portal-confirm-actions { display:flex; justify-content:flex-end; gap:10px; }
+.portal-confirm-actions button { border:1px solid #e5d9ed; border-radius:12px; padding:12px 18px; background:#fff; color:#664b78; font:700 13px "DM Sans",sans-serif; cursor:pointer; }
+.portal-confirm-actions .portal-confirm-accept { background:#b83c58; color:white; border-color:#b83c58; }
+.portal-confirm button:focus-visible { outline:3px solid #bd93de; outline-offset:3px; }
+.slate-workbench { min-width:0; }
+.slate-directory-heading { display:flex; align-items:center; justify-content:space-between; gap:24px; margin:0 0 25px; }
+.slate-directory-heading h2 { margin:12px 0 7px; font-size:27px; color:#392247; }
+.slate-directory-heading p { color:#83748b; font-size:14px; margin:0; }
+.slate-heading-icon { display:inline-grid; place-items:center; width:48px; height:48px; background:#efe5fa; color:#7c2cca; border-radius:16px; flex:none; }
+.slate-workbench .slate-panel { box-shadow:0 7px 25px #44205606; border-radius:20px; padding:25px; }
+.slate-session-top { display:flex; justify-content:space-between; align-items:center; gap:12px; }
+.slate-delete { display:flex; align-items:center; gap:7px; border:0; background:transparent; color:#b45569; padding:10px; cursor:pointer; font:700 12px "DM Sans",sans-serif; }
+.slate-session-identity { display:flex; align-items:center; gap:15px; padding:8px 0; }
+.slate-session-identity h2 { font-size:27px; letter-spacing:.12em; margin:3px 0 0; color:#47205f; }
+.slate-session-identity small { color:#8a7896; font-size:10px; font-weight:800; letter-spacing:.08em; }
+.slate-identity-count { margin-left:auto; display:flex; align-items:center; gap:7px; color:#83738b; font-size:12px; }
+.slate-step-navigation { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:8px; padding:6px; border:1px solid #e8dfee; background:#f0eaf5; border-radius:17px; }
+.slate-step-navigation button { display:flex; align-items:center; justify-content:center; gap:12px; border:0; border-radius:12px; padding:13px; background:transparent; color:#9785a2; cursor:pointer; text-align:left; }
+.slate-step-navigation button span { display:grid; gap:3px; font-size:13px; font-weight:800; }
+.slate-step-navigation button small { font-size:10px; font-weight:500; }
+.slate-step-navigation button.active { background:#fff; color:#782dc2; box-shadow:0 3px 8px #38204809; }
+.slate-selection-count { display:inline-block; padding:8px 12px; background:#f3ebfb; color:#7935b5; font-size:11px; border-radius:9px; font-weight:800; }
+.slate-source-tabs { display:flex; gap:8px; border-bottom:1px solid #ece3f2; padding-bottom:16px; margin-bottom:18px; flex-wrap:wrap; }
+.slate-source-tabs button { display:flex; align-items:center; gap:8px; border:1px solid transparent; border-radius:10px; padding:10px 14px; background:transparent; color:#8b7995; cursor:pointer; font-weight:700; }
+.slate-source-tabs button.active { background:#f1e6fc; border-color:#e9d8f9; color:#762dbb; }
+.slate-bank-search { display:flex; align-items:center; gap:12px; margin-bottom:18px; }
+.slate-bank-search label { display:flex; align-items:center; gap:8px; flex:1; border:1px solid #e9dfef; border-radius:11px; padding:0 12px; color:#a490b0; min-width:0; }
+.slate-bank-search input { border:0; background:transparent; padding:11px 0; min-width:0; width:100%; outline:none; font-family:inherit; }
+.slate-bank-search select { max-width:180px; border:1px solid #e9dfef; border-radius:11px; padding:11px; color:#755e83; background:white; }
+.slate-question-list { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:12px; max-height:510px; overflow:auto; padding:2px; }
+.slate-question-option { display:flex; align-items:flex-start; gap:13px; padding:18px; border:1px solid #e9e0ef; border-radius:15px; background:#fff; text-align:left; cursor:pointer; min-width:0; }
+.slate-question-option.selected { border-color:#b57bdc; background:#fcf8ff; }
+.slate-question-option:disabled { cursor:default; opacity:1; }
+.slate-question-option>div { min-width:0; }
+.slate-question-toggle { display:grid; place-items:center; flex:none; width:25px; height:25px; border:1px solid #e0d0ed; border-radius:8px; color:#ac92bd; }
+.slate-question-option.selected .slate-question-toggle { background:#8536c9; color:white; border-color:#8536c9; }
+.slate-question-option h4 { margin:6px 0; font-size:15px; line-height:1.4; color:#43264f; }
+.slate-question-option small { color:#9a83a7; font-size:10px; }
+.slate-question-option p { font-size:13px; margin:6px 0 11px; }
+.slate-question-option .tile-preview { flex-wrap:wrap; }
+.slate-step-footer { margin-top:20px; border-top:1px solid #ece3f1; padding-top:18px; display:flex; justify-content:space-between; align-items:center; gap:12px; }
+.slate-step-footer>span { color:#8c7b96; font-size:12px; }
+.slate-workbench .primary-button,.slate-workbench .soft-button { display:inline-flex; align-items:center; justify-content:center; gap:8px; }
+.slate-workbench button:disabled { opacity:.55; cursor:not-allowed; }
+.slate-workbench button:focus-visible,.slate-workbench input:focus-visible,.slate-workbench select:focus-visible { outline:3px solid #d8b5ee; outline-offset:2px; }
+.slate-custom-grid small { font-size:11px; line-height:1.5; font-weight:400; color:#907b9d; }
+.slate-answer-preview { padding:15px; background:#f8f3fc; border-radius:13px; }
+.slate-answer-preview .tile-preview { margin-top:10px; flex-wrap:wrap; }
+.slate-schedule-panel { max-width:850px; width:100%; justify-self:center; box-sizing:border-box; }
+.slate-schedule-panel h3 { margin-top:15px; }
+.slate-schedule-note { display:flex; align-items:center; gap:13px; background:#f8f4fc; padding:15px; border-radius:13px; color:#9579a6; }
+.slate-schedule-note p { margin:0; font-size:12px; line-height:1.6; }
+.slate-empty { text-align:center; padding:35px 20px; color:#aa90bc; }
+.slate-empty p { max-width:380px; margin:8px auto; font-size:13px; }
+@media(max-width:760px){.slate-directory-heading{align-items:flex-start;flex-direction:column}.slate-question-list{grid-template-columns:1fr}.slate-workbench .slate-panel{padding:17px}.slate-bank-search{flex-wrap:wrap}.slate-bank-search label{flex-basis:100%}.slate-session-identity{flex-wrap:wrap}.slate-identity-count{display:none}.slate-step-navigation button{gap:6px;padding:11px 5px}.slate-step-navigation button small{display:none}.slate-step-navigation button span{font-size:11px}.slate-step-footer{flex-wrap:wrap}.portal-confirm{padding:25px}.portal-confirm-actions button{flex:1}}
