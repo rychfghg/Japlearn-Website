@@ -183,3 +183,42 @@ export type ArcadeScore = {
   mode?: string;
   date: string;
 };
+
+export type SlateQuestion = {
+  id: string;
+  prompt: string;
+  translation: string;
+  category: string;
+  difficulty: string;
+  options: string[];
+  correctAnswer: string;
+  explanation: string;
+  createdBy?: string;
+};
+
+export type SlateSession = {
+  gameCode: string;
+  status: "DRAFT" | "UPCOMING" | "LIVE" | "ENDED";
+  serverNow: string;
+  startsAt: string | null;
+  endsAt: string | null;
+  remainingSeconds: number;
+  questionCount: number;
+  joinedCount: number;
+};
+
+export type SlateScoreSheet = {
+  gameCode: string;
+  joinedCount: number;
+  submittedCount: number;
+  rows: Array<{
+    email: string;
+    name: string;
+    attempts: number;
+    latest: number | null;
+    average: number | null;
+    highest: number | null;
+    latestAt: string | null;
+    history: Array<{ score: number; maxScore: number; percentage: number; playedAt: string; completed: boolean }>;
+  }>;
+};

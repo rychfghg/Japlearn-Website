@@ -13,6 +13,9 @@ import type {
   QuackTalkSession,
   ReplyCoachAttempt,
   TeacherGamePerformance,
+  SlateQuestion,
+  SlateSession,
+  SlateScoreSheet,
 } from "../types";
 
 async function request<T>(path: string, options?: RequestInit): Promise<T> {
@@ -150,4 +153,19 @@ export const teacherApi = {
     request<TeacherGamePerformance>(
       `/api/teacher/game-performance?studentEmail=${encodeURIComponent(email)}&${teacherQuery()}`,
     ),
+  getSlateQuestions: () => request<SlateQuestion[]>(`/api/teacher/quackslate/questions?${teacherQuery()}`),
+  addSlateQuestion: (question: Omit<SlateQuestion, "id">) =>
+    request<SlateQuestion>(`/api/teacher/quackslate/questions?${teacherQuery()}`, json("POST", question)),
+  getSlateSessions: () => request<SlateSession[]>(`/api/teacher/quackslate/sessions?${teacherQuery()}`),
+  createSlateSession: () => request<SlateSession>(`/api/teacher/quackslate/sessions?${teacherQuery()}`, { method: "POST" }),
+  getSlateSession: (code: string) => request<{ session: SlateSession; questionIds: string[] }>(
+    `/api/teacher/quackslate/sessions/${encodeURIComponent(code)}?${teacherQuery()}`),
+  setSlateQuestions: (code: string, ids: string[]) => request<SlateSession>(
+    `/api/teacher/quackslate/sessions/${encodeURIComponent(code)}/questions?${teacherQuery()}`,
+    json("PUT", ids)),
+  scheduleSlateSession: (code: string, startsAt: string, endsAt: string) => request<SlateSession>(
+    `/api/teacher/quackslate/sessions/${encodeURIComponent(code)}/schedule?${teacherQuery()}`,
+    json("POST", { startsAt, endsAt })),
+  getSlateScoreSheet: (code: string) => request<SlateScoreSheet>(
+    `/api/teacher/quackslate/sessions/${encodeURIComponent(code)}/sheet?${teacherQuery()}`),
 };
