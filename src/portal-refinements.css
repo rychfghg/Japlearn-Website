@@ -1,4 +1,13 @@
 /* Shared portal dialogs and focused teacher workspaces. */
+.full-panel .data-table { width:100%; border-collapse:collapse; font-size:14px; margin-top:20px; }
+.full-panel .data-table th { text-align:left; background:#f7f2fc; color:#775b88; font-size:12px; padding:15px; white-space:nowrap; }
+.full-panel .data-table td { padding:17px 15px; border-bottom:1px solid #eee6f4; }
+.full-panel .data-table tbody tr:hover { background:#fbf8fd; }
+.report-feedback-details { margin:22px 0; padding:18px; border:1px solid #eadff1; border-radius:16px; }
+.report-feedback-details summary { cursor:pointer; font-weight:700; color:#70418c; }
+.report-feedback-details article { padding:14px 0; border-bottom:1px solid #eee6f4; }
+.report-feedback-details .chip-row { margin-top:15px; }
+.student-score-report .tile-head { margin-top:24px; }
 h1,h2,h3,h4 { font-family: "Nunito", "DM Sans", sans-serif; }
 .portal-confirm { position:fixed; inset:0; width:min(440px,calc(100vw - 32px)); border:1px solid #eadff1; border-radius:26px; padding:32px; color:#382044; background:#fff; box-shadow:0 30px 100px #1e0c4260; font-family:"DM Sans",sans-serif; }
 .portal-confirm::backdrop { background:#2615338c; backdrop-filter:blur(5px); }

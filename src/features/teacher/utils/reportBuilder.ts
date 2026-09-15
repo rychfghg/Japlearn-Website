@@ -314,7 +314,7 @@ export async function buildScorecards(
 }
 
 function csvCell(value: unknown) {
-  return `"${String(value ?? "").replaceAll('"', '""')}"`;
+  return `"${String(value ?? "").replace(/^[=+@-]/, "'$&").replaceAll('"', '""')}"`;
 }
 
 /** One row per student, columns grouped by the sections that were included. */
