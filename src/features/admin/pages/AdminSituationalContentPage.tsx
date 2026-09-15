@@ -326,7 +326,7 @@ export default function AdminSituationalContentPage({
     window.scrollTo({ top: 0, behavior: "smooth" });
   };
   const remove = async (question: Question) => {
-    if (!window.confirm(`Delete mission ${question.order}?`)) return;
+    if (!await confirmAction(`Delete mission ${question.order}?`, { confirmLabel: "Delete mission", description: "This mission will be removed from the game content." })) return;
     await fetch(`${API_URL}/api/situational/questions/${question.id}`, {
       method: "DELETE",
     });
@@ -901,3 +901,4 @@ export default function AdminSituationalContentPage({
     </main>
   );
 }
+import { confirmAction } from "../../../lib/confirmAction";

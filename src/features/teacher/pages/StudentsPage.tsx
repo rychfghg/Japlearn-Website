@@ -134,8 +134,9 @@ export default function StudentsPage() {
   const deleteStudent = async (student: Student) => {
     if (!selectedClass) return;
     if (
-      !window.confirm(
+      !await confirmAction(
         `Remove ${student.fname} ${student.lname} from ${selectedClass}?`,
+        { confirmLabel: "Remove student", description: "Their account remains available. This removes their membership in the selected class." },
       )
     )
       return;
@@ -270,3 +271,4 @@ export default function StudentsPage() {
     </section>
   );
 }
+import { confirmAction } from "../../../lib/confirmAction";

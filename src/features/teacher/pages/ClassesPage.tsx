@@ -106,7 +106,7 @@ export default function ClassesPage() {
   };
 
   const deleteClass = async (code: string) => {
-    if (!window.confirm(`Delete class ${code}?`)) return;
+    if (!await confirmAction(`Delete class ${code}?`, { confirmLabel: "Delete class", description: "This class will be removed from your workspace. Review the class code before deleting." })) return;
 
     try {
       await teacherApi.removeClass(code);
@@ -277,3 +277,4 @@ export default function ClassesPage() {
     </section>
   );
 }
+import { confirmAction } from "../../../lib/confirmAction";

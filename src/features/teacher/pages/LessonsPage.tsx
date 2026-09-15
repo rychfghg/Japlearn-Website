@@ -146,7 +146,7 @@ export default function LessonsPage() {
   };
 
   const deleteLesson = async (lesson: Lesson) => {
-    if (!window.confirm("Delete this lesson?")) return;
+    if (!await confirmAction("Delete this lesson?", { confirmLabel: "Delete lesson", description: "This lesson will be removed. This action cannot be undone here." })) return;
     await teacherApi.deleteLesson(lesson.id);
     loadLessons();
   };
@@ -343,3 +343,4 @@ export default function LessonsPage() {
     </section>
   );
 }
+import { confirmAction } from "../../../lib/confirmAction";

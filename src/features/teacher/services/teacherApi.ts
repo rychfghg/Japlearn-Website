@@ -27,7 +27,13 @@ async function request<T>(path: string, options?: RequestInit): Promise<T> {
 
   if (!response.ok) {
     const text = await response.text();
-    throw new Error(text || `Request failed (${response.status}).`);
+    let message = "";
+    try { const error = JSON.parse(text); message = error.message || error.detail || ""; }
+    catch { if (text && !text.startsWith("<")) message = text; }
+    throw new Error(message || (response.status === 400 ? "Please check the required fields and try again."
+      : response.status === 401 || response.status === 403 ? "Your session cannot access this record. Please sign in again."
+      : response.status === 404 ? "This record or service is unavailable. Please refresh after the backend is updated."
+      : "The request could not be completed. Please try again."));
   }
 
   if (response.status === 204) {
@@ -158,6 +164,7 @@ export const teacherApi = {
     request<SlateQuestion>(`/api/teacher/quackslate/questions?${teacherQuery()}`, json("POST", question)),
   getSlateSessions: () => request<SlateSession[]>(`/api/teacher/quackslate/sessions?${teacherQuery()}`),
   createSlateSession: () => request<SlateSession>(`/api/teacher/quackslate/sessions?${teacherQuery()}`, { method: "POST" }),
+  deleteSlateSession: (code: string) => request<void>(`/api/teacher/quackslate/sessions/${encodeURIComponent(code)}?${teacherQuery()}`, { method: "DELETE" }),
   getSlateSession: (code: string) => request<{ session: SlateSession; questionIds: string[] }>(
     `/api/teacher/quackslate/sessions/${encodeURIComponent(code)}?${teacherQuery()}`),
   setSlateQuestions: (code: string, ids: string[]) => request<SlateSession>(

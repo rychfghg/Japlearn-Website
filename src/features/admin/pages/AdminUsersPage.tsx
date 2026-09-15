@@ -35,7 +35,7 @@ export default function AdminUsersPage({ role }: { role: "student" | "teacher" }
     setMessage(`${user.fname}'s account is now approved.`); await load();
   };
   const remove = async (user: ManagedUser) => {
-    if (!window.confirm(`Permanently delete ${user.fname} ${user.lname}'s account?`)) return;
+    if (!await confirmAction(`Permanently delete ${user.fname} ${user.lname}'s account?`, { confirmLabel: "Delete account", description: "The user will lose access to this account. This action cannot be undone here." })) return;
     const response = await fetch(`${API_URL}/api/users/${user.id}`, { method: "DELETE" });
     if (!response.ok) { setMessage("The account could not be deleted."); return; }
     setMessage("Account deleted."); await load();
@@ -57,7 +57,7 @@ export default function AdminUsersPage({ role }: { role: "student" | "teacher" }
     }
   };
   const setGuidedAccessForAll = async (enabled: boolean) => {
-    if (!window.confirm(`${enabled ? "Allow" : "Block"} Guided Phrase Practice for all student accounts?`)) return;
+    if (!await confirmAction(`${enabled ? "Allow" : "Block"} Guided Phrase Practice for all student accounts?`, { confirmLabel: enabled ? "Allow access" : "Block access" })) return;
     setMessage("Updating Guided Phrase access…");
     const results = await Promise.all(users.map((user) => fetch(`${API_URL}/api/users/${user.id}/guided-phrase-access`, { method: "PUT", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ enabled }) })));
     setMessage(results.some((response) => !response.ok) ? "Some student accounts could not be updated. Please try again." : `Guided Phrase Practice is now ${enabled ? "allowed" : "blocked"} for all students.`);
@@ -89,3 +89,4 @@ export default function AdminUsersPage({ role }: { role: "student" | "teacher" }
     {editing && <div className="admin-modal-backdrop"><form className="admin-edit-modal" onSubmit={(event) => { event.preventDefault(); void save(editing); }}><button type="button" className="modal-close" onClick={() => setEditing(null)}><X /></button><small>{editing.id ? "EDIT ACCOUNT" : "CREATE ACCOUNT"}</small><h2>{editing.id ? `${editing.fname} ${editing.lname}` : `New ${role}`}</h2><label>First name<input required value={editing.fname} onChange={(event) => setEditing({ ...editing, fname: event.target.value })} /></label><label>Last name<input required value={editing.lname} onChange={(event) => setEditing({ ...editing, lname: event.target.value })} /></label><label>Email<input required type="email" value={editing.email} onChange={(event) => setEditing({ ...editing, email: event.target.value })} /></label>{!editing.id && <label>Temporary password<input required type="password" value={editing.password} onChange={(event) => setEditing({ ...editing, password: event.target.value })} /></label>}<label className="check-field"><input type="checkbox" checked={editing.emailConfirmed} onChange={(event) => setEditing({ ...editing, emailConfirmed: event.target.checked })} />Email confirmed</label><label className="check-field"><input type="checkbox" checked={editing.approved} onChange={(event) => setEditing({ ...editing, approved: event.target.checked })} />Account approved</label><button className="primary-button" type="submit">{editing.id ? "Save account changes" : `Create ${role}`}</button></form></div>}
   </div>;
 }
+import { confirmAction } from "../../../lib/confirmAction";

@@ -80,7 +80,7 @@ export default function ClassDetailPage() {
   };
 
   const removeStudent = async (student: Student) => {
-    if (!window.confirm(`Remove ${student.fname} ${student.lname}?`)) return;
+    if (!await confirmAction(`Remove ${student.fname} ${student.lname}?`, { confirmLabel: "Remove student", description: "Remove this student from this class? Their account will remain available." })) return;
     await teacherApi.removeStudent(decodedCode, student);
     await refresh();
   };
@@ -248,3 +248,4 @@ export default function ClassDetailPage() {
     </section>
   );
 }
+import { confirmAction } from "../../../lib/confirmAction";

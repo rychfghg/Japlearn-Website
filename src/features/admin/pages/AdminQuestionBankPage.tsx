@@ -118,7 +118,7 @@ export default function AdminQuestionBankPage() {
   };
 
   const remove = async (id: string) => {
-    if (!window.confirm("Delete this question from the QuackSlate master bank?")) return;
+    if (!await confirmAction("Delete this question from the QuackSlate master bank?", { confirmLabel: "Delete question", description: "This question will no longer be available for new activities." })) return;
     await fetch(`${API_URL}/api/quackslate/question-bank/${id}`, { method: "DELETE" });
     if (editingId === id) resetForm();
     await load();
@@ -186,3 +186,4 @@ export default function AdminQuestionBankPage() {
     </main>
   );
 }
+import { confirmAction } from "../../../lib/confirmAction";

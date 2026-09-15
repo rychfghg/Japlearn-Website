@@ -232,9 +232,9 @@ export default function AdminQuackResponsePage() {
     setChapter({ ...chapter, nodes });
   };
 
-  const removeNode = () => {
+  const removeNode = async () => {
     if (!chapter || !node) return;
-    if (!window.confirm(`Delete node “${node.title || node.id}”?`)) return;
+    if (!await confirmAction(`Delete node “${node.title || node.id}”?`, { confirmLabel: "Delete node", description: "Review any branches that point to this node after removing it." })) return;
     const nodes = chapter.nodes.filter((item) => item.id !== node.id);
     setChapter({
       ...chapter,
@@ -307,7 +307,7 @@ export default function AdminQuackResponsePage() {
   };
 
   const removeChapter = async () => {
-    if (!chapter?.id || !window.confirm(`Permanently delete “${chapter.title}”? Hiding is safer.`)) return;
+    if (!chapter?.id || !await confirmAction(`Permanently delete “${chapter.title}”?`, { confirmLabel: "Delete chapter", description: "The chapter will be removed. You can cancel and hide it instead if you may need it later." })) return;
     await fetch(`${API_URL}/api/reply-coach/chapters/${chapter.id}`, { method: "DELETE" });
     await load();
   };
@@ -539,3 +539,4 @@ export default function AdminQuackResponsePage() {
     </main>
   );
 }
+import { confirmAction } from "../../../lib/confirmAction";

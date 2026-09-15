@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
-import { Check, Copy, Plus, RefreshCw, Sparkles } from "lucide-react";
+import { ArrowLeft, ArrowRight, BookOpen, CalendarClock, Check, Copy, FileSpreadsheet, Hash, Library, PencilLine, Plus, RefreshCw, Search, Trash2, Users } from "lucide-react";
+import { confirmAction } from "../../../lib/confirmAction";
 import { teacherApi } from "../services/teacherApi";
 import type { SlateQuestion, SlateScoreSheet, SlateSession } from "../types";
 
@@ -27,13 +28,19 @@ export default function QuackslatePage() {
   const [studentFilter, setStudentFilter] = useState("all");
   const [startAt, setStartAt] = useState("");
   const [endAt, setEndAt] = useState("");
-  const [customOpen, setCustomOpen] = useState(false);
+  const [step, setStep] = useState<"content" | "schedule" | "results">("content");
+  const [source, setSource] = useState<"bank" | "custom" | "selected">("bank");
+  const [search, setSearch] = useState("");
+  const [busy, setBusy] = useState(false);
+  const [distractors, setDistractors] = useState("");
   const [custom, setCustom] = useState({prompt:"",translation:"",category:"Custom",difficulty:"Easy",options:"",correctAnswer:"",explanation:""});
 
   const load = async () => {
-    const [bank, codes] = await Promise.all([teacherApi.getSlateQuestions(), teacherApi.getSlateSessions()]);
-    setQuestions(bank);
-    setSessions(codes);
+    const [bank, codes] = await Promise.allSettled([teacherApi.getSlateQuestions(), teacherApi.getSlateSessions()]);
+    if (bank.status === "fulfilled") setQuestions(bank.value);
+    else setStatus(bank.reason instanceof Error ? bank.reason.message : "The question bank could not be loaded.");
+    if (codes.status === "fulfilled") setSessions(codes.value);
+    else setStatus(codes.reason instanceof Error ? codes.reason.message : "Class codes could not be loaded.");
   };
 
   useEffect(() => {
@@ -54,9 +61,13 @@ export default function QuackslatePage() {
     () => ["All", ...Array.from(new Set(questions.map((question) => question.category)))],
     [questions],
   );
-  const visible = filter === "All" ? questions : questions.filter((question) => question.category === filter);
+  const visible = questions.filter((question) => (filter === "All" || question.category === filter)
+    && (source !== "selected" || selected.includes(question.id))
+    && `${question.prompt} ${question.translation} ${question.category}`.toLowerCase().includes(search.toLowerCase()));
 
   const generate = async () => {
+    if (busy) return;
+    setBusy(true);
     try {
       const created = await teacherApi.createSlateSession();
       setGameCode(created.gameCode);
@@ -65,8 +76,10 @@ export default function QuackslatePage() {
       setSheet(null);
       setSessions((items) => [created, ...items]);
       setSessionFilter("DRAFT");
+      setStep("content"); setSource("bank"); setStartAt(""); setEndAt("");
       setStatus("Code created. Choose questions, then schedule when students can play.");
     } catch (error) { setStatus(error instanceof Error ? error.message : "Could not create a code."); }
+    finally { setBusy(false); }
   };
 
   const openSession = async (code: string) => {
@@ -74,32 +87,58 @@ export default function QuackslatePage() {
       const [detail, scores] = await Promise.all([teacherApi.getSlateSession(code), teacherApi.getSlateScoreSheet(code)]);
       setGameCode(code); setSession(detail.session); setSelected(detail.questionIds); setSheet(scores);
       setStudentFilter("all"); setStatus("");
+      setStep(detail.session.status === "DRAFT" ? "content" : "results"); setSource("bank");
       setStartAt(detail.session.startsAt ? localInputTime(detail.session.startsAt) : "");
       setEndAt(detail.session.endsAt ? localInputTime(detail.session.endsAt) : "");
     } catch (error) { setStatus(error instanceof Error ? error.message : "Could not open session."); }
   };
 
   const saveSelection = async () => {
-    try { const updated = await teacherApi.setSlateQuestions(gameCode, selected); setSession(updated); setStatus(`${updated.questionCount} questions saved.`); }
+    if (busy) return;
+    setBusy(true);
+    try { const updated = await teacherApi.setSlateQuestions(gameCode, selected); setSession(updated); setStatus(`${updated.questionCount} questions saved.`); setStep("schedule"); }
     catch (error) { setStatus(error instanceof Error ? error.message : "Questions could not be saved."); }
+    finally { setBusy(false); }
   };
 
   const schedule = async () => {
+    if (busy) return;
+    if (!startAt || !endAt || new Date(endAt) <= new Date(startAt)) { setStatus("Choose an end time after the start time."); return; }
+    setBusy(true);
     try {
       await teacherApi.setSlateQuestions(gameCode, selected);
       const updated = await teacherApi.scheduleSlateSession(gameCode, new Date(startAt).toISOString(), new Date(endAt).toISOString());
       setSession(updated); setSessions((items) => items.map((item) => item.gameCode === gameCode ? updated : item));
       setStatus("Scheduled. The session opens and closes automatically; you do not need to wait.");
+      setStep("results");
     } catch (error) { setStatus(error instanceof Error ? error.message : "Schedule could not be saved."); }
+    finally { setBusy(false); }
   };
 
   const addCustom = async () => {
+    if (busy) return;
+    const answerTiles = custom.options.split(/[,，、\n]/).map((part) => part.trim()).filter(Boolean);
+    const extraTiles = distractors.split(/[,，、\n]/).map((part) => part.trim()).filter(Boolean);
+    const tiles = [...answerTiles, ...extraTiles];
+    if (!custom.prompt.trim() || answerTiles.length < 2 || tiles.length > 12) { setStatus("Add a prompt and 2–12 tiles. Enter the answer tiles in the correct order, separated by commas."); return; }
+    if (tiles.some((tile) => /\s/.test(tile)) || new Set(tiles).size !== tiles.length) { setStatus("Use one word or phrase without spaces per tile, and avoid duplicate tiles."); return; }
+    if (selected.length >= 30) { setStatus("This session already has 30 questions. Remove a selection first."); return; }
+    setBusy(true);
     try {
-      const added = await teacherApi.addSlateQuestion({...custom, options: custom.options.split(",").map((part) => part.trim()).filter(Boolean)});
-      setQuestions((items) => [added, ...items]); setSelected((items) => [...items, added.id]); setCustomOpen(false);
+      const added = await teacherApi.addSlateQuestion({...custom, translation: custom.translation.trim() || answerTiles.join(""), correctAnswer: answerTiles.join(" "), options: tiles});
+      setQuestions((items) => [added, ...items]); setSelected((items) => [...items, added.id]); setSource("selected"); setDistractors("");
       setCustom({prompt:"",translation:"",category:"Custom",difficulty:"Easy",options:"",correctAnswer:"",explanation:""});
       setStatus("Question added and selected. Save the selection before scheduling.");
     } catch (error) { setStatus(error instanceof Error ? error.message : "Question could not be added."); }
+    finally { setBusy(false); }
+  };
+  const deleteCode = async () => {
+    if (!session || busy) return;
+    if (!await confirmAction(`Delete code ${gameCode}?`, { confirmLabel: "Delete code", description: "This unused code and its schedule will be removed. Questions stay in the bank." })) return;
+    setBusy(true);
+    try { await teacherApi.deleteSlateSession(gameCode); setSessions((items) => items.filter((item) => item.gameCode !== gameCode)); setGameCode(""); setSession(null); setStatus("Code deleted. Your question bank is unchanged."); }
+    catch (error) { setStatus(error instanceof Error ? error.message : "Could not delete this code."); }
+    finally { setBusy(false); }
   };
   const visibleSessions = sessions.filter((item) => sessionFilter === "ACTIVE"
     ? item.status === "UPCOMING" || item.status === "LIVE"
