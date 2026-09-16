@@ -16,7 +16,7 @@ export default function LessonsPage(){
  useEffect(()=>{Promise.all([teacherApi.getClasses(),teacherApi.getAllStudents(),teacherApi.getAllLessonProgress()]).then(([c,s,p])=>{setClasses(c);setStudents(s);setProgress(p);if(!classCode&&c[0])setClassCode(c[0].classCodes)}).catch(e=>setError(e.message));load()},[]);
  const progressByEmail=useMemo(()=>progressMapByEmail(progress),[progress]);
  const stats=useMemo(()=>new Map(PATHS.map(path=>{const fields=LESSON_STAGES.filter(stage=>path.stages.includes(stage.key as never)).flatMap(stage=>stage.fields);const roster=students.filter(s=>!classCode||s.classCode===classCode);const value=!roster.length?0:Math.round(roster.reduce((sum,s)=>sum+(fields.filter(f=>progressByEmail.get(s.email)?.[f]).length/fields.length),0)/roster.length*100);return[path.key,value]})),[students,classCode,progressByEmail]);
- const shown=lessons.filter(l=>!classCode||l.classId===classCode);
+ const shown=lessons.filter(l=>!classCode||l.classId===classCode||l.classIds?.includes(classCode));
  const remove=async(l:Lesson)=>{if(!await confirmAction(`Delete ${titleOf(l)}?`,{confirmLabel:"Delete lesson",description:"The lesson, its quiz, and saved quiz attempts will be removed."}))return;try{await teacherApi.deleteTeacherLesson(String(l.id));load()}catch(e){setError(e instanceof Error?e.message:"Could not delete lesson.")}};
  return <section className="lesson-page lesson-library">
   {error&&<StatusMessage>{error}</StatusMessage>}

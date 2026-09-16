@@ -61,10 +61,10 @@ export default function ClassDetailPage() {
     try {
       const [studentData, lessonData] = await Promise.all([
         teacherApi.getStudentsByClass(decodedCode),
-        teacherApi.getLessons(decodedCode),
+        teacherApi.getTeacherLessons(),
       ]);
       setStudents(studentData);
-      setLessons(lessonData);
+      setLessons(lessonData.filter((lesson) => lesson.classId === decodedCode || lesson.classIds?.includes(decodedCode)));
     } catch (requestError) {
       setError(
         requestError instanceof Error

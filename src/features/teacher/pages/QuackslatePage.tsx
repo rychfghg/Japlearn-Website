@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
-import { ArrowLeft, ArrowRight, BookOpen, CalendarClock, CalendarDays, Check, ClipboardList, Clock3, Copy, FileSpreadsheet, Hash, Library, PencilLine, Plus, RefreshCw, Search, Trash2, Users } from "lucide-react";
+import { ArrowLeft, ArrowRight, BookOpen, CalendarClock, CalendarDays, Check, ClipboardList, Clock3, Copy, FileSpreadsheet, Hash, HelpCircle, Library, PencilLine, Plus, RefreshCw, Search, Trash2, Users } from "lucide-react";
 import { confirmAction } from "../../../lib/confirmAction";
 import { teacherApi } from "../services/teacherApi";
 import type { SlateQuestion, SlateScoreSheet, SlateSession } from "../types";
@@ -160,13 +160,10 @@ export default function QuackslatePage() {
 
   return (
     <section className="slate-workbench">
-      {!gameCode && <div className="slate-directory-heading">
-        <div><span className="slate-heading-icon"><ClipboardList size={24} /></span><h2>Your QuackSlate sessions</h2><p>Prepare an activity, share a code, and follow your class results.</p></div>
-        <button className="primary-button" onClick={generate} disabled={busy}><Plus size={18} />{busy ? "Creating…" : "Create a code"}</button>
-      </div>}
       <div className="slate-studio">
         {!gameCode && <div className="slate-panel">
-          <div className="slate-panel-heading"><div><small>YOUR SESSIONS</small><h3>Class codes</h3></div><button className="soft-button" onClick={() => void load()}><RefreshCw size={15} />Refresh</button></div>
+          <div className="slate-panel-heading slate-directory-title"><div><span className="slate-heading-icon"><ClipboardList size={24} /></span><small>LIVE QUACKSLATE</small><h3>Your class sessions</h3><p>Create a code, prepare the questions, and schedule when students can play.</p></div><div className="session-controls"><button className="soft-button" onClick={() => void load()}><RefreshCw size={15} />Refresh</button><button className="primary-button" onClick={generate} disabled={busy}><Plus size={18} />{busy ? "Creating…" : "Create a code"}</button></div></div>
+          <details className="slate-how-it-works"><summary><HelpCircle size={17}/><b>How Live QuackSlate works</b><span>View guide</span></summary><div><article><strong>1</strong><p><b>Create and build</b><small>Generate a class code, then choose questions from the bank or write your own.</small></p></article><article><strong>2</strong><p><b>Schedule automatically</b><small>Set the opening and closing time. The session runs without requiring you to wait.</small></p></article><article><strong>3</strong><p><b>Review the score sheet</b><small>See every enrolled learner’s latest, average, highest, and attempt history.</small></p></article></div></details>
           <div className="slate-directory-tabs"><button className={sessionFilter === "ACTIVE" ? "active" : ""} onClick={() => setSessionFilter("ACTIVE")}>Upcoming & live</button><button className={sessionFilter === "DRAFT" ? "active" : ""} onClick={() => setSessionFilter("DRAFT")}>Drafts</button><button className={sessionFilter === "ENDED" ? "active" : ""} onClick={() => setSessionFilter("ENDED")}>Finished</button></div>
           <div className="slate-code-grid">{visibleSessions.map((item) => <button key={item.gameCode} className={`slate-code-card ${gameCode === item.gameCode ? "selected" : ""}`} onClick={() => void openSession(item.gameCode)}><strong>{item.gameCode}</strong><span className={`slate-status ${item.status.toLowerCase()}`}>{item.status}</span><small>{item.startsAt ? new Date(item.startsAt).toLocaleString() : "Not scheduled"} · {item.questionCount} questions · {item.joinedCount} joined</small></button>)}</div>
           {!visibleSessions.length && <p>No {sessionFilter === "ACTIVE" ? "upcoming or live" : sessionFilter.toLowerCase()} sessions. {sessionFilter === "DRAFT" ? "Create a code to begin." : "Use the tabs to view other sessions."}</p>}

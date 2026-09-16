@@ -32,6 +32,7 @@ export type Lesson = {
   lessonDescription?: string;
   description?: string;
   classId?: string;
+  classIds?: string[];
   lesson_title?: string;
   lesson_type?: string;
   lesson_description?: string;

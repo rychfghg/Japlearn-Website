@@ -6,7 +6,6 @@ import {
 import { useEffect, useRef, useState } from "react";
 import { Link } from "react-router-dom";
 
-const GUIDE_KEY = "japlearn-teacher-activities-guide-v1";
 const GAMES = [
   { title:"Quack-a-Mole", type:"Character recognition", text:"Fast Kana recognition and recall rounds.", icon:Puzzle, tone:"purple" },
   { title:"QuackMan", type:"Vocabulary arcade", text:"Word clues, meaning recall, and vocabulary reinforcement.", icon:Sparkles, tone:"green" },
@@ -24,15 +23,12 @@ const EXERCISES = [
 export default function ActivitiesPage() {
   const dialog = useRef<HTMLDialogElement>(null);
   const [guideOpen, setGuideOpen] = useState(false);
-  useEffect(() => {
-    if (!localStorage.getItem(GUIDE_KEY)) setGuideOpen(true);
-  }, []);
+  useEffect(() => { setGuideOpen(true); }, []);
   useEffect(() => {
     if (guideOpen && !dialog.current?.open) dialog.current?.showModal();
     if (!guideOpen && dialog.current?.open) dialog.current.close();
   }, [guideOpen]);
   const closeGuide = () => {
-    localStorage.setItem(GUIDE_KEY, "seen");
     setGuideOpen(false);
   };
 
