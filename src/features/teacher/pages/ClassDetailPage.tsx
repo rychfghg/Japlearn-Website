@@ -1,22 +1,27 @@
 import {
   BookOpen,
+  Check,
   CheckCircle2,
   ChevronLeft,
+  Clipboard,
+  Copy,
   Gamepad2,
+  GraduationCap,
   Languages,
   Mail,
   MessageCircleMore,
   MessagesSquare,
   Puzzle,
+  Search,
   ShieldCheck,
   Sparkles,
   Trash2,
   UserPlus,
   Users,
+  Plus,
 } from "lucide-react";
 import { FormEvent, useEffect, useMemo, useState } from "react";
 import { Link, useParams } from "react-router-dom";
-import PageHeader from "../components/PageHeader";
 import StatusMessage from "../components/StatusMessage";
 import { teacherApi } from "../services/teacherApi";
 import type { Lesson, Student, StudentLessonProgress } from "../types";
@@ -48,6 +53,9 @@ export default function ClassDetailPage() {
   const [error, setError] = useState("");
   const [notice, setNotice] = useState("");
   const [adding, setAdding] = useState(false);
+  const [activeTab, setActiveTab] = useState<"overview" | "students" | "learning">("overview");
+  const [query, setQuery] = useState("");
+  const [copied, setCopied] = useState(false);
 
   const refresh = async () => {
     try {
@@ -83,6 +91,16 @@ export default function ClassDetailPage() {
       )
     : 0;
 
+  const visibleStudents = students.filter((student) =>
+    `${student.fname} ${student.lname} ${student.email}`.toLowerCase().includes(query.toLowerCase()),
+  );
+
+  const copyCode = async () => {
+    await navigator.clipboard.writeText(decodedCode);
+    setCopied(true);
+    window.setTimeout(() => setCopied(false), 1600);
+  };
+
   const addStudent = async (event: FormEvent) => {
     event.preventDefault();
     if (adding) return;
@@ -109,35 +127,34 @@ export default function ClassDetailPage() {
 
   return (
     <section className="class-detail-page">
-      <Link className="back-inline" to="/teacher/classes">
-        <ChevronLeft /> Back to classes
-      </Link>
-      <PageHeader
-        eyebrow="ACTIVE CLASSROOM"
-        title={decodedCode}
-        description="Keep your learner list, assigned lessons, and available practice in one organized classroom."
-        action={
-          <Link
-            className="head-action"
-            to={`/teacher/lessons?class=${encodeURIComponent(decodedCode)}`}
-          >
-            <BookOpen /> Manage lessons
-          </Link>
-        }
-      />
-
-      <div className="tool-bar">
-        <div className="tool-metrics">
-          <div><b>{students.length}</b><small>Learners</small></div>
-          <div><b>{lessons.length}</b><small>Lessons</small></div>
-          <div><b>{avgMastery}%</b><small>Avg. mastery</small></div>
+      <Link className="classroom-back" to="/teacher/classes"><ChevronLeft /> All classes</Link>
+      <div className="classroom-code-hero">
+        <span className="classroom-code-icon"><Clipboard /></span>
+        <div className="classroom-code-copy"><small>CLASS CODE</small><h1>{decodedCode}</h1></div>
+        <button type="button" onClick={() => void copyCode()}>{copied ? <Check /> : <Copy />}{copied ? "Copied" : "Copy code"}</button>
+        <div className="classroom-code-metrics">
+          <span><b>{students.length}</b><small>Learners</small></span>
+          <span><b>{lessons.length}</b><small>Lessons</small></span>
+          <span><b>{avgMastery}%</b><small>Mastery</small></span>
         </div>
       </div>
 
       {error && <StatusMessage>{error}</StatusMessage>}
       {notice && <StatusMessage type="success">{notice}</StatusMessage>}
 
-      <div className="bento bento-2">
+      <nav className="classroom-tabs" aria-label="Classroom sections">
+        <button className={activeTab === "overview" ? "active" : ""} onClick={() => setActiveTab("overview")}><GraduationCap />Overview</button>
+        <button className={activeTab === "students" ? "active" : ""} onClick={() => setActiveTab("students")}><Users />Students <em>{students.length}</em></button>
+        <button className={activeTab === "learning" ? "active" : ""} onClick={() => setActiveTab("learning")}><BookOpen />Learning</button>
+      </nav>
+
+      {activeTab === "overview" && <div className="classroom-overview-grid">
+        <button className="classroom-overview-action people" onClick={() => setActiveTab("students")}><span><Users /></span><div><small>PEOPLE</small><h2>Manage {students.length} learners</h2><p>Add accounts, find a learner, and review mastery without leaving the classroom.</p><b>Open roster →</b></div></button>
+        <button className="classroom-overview-action learning" onClick={() => setActiveTab("learning")}><span><BookOpen /></span><div><small>CLASSWORK</small><h2>{lessons.length} teacher lesson{lessons.length === 1 ? "" : "s"}</h2><p>Review class lessons, built-in exercises, and games available in the app.</p><b>Open learning →</b></div></button>
+        <section className="classroom-pulse"><div><small>CLASS PULSE</small><h2>Mastery snapshot</h2><p>{students.length ? "Based on the latest lesson progress from this roster." : "Add learners to begin measuring class progress."}</p></div><div className="classroom-mastery-ring" style={{ "--mastery": `${avgMastery * 3.6}deg` } as React.CSSProperties}><span><b>{avgMastery}%</b><small>average</small></span></div></section>
+      </div>}
+
+      {activeTab === "students" && <div className="classroom-student-workspace">
         <section className="bento-tile">
           <div className="tile-head">
             <div>
@@ -149,6 +166,8 @@ export default function ClassDetailPage() {
             </span>
           </div>
 
+          <label className="classroom-roster-search"><Search /><input value={query} onChange={(event) => setQuery(event.target.value)} placeholder="Search by name or email" /></label>
+
           <div className="class-enrollment-box">
             <span className="class-enrollment-icon"><UserPlus /></span>
             <div className="class-enrollment-copy"><b>Add a learner</b><small>Enter the email used for their JapLearn student account.</small></div>
@@ -158,9 +177,9 @@ export default function ClassDetailPage() {
             </form>
           </div>
 
-          {students.length ? (
+          {visibleStudents.length ? (
             <div className="roster-list">
-              {students.map((student, index) => {
+              {visibleStudents.map((student, index) => {
                 const percent = masteryPercent(progressByEmail.get(student.email));
                 return (
                   <article className="roster-row compact" key={student.id || student.email}>
@@ -198,62 +217,27 @@ export default function ClassDetailPage() {
             <div className="lesson-empty">
               <UserPlus />
               <div>
-                <b>Your class is ready for learners</b>
-                <small>Add a student account above or share class code {decodedCode}.</small>
+                <b>{students.length ? "No matching learners" : "Your class is ready for learners"}</b>
+                <small>{students.length ? "Try another name or email." : "Add a student account above or share the class code."}</small>
               </div>
             </div>
           )}
         </section>
 
-        <aside className="bento-tile">
-          <div className="tile-head">
-            <div>
-              <span className="eyebrow">LESSON PLANS</span>
-              <h3><BookOpen /> Class lessons</h3>
-            </div>
-            <span className="tile-count">{lessons.length}</span>
-          </div>
-          <div className="lesson-cards">
-            {lessons.length ? (
-              lessons.map((lesson) => (
-                <article key={lesson.id}>
-                  <span className="purple">
-                    <BookOpen />
-                  </span>
-                  <div>
-                    <b>{lesson.lessonTitle || lesson.title || "Untitled lesson"}</b>
-                    <p>
-                      {lesson.lessonDescription || lesson.description || "Japanese lesson"}
-                    </p>
-                  </div>
-                </article>
-              ))
-            ) : (
-              <div className="lesson-empty">
-                <BookOpen />
-                <div>
-                  <b>No lessons assigned yet</b>
-                  <small>Add lesson plans for this class from the lessons page.</small>
-                </div>
-              </div>
-            )}
-          </div>
-          <Link
-            className="tile-link"
-            to={`/teacher/lessons?class=${encodeURIComponent(decodedCode)}`}
-            style={{ marginTop: 14 }}
-          >
-            Manage lessons <BookOpen />
-          </Link>
-        </aside>
-      </div>
+      </div>}
 
-      <section className="class-available-section">
+      {activeTab === "learning" && <section className="class-available-section classroom-learning-workspace">
       <div className="tile-head">
         <div>
-          <span className="eyebrow">AVAILABLE TO THIS CLASS</span>
-          <h3><Gamepad2 /> Games and exercises</h3>
-          <p>A clear view of the practice already available in JapLearn. Game content is played in the student app.</p>
+          <span className="eyebrow">LEARNING LIBRARY</span>
+          <h3><BookOpen /> Lessons and practice</h3>
+        </div>
+        <Link className="classroom-manage-lessons" to={`/teacher/lessons?class=${encodeURIComponent(decodedCode)}`}><BookOpen />Manage lessons</Link>
+      </div>
+      <div className="classroom-teacher-lessons">
+        <div className="class-catalog-label"><GraduationCap /><div><b>Teacher lessons</b><small>Published specifically for this classroom</small></div><Link to={`/teacher/lessons/new?class=${encodeURIComponent(decodedCode)}`}><Plus />New lesson</Link></div>
+        <div className="classroom-lesson-row">
+          {lessons.length ? lessons.map((lesson, index) => <article key={lesson.id}><span>{String(index + 1).padStart(2, "0")}</span><div><small>{lesson.lesson_type || "LESSON"}</small><b>{lesson.lessonTitle || lesson.title || "Untitled lesson"}</b><p>{lesson.lessonDescription || lesson.description || "Japanese lesson"}</p></div><BookOpen /></article>) : <div className="lesson-empty"><BookOpen /><div><b>No teacher lessons yet</b><small>Create the first learning milestone for this class.</small></div></div>}
         </div>
       </div>
       <div className="class-catalog-label"><Gamepad2 /><div><b>JapLearn games</b><small>Individual, guided, and teacher-coded activities</small></div><span>{GAMES.length} available</span></div>
@@ -270,7 +254,7 @@ export default function ClassDetailPage() {
           <article key={exercise.title}><span>{String(index + 1).padStart(2, "0")}</span><div><small>{exercise.label}</small><b>{exercise.title}</b><p>{exercise.text}</p></div><ShieldCheck /></article>
         ))}
       </div>
-      </section>
+      </section>}
     </section>
   );
 }

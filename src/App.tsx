@@ -23,6 +23,8 @@ import ClassDetailPage from "./features/teacher/pages/ClassDetailPage";
 import ClassesPage from "./features/teacher/pages/ClassesPage";
 import CommunicationPage from "./features/teacher/pages/CommunicationPage";
 import LessonsPage from "./features/teacher/pages/LessonsPage";
+import CreateLessonPage from "./features/teacher/pages/CreateLessonPage";
+import LessonDetailPage from "./features/teacher/pages/LessonDetailPage";
 import LessonProgressPage from "./features/teacher/pages/LessonProgressPage";
 import OverviewPage from "./features/teacher/pages/OverviewPage";
 import PerformancePage from "./features/teacher/pages/PerformancePage";
@@ -71,6 +73,8 @@ export default function App() {
           <Route path="classes/:classCode" element={<ClassDetailPage />} />
           <Route path="students" element={<StudentsPage />} />
           <Route path="lessons" element={<LessonsPage />} />
+          <Route path="lessons/new" element={<CreateLessonPage />} />
+          <Route path="lessons/:id" element={<LessonDetailPage />} />
           <Route path="lessons/progress" element={<LessonProgressPage />} />
           <Route path="activities" element={<ActivitiesPage />} />
           <Route path="quackslate" element={<QuackslatePage />} />

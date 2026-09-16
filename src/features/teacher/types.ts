@@ -35,7 +35,15 @@ export type Lesson = {
   lesson_title?: string;
   lesson_type?: string;
   lesson_description?: string;
+  ownerTeacherEmail?: string;
+  sourceFileName?: string;
+  sections?: Array<{ heading: string; body: string }>;
+  quiz?: Array<{ prompt: string; type: "MULTIPLE_CHOICE"|"TRUE_FALSE"|"FILL_BLANK"|"IDENTIFICATION"; choices: string[]; correctAnswer?: string; explanation?: string }>;
+  quizTimerSeconds?: number | null;
+  createdAt?: string;
 };
+
+export type LessonQuizAttempt = { id:string; lessonId:string; classCode:string; studentEmail:string; studentName:string; score:number; maxScore:number; percentage:number; submittedAt:string; answers:string[] };
 
 export type CommunicationAnalytics = {
   quackTalkAccuracy: number;

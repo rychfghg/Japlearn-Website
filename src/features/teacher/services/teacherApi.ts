@@ -6,6 +6,7 @@ import type {
   CommunicationAnalytics,
   CommunicationReport,
   Lesson,
+  LessonQuizAttempt,
   Student,
   StudentLessonProgress,
   SituationalAttempt,
@@ -114,6 +115,14 @@ export const teacherApi = {
     request<void>(`/api/lesson/deleteLesson?classId=${lessonId}`, {
       method: "DELETE",
     }),
+  getTeacherLessons: () => request<Lesson[]>(`/api/teacher/lessons?${teacherQuery()}`),
+  getTeacherLesson: (lessonId: string) => request<Lesson>(`/api/teacher/lessons/${encodeURIComponent(lessonId)}?${teacherQuery()}`),
+  getTeacherLessonResults: (lessonId: string) => request<LessonQuizAttempt[]>(`/api/teacher/lessons/${encodeURIComponent(lessonId)}/results?${teacherQuery()}`),
+  createTeacherLesson: (lesson: unknown, pdf?: File | null) => {
+    const form = new FormData(); form.append("lesson", JSON.stringify(lesson)); if (pdf) form.append("pdf", pdf);
+    return request<Lesson>(`/api/teacher/lessons?${teacherQuery()}`, { method:"POST", body:form });
+  },
+  deleteTeacherLesson: (lessonId: string) => request<void>(`/api/teacher/lessons/${encodeURIComponent(lessonId)}?${teacherQuery()}`, {method:"DELETE"}),
 
   getActivities: () =>
     request<AssignableActivity[]>("/api/assignableActivities/getAll"),

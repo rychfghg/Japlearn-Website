@@ -35,6 +35,7 @@ const routeTitles: Record<string, string> = {
   "/teacher/classes": "My classes",
   "/teacher/students": "Students",
   "/teacher/lessons": "Lessons",
+  "/teacher/lessons/new": "Create lesson",
   "/teacher/lessons/progress": "Lesson masterlist",
   "/teacher/activities": "Activities",
   "/teacher/quackslate": "QuackSlate sessions",
@@ -55,7 +56,7 @@ export default function TeacherLayout() {
   const location = useLocation();
   const user = session.get()!;
   const pageTitle = location.pathname.startsWith("/teacher/classes/")
-    ? "Classroom"
+    ? ""
     : routeTitles[location.pathname] || "Teacher workspace";
   const searchResults = searchQuery.trim()
     ? navigation.filter((item) =>
@@ -152,7 +153,7 @@ export default function TeacherLayout() {
 
           <div>
             <small>TEACHER WORKSPACE</small>
-            <h1>{pageTitle}</h1>
+            {pageTitle && <h1>{pageTitle}</h1>}
           </div>
 
           <div className="top-tools">
