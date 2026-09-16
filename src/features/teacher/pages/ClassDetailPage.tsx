@@ -1,8 +1,15 @@
 import {
   BookOpen,
+  CheckCircle2,
   ChevronLeft,
   Gamepad2,
-  GraduationCap,
+  Languages,
+  Mail,
+  MessageCircleMore,
+  MessagesSquare,
+  Puzzle,
+  ShieldCheck,
+  Sparkles,
   Trash2,
   UserPlus,
   Users,
@@ -14,11 +21,21 @@ import StatusMessage from "../components/StatusMessage";
 import { teacherApi } from "../services/teacherApi";
 import type { Lesson, Student, StudentLessonProgress } from "../types";
 import { masteryPercent, progressMapByEmail } from "../utils/mastery";
+import { confirmAction } from "../../../lib/confirmAction";
 
-const EDITORS = [
-  { character: "あ", tone: "", title: "Quackamole", text: "Character recognition content" },
-  { character: "文", tone: "tone-green", title: "QuackSlate", text: "Grammar challenge content" },
-  { character: "語", tone: "tone-orange", title: "QuackMan", text: "Vocabulary and hint content" },
+const GAMES = [
+  { icon: Puzzle, tone: "purple", title: "Quack-a-Mole", text: "Kana recognition and recall" },
+  { icon: Sparkles, tone: "green", title: "QuackMan", text: "Vocabulary and clue practice" },
+  { icon: Languages, tone: "orange", title: "QuackSlate", text: "Solo and teacher-coded grammar" },
+  { icon: MessagesSquare, tone: "pink", title: "QuackSituate", text: "Real-life expression practice" },
+  { icon: MessageCircleMore, tone: "blue", title: "QuackResponse", text: "Response and etiquette games" },
+  { icon: Gamepad2, tone: "violet", title: "QuackTalk", text: "Guided and open speaking practice" },
+];
+const EXERCISES = [
+  { title: "Hiragana practice", text: "Three lesson sets with recognition exercises", label: "LESSON EXERCISE" },
+  { title: "Katakana practice", text: "Three lesson sets with recognition exercises", label: "LESSON EXERCISE" },
+  { title: "Vocabulary practice", text: "Three word collections and individual review", label: "LESSON + INDIVIDUAL" },
+  { title: "Sentence practice", text: "Grammar lesson and individual sentence review", label: "LESSON + INDIVIDUAL" },
 ];
 
 export default function ClassDetailPage() {
@@ -29,6 +46,8 @@ export default function ClassDetailPage() {
   const [lessonProgress, setLessonProgress] = useState<StudentLessonProgress[]>([]);
   const [email, setEmail] = useState("");
   const [error, setError] = useState("");
+  const [notice, setNotice] = useState("");
+  const [adding, setAdding] = useState(false);
 
   const refresh = async () => {
     try {
@@ -66,17 +85,20 @@ export default function ClassDetailPage() {
 
   const addStudent = async (event: FormEvent) => {
     event.preventDefault();
+    if (adding) return;
+    setAdding(true); setError(""); setNotice("");
     try {
       await teacherApi.joinStudent(email, decodedCode);
       setEmail("");
       await refresh();
+      setNotice("Learner added to this classroom.");
     } catch (requestError) {
       setError(
         requestError instanceof Error
           ? requestError.message
           : "Could not add student.",
       );
-    }
+    } finally { setAdding(false); }
   };
 
   const removeStudent = async (student: Student) => {
@@ -93,7 +115,7 @@ export default function ClassDetailPage() {
       <PageHeader
         eyebrow="ACTIVE CLASSROOM"
         title={decodedCode}
-        description="Manage live enrollment, lessons, and interactive activities for this class."
+        description="Keep your learner list, assigned lessons, and available practice in one organized classroom."
         action={
           <Link
             className="head-action"
@@ -113,6 +135,7 @@ export default function ClassDetailPage() {
       </div>
 
       {error && <StatusMessage>{error}</StatusMessage>}
+      {notice && <StatusMessage type="success">{notice}</StatusMessage>}
 
       <div className="bento bento-2">
         <section className="bento-tile">
@@ -126,18 +149,14 @@ export default function ClassDetailPage() {
             </span>
           </div>
 
-          <form className="mini-add" onSubmit={addStudent}>
-            <input
-              type="email"
-              value={email}
-              onChange={(event) => setEmail(event.target.value)}
-              placeholder="Student email"
-              required
-            />
-            <button>
-              <UserPlus /> Add
-            </button>
-          </form>
+          <div className="class-enrollment-box">
+            <span className="class-enrollment-icon"><UserPlus /></span>
+            <div className="class-enrollment-copy"><b>Add a learner</b><small>Enter the email used for their JapLearn student account.</small></div>
+            <form className="class-enrollment-form" onSubmit={addStudent}>
+              <label><Mail /><input aria-label="Student account email" type="email" value={email} onChange={(event) => setEmail(event.target.value)} placeholder="learner@example.com" required /></label>
+              <button disabled={adding}>{adding ? "Adding…" : "Add to class"}<UserPlus /></button>
+            </form>
+          </div>
 
           {students.length ? (
             <div className="roster-list">
@@ -177,10 +196,10 @@ export default function ClassDetailPage() {
             </div>
           ) : (
             <div className="lesson-empty">
-              <Users />
+              <UserPlus />
               <div>
-                <b>No learners yet</b>
-                <small>Share the class code {decodedCode} so students can join.</small>
+                <b>Your class is ready for learners</b>
+                <small>Add a student account above or share class code {decodedCode}.</small>
               </div>
             </div>
           )}
@@ -229,23 +248,29 @@ export default function ClassDetailPage() {
         </aside>
       </div>
 
-      <div className="tile-head" style={{ marginTop: 26 }}>
+      <section className="class-available-section">
+      <div className="tile-head">
         <div>
-          <span className="eyebrow">ACTIVITY CONTENT</span>
-          <h3><Gamepad2 /> Interactive activity editors</h3>
-          <p>The same game content services used by the mobile teacher app.</p>
+          <span className="eyebrow">AVAILABLE TO THIS CLASS</span>
+          <h3><Gamepad2 /> Games and exercises</h3>
+          <p>A clear view of the practice already available in JapLearn. Game content is played in the student app.</p>
         </div>
       </div>
-      <div className="family-grid">
-        {EDITORS.map((editor) => (
-          <article key={editor.title} className={`family-card ${editor.tone}`}>
-            <span className="family-glyph">{editor.character}</span>
-            <h3>{editor.title}</h3>
-            <p>{editor.text}</p>
+      <div className="class-catalog-label"><Gamepad2 /><div><b>JapLearn games</b><small>Individual, guided, and teacher-coded activities</small></div><span>{GAMES.length} available</span></div>
+      <div className="class-game-catalog">
+        {GAMES.map((game) => { const Icon = game.icon; return (
+          <article key={game.title} className={`class-game-item ${game.tone}`}>
+            <span><Icon /></span><div><b>{game.title}</b><small>{game.text}</small></div><CheckCircle2 />
           </article>
+        ); })}
+      </div>
+      <div className="class-catalog-label exercise"><BookOpen /><div><b>Lesson and individual exercises</b><small>Practice connected to the learning paths</small></div><span>{EXERCISES.length} available</span></div>
+      <div className="class-exercise-list">
+        {EXERCISES.map((exercise, index) => (
+          <article key={exercise.title}><span>{String(index + 1).padStart(2, "0")}</span><div><small>{exercise.label}</small><b>{exercise.title}</b><p>{exercise.text}</p></div><ShieldCheck /></article>
         ))}
       </div>
+      </section>
     </section>
   );
 }
-import { confirmAction } from "../../../lib/confirmAction";

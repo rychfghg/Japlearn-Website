@@ -82,3 +82,94 @@ h1,h2,h3,h4 { font-family: "Nunito", "DM Sans", sans-serif; }
 .slate-empty { text-align:center; padding:35px 20px; color:#aa90bc; }
 .slate-empty p { max-width:380px; margin:8px auto; font-size:13px; }
 @media(max-width:760px){.slate-directory-heading{align-items:flex-start;flex-direction:column}.slate-question-list{grid-template-columns:1fr}.slate-workbench .slate-panel{padding:17px}.slate-bank-search{flex-wrap:wrap}.slate-bank-search label{flex-basis:100%}.slate-session-identity{flex-wrap:wrap}.slate-identity-count{display:none}.slate-step-navigation button{gap:6px;padding:11px 5px}.slate-step-navigation button small{display:none}.slate-step-navigation button span{font-size:11px}.slate-step-footer{flex-wrap:wrap}.portal-confirm{padding:25px}.portal-confirm-actions button{flex:1}}
+
+/* Classroom roster and available learning catalog. */
+.class-detail-page .bento-2 { align-items:start; }
+.class-enrollment-box { display:grid; grid-template-columns:auto minmax(150px,.72fr) minmax(300px,1.3fr); align-items:center; gap:14px; margin-bottom:18px; padding:16px; border:1px solid #e9dff0; border-radius:18px; background:linear-gradient(135deg,#fbf8fe,#f7f1fc); }
+.class-enrollment-icon { display:grid; place-items:center; width:46px; height:46px; border-radius:15px; color:#782fc0; background:#eee1f9; }
+.class-enrollment-icon svg { width:21px; }
+.class-enrollment-copy b { display:block; color:#42294e; font-size:13px; }
+.class-enrollment-copy small { display:block; margin-top:3px; color:#927f9d; font-size:10px; line-height:1.45; }
+.class-enrollment-form { display:flex; gap:9px; min-width:0; }
+.class-enrollment-form label { display:flex; flex:1; min-width:0; align-items:center; gap:9px; height:44px; padding:0 12px; border:1px solid #dfd3e7; border-radius:12px; background:#fff; color:#a28bad; }
+.class-enrollment-form label:focus-within { border-color:#a967d7; box-shadow:0 0 0 3px #ead9f6; }
+.class-enrollment-form label svg { width:17px; flex:none; }
+.class-enrollment-form input { width:100%; min-width:0; border:0; outline:0; background:transparent; color:#42294e; font:600 12px "DM Sans",sans-serif; }
+.class-enrollment-form button { display:flex; align-items:center; justify-content:center; gap:7px; border:0; border-radius:12px; padding:0 16px; background:#792bc5; color:#fff; cursor:pointer; font:800 11px "DM Sans",sans-serif; white-space:nowrap; }
+.class-enrollment-form button svg { width:16px; }
+.class-enrollment-form button:disabled { opacity:.6; cursor:wait; }
+.class-available-section { margin-top:26px; padding:25px; border:1px solid #e9e0ef; border-radius:24px; background:#fff; box-shadow:0 10px 30px #45235509; }
+.class-available-section>.tile-head { margin:0 0 22px; }
+.class-catalog-label { display:flex; align-items:center; gap:12px; padding:13px 15px; border-radius:15px; background:#f7f1fc; color:#70329b; }
+.class-catalog-label>svg { width:21px; }
+.class-catalog-label div { display:grid; gap:2px; }
+.class-catalog-label b { color:#4a2b57; font-size:12px; }
+.class-catalog-label small { color:#937da0; font-size:9px; }
+.class-catalog-label>span { margin-left:auto; padding:6px 9px; border-radius:999px; background:#fff; color:#8554a5; font-size:9px; font-weight:900; }
+.class-catalog-label.exercise { margin-top:23px; background:#f4f8ee; color:#6f9c40; }
+.class-game-catalog { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:10px; margin-top:12px; }
+.class-game-item { display:grid; grid-template-columns:auto minmax(0,1fr) auto; align-items:center; gap:11px; padding:15px; border:1px solid #ebe2f0; border-radius:16px; background:#fff; }
+.class-game-item>span { display:grid; place-items:center; width:39px; height:39px; border-radius:12px; background:#eee3f8; color:#782dc0; }
+.class-game-item>span svg { width:18px; }
+.class-game-item>div { min-width:0; }
+.class-game-item b { display:block; color:#42294d; font-size:12px; }
+.class-game-item small { display:block; margin-top:3px; color:#93849b; font-size:9px; line-height:1.4; }
+.class-game-item>svg { width:17px; color:#73aa46; }
+.class-game-item.green>span { background:#edf7e7; color:#5c9f34; }.class-game-item.orange>span { background:#fff1df; color:#db861e; }.class-game-item.pink>span { background:#fae9f0; color:#c4507b; }.class-game-item.blue>span { background:#e8f2fb; color:#417eaf; }.class-game-item.violet>span { background:#efe7fb; color:#7044bd; }
+.class-exercise-list { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:10px; margin-top:12px; }
+.class-exercise-list article { display:grid; grid-template-columns:auto minmax(0,1fr) auto; gap:12px; align-items:center; padding:15px; border:1px solid #e5ecdc; border-radius:15px; background:#fcfef9; }
+.class-exercise-list article>span { color:#8bb064; font:900 13px "Nunito",sans-serif; }
+.class-exercise-list article>div { display:grid; gap:3px; }
+.class-exercise-list small { color:#83a35f; font-size:8px; font-weight:900; letter-spacing:.8px; }
+.class-exercise-list b { color:#415334; font-size:12px; }.class-exercise-list p { margin:0; color:#87927d; font-size:9px; }.class-exercise-list svg { width:18px; color:#79a84e; }
+@media(max-width:1000px){.class-enrollment-box{grid-template-columns:auto 1fr}.class-enrollment-form{grid-column:1/-1}.class-game-catalog{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media(max-width:620px){.class-enrollment-box{grid-template-columns:auto 1fr}.class-enrollment-form{flex-direction:column}.class-enrollment-form button{height:44px}.class-game-catalog,.class-exercise-list{grid-template-columns:1fr}.class-available-section{padding:17px}.class-catalog-label>span{display:none}}
+
+/* Activities: catalog plus the single teacher-operated live game. */
+.activity-hub { display:grid; gap:22px; }
+.activity-hub-intro { display:flex; justify-content:space-between; align-items:flex-end; gap:24px; padding:26px; border:1px solid #e9e0ef; border-radius:24px; background:linear-gradient(135deg,#fff,#f8f1fd); }
+.activity-hub-intro h2 { margin:8px 0; color:#3e2749; font-size:27px; }
+.activity-hub-intro p { max-width:720px; margin:0; color:#83738c; font-size:13px; line-height:1.65; }
+.activity-guide-button { display:flex; align-items:center; gap:8px; flex:none; border:1px solid #dcc9e8; border-radius:12px; padding:12px 15px; background:#fff; color:#713b94; cursor:pointer; font:800 11px "DM Sans",sans-serif; }
+.activity-guide-button svg { width:18px; }
+.live-slate-card { display:grid; grid-template-columns:auto minmax(0,1fr) auto; align-items:center; gap:20px; padding:25px; overflow:hidden; border-radius:24px; color:#fff; text-decoration:none; background:linear-gradient(125deg,#35124d,#7720ba 60%,#9136d8); box-shadow:0 16px 36px #53207c2b; position:relative; }
+.live-slate-card:after { content:"文"; position:absolute; right:20%; top:-55px; color:#ffffff0c; font:900 190px "Nunito",sans-serif; }
+.live-slate-icon { z-index:1; display:grid; place-items:center; width:68px; height:68px; border-radius:21px; background:#ffffff1c; border:1px solid #ffffff29; }
+.live-slate-icon svg { width:30px; }
+.live-slate-copy { z-index:1; min-width:0; }
+.live-slate-copy>span { display:flex; align-items:center; gap:7px; color:#d8ff88; font-size:9px; font-weight:900; letter-spacing:1.2px; }
+.live-slate-copy>span svg { width:14px; }
+.live-slate-copy h3 { margin:7px 0 5px; color:#fff; font-size:23px; }
+.live-slate-copy p { max-width:720px; margin:0; color:#eadcf3; font-size:11px; line-height:1.6; }
+.live-slate-copy>div { display:flex; flex-wrap:wrap; gap:8px; margin-top:14px; }
+.live-slate-copy>div small { display:flex; align-items:center; gap:5px; padding:6px 9px; border-radius:999px; color:#f5eafa; background:#ffffff13; font-size:8px; font-weight:800; }
+.live-slate-copy>div svg { width:12px; }
+.live-slate-action { z-index:1; display:flex; align-items:center; gap:8px; border-radius:13px; padding:13px 15px; color:#542070; background:#fff; font-size:10px; font-weight:900; white-space:nowrap; }
+.live-slate-action svg { width:16px; }
+.activity-section-heading { display:flex; align-items:center; justify-content:space-between; gap:16px; margin-top:6px; }
+.activity-section-heading>div { display:flex; align-items:center; gap:12px; }
+.activity-section-heading h3 { margin:0; color:#422a4c; font-size:17px; }.activity-section-heading p { margin:3px 0 0; color:#95869c; font-size:10px; }
+.activity-section-heading>span,.activity-section-heading>a { padding:7px 10px; border-radius:999px; color:#82579d; background:#f3eafb; font-size:9px; font-weight:900; text-decoration:none; }
+.activity-section-heading>a { display:flex; align-items:center; gap:6px; }.activity-section-heading>a svg { width:13px; }
+.activity-section-icon { display:grid; place-items:center; width:43px; height:43px; border-radius:14px; color:#792dbc; background:#eee3f8; }.activity-section-icon svg { width:19px; }
+.activity-section-heading.exercises .activity-section-icon { color:#679b3e; background:#edf6e7; }
+.activity-game-grid { display:grid; grid-template-columns:repeat(5,minmax(0,1fr)); gap:12px; }
+.activity-game-card { display:flex; flex-direction:column; min-width:0; padding:18px; border:1px solid #eae1ef; border-radius:18px; background:#fff; transition:.2s ease; }
+.activity-game-card:hover { transform:translateY(-3px); box-shadow:0 13px 25px #42204f12; }
+.activity-game-icon { display:grid; place-items:center; width:43px; height:43px; border-radius:14px; color:#782dbd; background:#eee2f9; }.activity-game-icon svg { width:20px; }
+.activity-game-card>small { margin-top:15px; color:#997fa8; font-size:8px; font-weight:900; letter-spacing:.75px; text-transform:uppercase; }
+.activity-game-card h3 { margin:5px 0; color:#42284c; font-size:16px; }.activity-game-card p { flex:1; margin:0; color:#918396; font-size:9px; line-height:1.55; }
+.activity-availability { display:flex; align-items:center; gap:5px; margin-top:16px; color:#70a248; font-size:8px; font-weight:900; }.activity-availability svg { width:13px; }
+.activity-game-card.green .activity-game-icon{color:#5a9736;background:#ecf6e6}.activity-game-card.pink .activity-game-icon{color:#c04e79;background:#f9e8ef}.activity-game-card.blue .activity-game-icon{color:#447eae;background:#e8f2fa}.activity-game-card.violet .activity-game-icon{color:#6540b1;background:#eee8fa}
+.activity-exercise-grid { display:grid; grid-template-columns:repeat(4,minmax(0,1fr)); gap:12px; }
+.activity-exercise-grid article { display:grid; grid-template-columns:auto minmax(0,1fr) auto; align-items:center; gap:11px; padding:17px; border:1px solid #e3ecd9; border-radius:17px; background:#fbfdf9; }
+.activity-exercise-grid article>span { color:#82a65e; font:900 13px "Nunito",sans-serif; }.activity-exercise-grid article>div { min-width:0; }
+.activity-exercise-grid small { color:#80a05f; font-size:7px; font-weight:900; letter-spacing:.7px; }.activity-exercise-grid h3 { margin:4px 0; color:#435337; font-size:13px; }.activity-exercise-grid p { margin:0; color:#899480; font-size:8px; line-height:1.45; }.activity-exercise-grid svg { width:17px; color:#79a44f; }
+.activity-guide-dialog { width:min(560px,calc(100vw - 30px)); border:0; border-radius:27px; padding:30px; color:#3f2949; background:#fff; box-shadow:0 30px 100px #1e0c4260; font-family:"DM Sans",sans-serif; }
+.activity-guide-dialog::backdrop { background:#2615338c; backdrop-filter:blur(5px); }.activity-guide-close { position:absolute; top:18px; right:18px; display:grid; place-items:center; width:36px; height:36px; border:0; border-radius:12px; background:#f6f0f8; color:#8d7299; cursor:pointer; }.activity-guide-close svg { width:17px; }
+.activity-guide-icon { display:grid; place-items:center; width:58px; height:58px; border-radius:19px; color:#7a2fc0; background:#efe3f8; }.activity-guide-icon svg { width:26px; }.activity-guide-dialog>small { display:block; margin-top:17px; color:#72a449; font-size:9px; font-weight:900; letter-spacing:1.2px; }.activity-guide-dialog h2 { margin:7px 0; font-size:25px; }.activity-guide-dialog>p { margin:0; color:#83738b; font-size:12px; line-height:1.6; }
+.activity-guide-steps { display:grid; gap:9px; margin:20px 0; }.activity-guide-steps article { display:grid; grid-template-columns:auto 1fr; gap:12px; padding:13px; border-radius:14px; background:#faf7fc; }.activity-guide-steps article>span { display:grid; place-items:center; width:29px; height:29px; border-radius:9px; color:#fff; background:#7d31c1; font-size:10px; font-weight:900; }.activity-guide-steps b { display:block; font-size:11px; }.activity-guide-steps p { margin:3px 0 0; color:#8a7a91; font-size:9px; line-height:1.5; }
+.activity-guide-primary,.activity-guide-secondary { display:flex; align-items:center; justify-content:center; gap:8px; width:100%; box-sizing:border-box; border:0; border-radius:13px; padding:13px; cursor:pointer; font:800 11px "DM Sans",sans-serif; text-decoration:none; }.activity-guide-primary { color:#fff; background:#7a2dc2; }.activity-guide-primary svg { width:16px; }.activity-guide-secondary { margin-top:8px; color:#765884; background:#f4eff6; }
+@media(max-width:1100px){.activity-game-grid{grid-template-columns:repeat(3,minmax(0,1fr))}.activity-exercise-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media(max-width:720px){.activity-hub-intro{align-items:flex-start;flex-direction:column;padding:20px}.activity-hub-intro h2{font-size:23px}.live-slate-card{grid-template-columns:auto 1fr;padding:20px}.live-slate-action{grid-column:1/-1;justify-content:center}.activity-game-grid{grid-template-columns:repeat(2,minmax(0,1fr))}.activity-section-heading{align-items:flex-start}.activity-guide-dialog{padding:24px}}
+@media(max-width:480px){.activity-game-grid,.activity-exercise-grid{grid-template-columns:1fr}.live-slate-card{grid-template-columns:1fr}.live-slate-icon{width:55px;height:55px}.activity-section-heading>span{display:none}}
