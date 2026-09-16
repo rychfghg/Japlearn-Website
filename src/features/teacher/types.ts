@@ -38,6 +38,7 @@ export type Lesson = {
   lesson_description?: string;
   ownerTeacherEmail?: string;
   sourceFileName?: string;
+  pdfPageCount?: number;
   sections?: Array<{ heading: string; body: string }>;
   quiz?: Array<{ prompt: string; type: "MULTIPLE_CHOICE"|"TRUE_FALSE"|"FILL_BLANK"|"IDENTIFICATION"; choices: string[]; correctAnswer?: string; explanation?: string }>;
   quizTimerSeconds?: number | null;
