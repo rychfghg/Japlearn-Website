@@ -10,7 +10,7 @@ import {
   GraduationCap,
   Languages,
   MessageCircleMore,
-  MessageSquareText,
+  Radio,
   Plus,
   Type,
   Users,
@@ -297,7 +297,7 @@ export default function OverviewPage() {
       </section>
       <div className="overview-links overview-action-cards">
         <Link to="/teacher/classes"><span><GraduationCap /></span><div><small>CLASSROOM</small><b>Open classrooms</b><p>Enrollment, lessons, and activities</p></div><ArrowRight /></Link>
-        <Link to="/teacher/communication"><span><MessageSquareText /></span><div><small>COMMUNICATION</small><b>Guide communication</b><p>Performance, assignments, and practice</p></div><ArrowRight /></Link>
+        <Link to="/teacher/quackslate"><span><Radio /></span><div><small>LIVE ACTIVITY</small><b>Build a QuackSlate</b><p>Create, schedule, and share a live quiz</p></div><ArrowRight /></Link>
         <Link to="/teacher/reports"><span><BarChart3 /></span><div><small>INSIGHTS</small><b>Generate reports</b><p>Mastery, progress, and reinforcement</p></div><ArrowRight /></Link>
       </div>
     </>

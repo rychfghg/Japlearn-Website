@@ -110,7 +110,7 @@ export default function GamePerformancePage() {
   const totalAttempts = Object.values(performances).reduce((sum, data) => sum + data.totalAttempts, 0);
   const playedGames = new Set(history.map(row => row.attempt.game)).size;
 
-  return <section className="full-panel">
+  return <section className="full-panel game-performance-page">
     <PageHeader eyebrow="LEARNER RECORD" title="Game scores"
       description="A classroom-wide score sheet with every learner's latest, average and highest results." />
     {studentError && <StatusMessage>{studentError}</StatusMessage>}
