@@ -33,6 +33,7 @@ import ProfilePage from "./features/teacher/pages/ProfilePage";
 import ReportsPage from "./features/teacher/pages/ReportsPage";
 import SettingsPage from "./features/teacher/pages/SettingsPage";
 import StudentsPage from "./features/teacher/pages/StudentsPage";
+import TeacherGuidePage from "./features/teacher/pages/TeacherGuidePage";
 import QuackslatePage from "./features/teacher/pages/QuackslatePage";
 import { session } from "./lib/auth";
 
@@ -88,6 +89,7 @@ export default function App() {
           <Route path="reports" element={<ReportsPage />} />
           <Route path="profile" element={<ProfilePage />} />
           <Route path="settings" element={<SettingsPage />} />
+          <Route path="guide" element={<TeacherGuidePage />} />
         </Route>
 
         <Route

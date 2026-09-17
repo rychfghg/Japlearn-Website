@@ -7,6 +7,7 @@ import {
   LayoutDashboard,
   LogOut,
   Menu,
+  CircleHelp,
   Search,
   Settings,
   UserCircle,
@@ -28,6 +29,7 @@ const navigation = [
   { to: "/teacher/game-performance", label: "Game scores", icon: BarChart3, group: "Insights" },
   { to: "/teacher/profile", label: "Profile", icon: UserCircle, group: "Account" },
   { to: "/teacher/settings", label: "Settings", icon: Settings, group: "Account" },
+  { to: "/teacher/guide", label: "Help & guide", icon: CircleHelp, group: "Account" },
 ];
 
 const routeTitles: Record<string, string> = {
@@ -46,6 +48,7 @@ const routeTitles: Record<string, string> = {
   "/teacher/reports": "Progress reports",
   "/teacher/profile": "Teacher profile",
   "/teacher/settings": "Settings",
+  "/teacher/guide": "Teacher guide",
 };
 
 export default function TeacherLayout() {

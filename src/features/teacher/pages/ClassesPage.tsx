@@ -1,6 +1,9 @@
 import {
   ArrowRight,
+  Check,
+  Copy,
   GraduationCap,
+  Hash,
   Plus,
   Search,
   Trash2,
@@ -22,7 +25,9 @@ export default function ClassesPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [modalOpen, setModalOpen] = useState(false);
-  const [classCode, setClassCode] = useState("");
+  const [classTitle, setClassTitle] = useState("");
+  const [createdClass, setCreatedClass] = useState<ClassRecord | null>(null);
+  const [copiedCode, setCopiedCode] = useState("");
   const [saving, setSaving] = useState(false);
   const [search, setSearch] = useState("");
 
@@ -55,7 +60,7 @@ export default function ClassesPage() {
 
   const filteredClasses = useMemo(() => {
     const query = search.trim().toLowerCase();
-    return classes.filter((item) => item.classCodes.toLowerCase().includes(query));
+    return classes.filter((item) => `${item.classTitle || ""} ${item.classCodes}`.toLowerCase().includes(query));
   }, [classes, search]);
 
   const progressByEmail = useMemo(() => progressMapByEmail(lessonProgress), [lessonProgress]);
@@ -86,13 +91,13 @@ export default function ClassesPage() {
   const createClass = async (event: FormEvent) => {
     event.preventDefault();
 
-    if (!classCode.trim()) return;
+    if (!classTitle.trim()) return;
 
     setSaving(true);
     try {
-      await teacherApi.addClass(classCode.trim());
-      setClassCode("");
-      setModalOpen(false);
+      const created = await teacherApi.addClass(classTitle.trim());
+      setCreatedClass(created);
+      setClassTitle("");
       await loadClasses();
     } catch (requestError) {
       setError(
@@ -103,6 +108,18 @@ export default function ClassesPage() {
     } finally {
       setSaving(false);
     }
+  };
+
+  const copyClassCode = async (code: string) => {
+    await navigator.clipboard.writeText(code);
+    setCopiedCode(code);
+    window.setTimeout(() => setCopiedCode(""), 1600);
+  };
+
+  const openCreateModal = () => {
+    setClassTitle("");
+    setCreatedClass(null);
+    setModalOpen(true);
   };
 
   const deleteClass = async (code: string) => {
@@ -133,7 +150,7 @@ export default function ClassesPage() {
           <input
             value={search}
             onChange={(event) => setSearch(event.target.value)}
-            placeholder="Search class codes…"
+            placeholder="Search classroom titles or codes…"
             aria-label="Search classrooms"
           />
           {search && (
@@ -142,7 +159,7 @@ export default function ClassesPage() {
             </button>
           )}
         </label>
-        <button type="button" className="head-action" onClick={() => setModalOpen(true)}>
+        <button type="button" className="head-action" onClick={openCreateModal}>
           <Plus /> New class
         </button>
       </div>
@@ -163,7 +180,8 @@ export default function ClassesPage() {
                   <small className={active ? "" : "idle"}>
                     <i /> {active ? "Active" : "Awaiting learners"}
                   </small>
-                  <h3>{classItem.classCodes}</h3>
+                  <h3>{classItem.classTitle || classItem.classCodes}</h3>
+                  <button type="button" className="class-tile-code" onClick={() => void copyClassCode(classItem.classCodes)} aria-label={`Copy class code ${classItem.classCodes}`}><Hash />{classItem.classCodes}{copiedCode === classItem.classCodes ? <Check /> : <Copy />}</button>
                 </div>
 
                 <div className="class-tile-body">
@@ -223,7 +241,7 @@ export default function ClassesPage() {
           <span><GraduationCap /></span>
           <h3>Create your first classroom</h3>
           <p>Class codes connect students to lessons and activities.</p>
-          <button type="button" onClick={() => setModalOpen(true)}>
+          <button type="button" onClick={openCreateModal}>
             <Plus /> Create class
           </button>
         </div>
@@ -241,14 +259,14 @@ export default function ClassesPage() {
           <button
             type="button"
             className="modal-dismiss"
-            onClick={() => setModalOpen(false)}
+            onClick={() => { setModalOpen(false); setCreatedClass(null); }}
             aria-label="Close dialog"
           />
           <form className="create-modal" onSubmit={createClass}>
             <button
               type="button"
               className="modal-x"
-              onClick={() => setModalOpen(false)}
+              onClick={() => { setModalOpen(false); setCreatedClass(null); }}
             >
               <X />
             </button>
@@ -257,20 +275,28 @@ export default function ClassesPage() {
             </span>
             <small>NEW CLASSROOM</small>
             <h2>Create a class</h2>
-            <p>Enter the class code your students will use to join.</p>
-            <label>
-              Class code
-              <input
-                value={classCode}
-                onChange={(event) => setClassCode(event.target.value)}
-                placeholder="e.g. NIHONGO-101"
-                autoFocus
-              />
-            </label>
-            <button className="submit" disabled={saving}>
-              {saving ? "Creating…" : "Create class"}
-              <span>→</span>
-            </button>
+            {!createdClass ? <>
+              <p>Name the classroom or section. JapLearn will securely generate the student code for you.</p>
+              <label>
+                Classroom title or section
+                <input
+                  value={classTitle}
+                  onChange={(event) => setClassTitle(event.target.value)}
+                  placeholder="e.g. Nihongo 4A"
+                  maxLength={80}
+                  autoFocus
+                />
+              </label>
+              <div className="generated-code-preview"><span><Hash /></span><div><small>CLASS CODE</small><b>Generated after creation</b></div><em>NIHONGGO followed by 4 random numbers</em></div>
+              <button className="submit" disabled={saving || !classTitle.trim()}>
+                {saving ? "Creating…" : "Create classroom"}
+                <span>→</span>
+              </button>
+            </> : <div className="created-class-result">
+              <span><Check /></span><small>CLASSROOM READY</small><h3>{createdClass.classTitle}</h3><p>Share this code with students so they can join the correct classroom.</p>
+              <button type="button" className="created-code" onClick={() => void copyClassCode(createdClass.classCodes)}><div><small>CLASS CODE</small><b>{createdClass.classCodes}</b></div>{copiedCode === createdClass.classCodes ? <><Check /> Copied</> : <><Copy /> Copy</>}</button>
+              <button type="button" className="submit" onClick={() => { setModalOpen(false); setCreatedClass(null); }}>Done <span>→</span></button>
+            </div>}
           </form>
         </div>
       )}

@@ -2456,6 +2456,34 @@ a {
 .create-modal input:focus {
   border-color: #7b29d4;
 }
+.generated-code-preview {
+  display: grid;
+  grid-template-columns: 40px 1fr;
+  align-items: center;
+  gap: 11px;
+  margin: 16px 0;
+  padding: 13px;
+  border: 1px dashed #d8c4e7;
+  border-radius: 15px;
+  background: #faf6fd;
+}
+.generated-code-preview > span { display:grid;place-items:center;width:40px;height:40px;border-radius:12px;background:#eee1f9;color:#7c28d4; }
+.generated-code-preview svg { width:18px; }
+.generated-code-preview div { display:grid;gap:2px; }
+.generated-code-preview small { color:#7baa50;font-size:8px;font-weight:900;letter-spacing:.9px; }
+.generated-code-preview b { color:#40244c;font-size:11px; }
+.generated-code-preview em { grid-column:2;color:#96889b;font-size:9px;font-style:normal; }
+.created-class-result { display:grid;justify-items:center;text-align:center;padding-top:12px; }
+.created-class-result > span { display:grid;place-items:center;width:50px;height:50px;border-radius:50%;background:#e8f7df;color:#62a837; }
+.created-class-result > span svg { width:23px; }
+.created-class-result > small { margin-top:11px;color:#68a541;font-size:8px;font-weight:900;letter-spacing:1px; }
+.created-class-result h3 { margin:5px 0 0;color:#382141;font:900 21px "Nunito",sans-serif; }
+.created-class-result p { margin:7px 0 16px; }
+.created-code { display:flex;align-items:center;justify-content:space-between;gap:14px;width:100%;margin-bottom:14px;padding:13px 15px;border:1px solid #d9c5e7;border-radius:15px;background:linear-gradient(135deg,#faf6fd,#f2e8fa);color:#7626ca;cursor:pointer;font:900 10px "DM Sans",sans-serif; }
+.created-code div { display:grid;justify-items:start;gap:2px; }
+.created-code small { color:#8d7a98;font-size:8px;letter-spacing:1px; }
+.created-code b { color:#3d2149;font:900 22px "Nunito",sans-serif;letter-spacing:.12em; }
+.created-code svg { width:16px; }
 .side-scrim {
   display: none;
 }
@@ -5606,6 +5634,26 @@ button.tile-link { border: 0; background: transparent; padding: 0; font-family: 
   white-space: nowrap;
   color: #fff;
 }
+.class-tile-code {
+  position: relative;
+  z-index: 2;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  width: max-content;
+  margin-top: 10px;
+  padding: 7px 10px;
+  border: 1px solid rgba(255,255,255,.28);
+  border-radius: 10px;
+  background: rgba(35,9,50,.2);
+  color: #fff;
+  cursor: pointer;
+  font: 900 10px "DM Sans",sans-serif;
+  letter-spacing: .08em;
+  transition: background .18s ease, transform .18s ease;
+}
+.class-tile-code:hover { background: rgba(35,9,50,.34); transform: translateY(-1px); }
+.class-tile-code svg { width: 13px; height: 13px; }
 .class-tile-body { position: relative; margin-top: -28px; padding: 0 18px 18px; }
 .class-tile-meter {
   padding: 14px 16px;

@@ -1,6 +1,7 @@
 export type ClassRecord = {
   id?: number | string;
   classCodes: string;
+  classTitle?: string;
 };
 
 export type Student = {

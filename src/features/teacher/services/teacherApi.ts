@@ -70,8 +70,8 @@ const teacherQuery = () => `teacherEmail=${encodeURIComponent(teacherEmail())}`;
 
 export const teacherApi = {
   getClasses: () => request<ClassRecord[]>(`/api/classes/getAllClasses?${teacherQuery()}`),
-  addClass: (classCodes: string) =>
-    request<void>(`/api/classes/addClass?${teacherQuery()}`, json("POST", { classCodes })),
+  addClass: (classTitle: string) =>
+    request<ClassRecord>(`/api/classes/addClass?${teacherQuery()}`, json("POST", { classTitle })),
   removeClass: (classCode: string) =>
     request<void>(
       `/api/classes/removeClass?classCode=${encodeURIComponent(classCode)}&${teacherQuery()}`,

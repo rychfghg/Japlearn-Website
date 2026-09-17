@@ -1,5 +1,5 @@
-import { useEffect, useMemo, useState } from "react";
-import { ArrowLeft, ArrowRight, BookOpen, CalendarClock, CalendarDays, Check, ClipboardList, Clock3, Copy, FileSpreadsheet, Hash, HelpCircle, Library, PencilLine, Plus, RefreshCw, Search, Trash2, Users } from "lucide-react";
+import { useEffect, useMemo, useRef, useState } from "react";
+import { ArrowLeft, ArrowRight, BookOpen, CalendarClock, CalendarDays, Check, ClipboardList, Clock3, Copy, FileSpreadsheet, Hash, HelpCircle, Library, PencilLine, PlayCircle, Plus, RefreshCw, Search, Share2, Sparkles, Trash2, Users, X } from "lucide-react";
 import { confirmAction } from "../../../lib/confirmAction";
 import { teacherApi } from "../services/teacherApi";
 import type { SlateQuestion, SlateScoreSheet, SlateSession } from "../types";
@@ -16,6 +16,8 @@ const csvCell = (value: string | number | null) => {
 };
 
 export default function QuackslatePage() {
+  const tutorialDialog = useRef<HTMLDialogElement>(null);
+  const [tutorialOpen, setTutorialOpen] = useState(false);
   const [questions, setQuestions] = useState<SlateQuestion[]>([]);
   const [selected, setSelected] = useState<string[]>([]);
   const [gameCode, setGameCode] = useState("");
@@ -47,6 +49,19 @@ export default function QuackslatePage() {
   useEffect(() => {
     void load().catch((error) => setStatus(error.message));
   }, []);
+  useEffect(() => {
+    if (window.localStorage.getItem("japlearn-quackslate-tutorial-seen") !== "yes") {
+      setTutorialOpen(true);
+    }
+  }, []);
+  useEffect(() => {
+    if (tutorialOpen && !tutorialDialog.current?.open) tutorialDialog.current?.showModal();
+    if (!tutorialOpen && tutorialDialog.current?.open) tutorialDialog.current.close();
+  }, [tutorialOpen]);
+  const closeTutorial = () => {
+    window.localStorage.setItem("japlearn-quackslate-tutorial-seen", "yes");
+    setTutorialOpen(false);
+  };
   useEffect(() => {
     const interval = window.setInterval(() => {
       void teacherApi.getSlateSessions().then(setSessions).catch(() => undefined);
@@ -160,10 +175,13 @@ export default function QuackslatePage() {
 
   return (
     <section className="slate-workbench">
+      <div className="slate-page-tools">
+        <button type="button" onClick={() => setTutorialOpen(true)}><HelpCircle />QuackSlate tutorial</button>
+      </div>
       <div className="slate-studio">
         {!gameCode && <div className="slate-panel">
           <div className="slate-panel-heading slate-directory-title"><div><span className="slate-heading-icon"><ClipboardList size={24} /></span><small>LIVE QUACKSLATE</small><h3>Your class sessions</h3><p>Create a code, prepare the questions, and schedule when students can play.</p></div><div className="session-controls"><button className="soft-button" onClick={() => void load()}><RefreshCw size={15} />Refresh</button><button className="primary-button" onClick={generate} disabled={busy}><Plus size={18} />{busy ? "Creating…" : "Create a code"}</button></div></div>
-          <details className="slate-how-it-works"><summary><HelpCircle size={17}/><b>How Live QuackSlate works</b><span>View guide</span></summary><div><article><strong>1</strong><p><b>Create and build</b><small>Generate a class code, then choose questions from the bank or write your own.</small></p></article><article><strong>2</strong><p><b>Schedule automatically</b><small>Set the opening and closing time. The session runs without requiring you to wait.</small></p></article><article><strong>3</strong><p><b>Review the score sheet</b><small>See every enrolled learner’s latest, average, highest, and attempt history.</small></p></article></div></details>
+          <button className="slate-inline-guide" type="button" onClick={() => setTutorialOpen(true)}><span><HelpCircle /></span><div><b>New to Live QuackSlate?</b><small>See how to build, schedule, share, and review a class activity.</small></div><ArrowRight /></button>
           <div className="slate-directory-tabs"><button className={sessionFilter === "ACTIVE" ? "active" : ""} onClick={() => setSessionFilter("ACTIVE")}>Upcoming & live</button><button className={sessionFilter === "DRAFT" ? "active" : ""} onClick={() => setSessionFilter("DRAFT")}>Drafts</button><button className={sessionFilter === "ENDED" ? "active" : ""} onClick={() => setSessionFilter("ENDED")}>Finished</button></div>
           <div className="slate-code-grid">{visibleSessions.map((item) => <button key={item.gameCode} className={`slate-code-card ${gameCode === item.gameCode ? "selected" : ""}`} onClick={() => void openSession(item.gameCode)}><strong>{item.gameCode}</strong><span className={`slate-status ${item.status.toLowerCase()}`}>{item.status}</span><small>{item.startsAt ? new Date(item.startsAt).toLocaleString() : "Not scheduled"} · {item.questionCount} questions · {item.joinedCount} joined</small></button>)}</div>
           {!visibleSessions.length && <p>No {sessionFilter === "ACTIVE" ? "upcoming or live" : sessionFilter.toLowerCase()} sessions. {sessionFilter === "DRAFT" ? "Create a code to begin." : "Use the tabs to view other sessions."}</p>}
@@ -217,6 +235,19 @@ export default function QuackslatePage() {
         </>}
         {!gameCode && status && <p className="bank-status" role="status">{status}</p>}
       </div>
+      <dialog ref={tutorialDialog} className="slate-tutorial-dialog" onCancel={(event) => { event.preventDefault(); closeTutorial(); }}>
+        <button className="slate-tutorial-close" type="button" aria-label="Close tutorial" onClick={closeTutorial}><X /></button>
+        <div className="slate-tutorial-heading"><span><Sparkles /></span><small>QUACKSLATE TEACHER GUIDE</small><h2>From class code to score sheet</h2><p>Prepare a live sentence-building activity in five clear steps. The session starts and ends automatically at the times you choose.</p></div>
+        <div className="slate-tutorial-steps">
+          <article><span><Hash /></span><div><small>STEP 1</small><b>Create a class code</b><p>Start a new session. Students will use this six-character code inside QuackSlate.</p></div></article>
+          <article><span><Library /></span><div><small>STEP 2</small><b>Build the activity</b><p>Select 1–30 questions from the shared bank, or add a custom sentence question for your class.</p></div></article>
+          <article><span><CalendarClock /></span><div><small>STEP 3</small><b>Set the play window</b><p>Choose the exact opening and closing time. Early learners enter the waiting room until play begins.</p></div></article>
+          <article><span><Share2 /></span><div><small>STEP 4</small><b>Share and let it run</b><p>Give learners the code. You may leave the page—the activity opens and closes automatically.</p></div></article>
+          <article><span><FileSpreadsheet /></span><div><small>STEP 5</small><b>Review every attempt</b><p>Open Results to see latest, average, and highest scores, attempt history, or download a CSV sheet.</p></div></article>
+        </div>
+        <div className="slate-tutorial-note"><PlayCircle /><p><b>Important:</b> Draft codes are not playable. Save at least one question and publish a future start and end time before sharing the code.</p></div>
+        <div className="slate-tutorial-actions"><a href="/teacher/guide#quackslate">Open the full teacher guide</a><button type="button" onClick={closeTutorial}>Start using QuackSlate <ArrowRight /></button></div>
+      </dialog>
     </section>
   );
 }

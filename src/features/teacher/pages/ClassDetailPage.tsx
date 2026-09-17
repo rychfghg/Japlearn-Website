@@ -1,5 +1,6 @@
 import {
   BookOpen,
+  ArrowUpRight,
   Check,
   CheckCircle2,
   ChevronLeft,
@@ -7,6 +8,7 @@ import {
   Copy,
   Gamepad2,
   GraduationCap,
+  Hash,
   Languages,
   Mail,
   MessageCircleMore,
@@ -18,13 +20,14 @@ import {
   Trash2,
   UserPlus,
   Users,
+  TrendingUp,
   Plus,
 } from "lucide-react";
 import { FormEvent, useEffect, useMemo, useState } from "react";
 import { Link, useParams } from "react-router-dom";
 import StatusMessage from "../components/StatusMessage";
 import { teacherApi } from "../services/teacherApi";
-import type { Lesson, Student, StudentLessonProgress } from "../types";
+import type { ClassRecord, Lesson, Student, StudentLessonProgress } from "../types";
 import { masteryPercent, progressMapByEmail } from "../utils/mastery";
 import { confirmAction } from "../../../lib/confirmAction";
 
@@ -56,15 +59,18 @@ export default function ClassDetailPage() {
   const [activeTab, setActiveTab] = useState<"overview" | "students" | "learning">("overview");
   const [query, setQuery] = useState("");
   const [copied, setCopied] = useState(false);
+  const [classroom, setClassroom] = useState<ClassRecord | null>(null);
 
   const refresh = async () => {
     try {
-      const [studentData, lessonData] = await Promise.all([
+      const [studentData, lessonData, classData] = await Promise.all([
         teacherApi.getStudentsByClass(decodedCode),
         teacherApi.getTeacherLessons(),
+        teacherApi.getClasses(),
       ]);
       setStudents(studentData);
       setLessons(lessonData.filter((lesson) => lesson.classId === decodedCode || lesson.classIds?.includes(decodedCode)));
+      setClassroom(classData.find((item) => item.classCodes === decodedCode) || null);
     } catch (requestError) {
       setError(
         requestError instanceof Error
@@ -130,7 +136,11 @@ export default function ClassDetailPage() {
       <Link className="classroom-back" to="/teacher/classes"><ChevronLeft /> All classes</Link>
       <div className="classroom-code-hero">
         <span className="classroom-code-icon"><Clipboard /></span>
-        <div className="classroom-code-copy"><small>CLASS CODE</small><h1>{decodedCode}</h1></div>
+        <div className="classroom-code-copy">
+          <small>CLASSROOM</small>
+          <h1>{classroom?.classTitle || decodedCode}</h1>
+          {classroom?.classTitle && <span className="classroom-code-inline"><Hash /> {decodedCode}</span>}
+        </div>
         <button type="button" onClick={() => void copyCode()}>{copied ? <Check /> : <Copy />}{copied ? "Copied" : "Copy code"}</button>
         <div className="classroom-code-metrics">
           <span><b>{students.length}</b><small>Learners</small></span>
@@ -149,9 +159,25 @@ export default function ClassDetailPage() {
       </nav>
 
       {activeTab === "overview" && <div className="classroom-overview-grid">
-        <button className="classroom-overview-action people" onClick={() => setActiveTab("students")}><span><Users /></span><div><small>PEOPLE</small><h2>Manage {students.length} learners</h2><p>Add accounts, find a learner, and review mastery without leaving the classroom.</p><b>Open roster →</b></div></button>
-        <button className="classroom-overview-action learning" onClick={() => setActiveTab("learning")}><span><BookOpen /></span><div><small>CLASSWORK</small><h2>{lessons.length} teacher lesson{lessons.length === 1 ? "" : "s"}</h2><p>Review class lessons, built-in exercises, and games available in the app.</p><b>Open learning →</b></div></button>
-        <section className="classroom-pulse"><div><small>CLASS PULSE</small><h2>Mastery snapshot</h2><p>{students.length ? "Based on the latest lesson progress from this roster." : "Add learners to begin measuring class progress."}</p></div><div className="classroom-mastery-ring" style={{ "--mastery": `${avgMastery * 3.6}deg` } as React.CSSProperties}><span><b>{avgMastery}%</b><small>average</small></span></div></section>
+        <button className="classroom-overview-action people" onClick={() => setActiveTab("students")}>
+          <Users className="classroom-card-watermark" aria-hidden="true" />
+          <span className="classroom-card-icon"><Users /></span>
+          <div className="classroom-card-copy"><small>PEOPLE</small><h2>Manage {students.length} learners</h2><p>Add accounts, find a learner, and review mastery without leaving the classroom.</p></div>
+          <div className="classroom-card-footer"><b>{students.length || "No"} learner{students.length === 1 ? "" : "s"} enrolled</b><span>Open roster <ArrowUpRight /></span></div>
+        </button>
+        <button className="classroom-overview-action learning" onClick={() => setActiveTab("learning")}>
+          <BookOpen className="classroom-card-watermark" aria-hidden="true" />
+          <span className="classroom-card-icon"><BookOpen /></span>
+          <div className="classroom-card-copy"><small>CLASSWORK</small><h2>{lessons.length} teacher lesson{lessons.length === 1 ? "" : "s"}</h2><p>Review class lessons, built-in exercises, and games available in the app.</p></div>
+          <div className="classroom-card-footer"><b>{GAMES.length} learning games</b><span>Open learning <ArrowUpRight /></span></div>
+        </button>
+        <section className="classroom-pulse">
+          <TrendingUp className="classroom-card-watermark" aria-hidden="true" />
+          <span className="classroom-card-icon"><TrendingUp /></span>
+          <div className="classroom-card-copy"><small>CLASS PULSE</small><h2>Mastery snapshot</h2><p>{students.length ? "Based on the latest lesson progress from this roster." : "Add learners to begin measuring class progress."}</p></div>
+          <div className="classroom-mastery-ring" style={{ "--mastery": `${avgMastery * 3.6}deg` } as React.CSSProperties}><span><b>{avgMastery}%</b><small>average</small></span></div>
+          <div className="classroom-card-footer"><b>{students.length ? "Progress is up to date" : "Waiting for learner activity"}</b><span className="pulse-status"><i /> Live snapshot</span></div>
+        </section>
       </div>}
 
       {activeTab === "students" && <div className="classroom-student-workspace">
