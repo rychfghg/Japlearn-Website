@@ -1,4 +1,4 @@
-import { BarChart3, Clock3, MessageCircleMore, RotateCw, Trophy } from "lucide-react";
+import { BarChart3, ChevronDown, Clock3, Filter, Gamepad2, MessageCircleMore, RotateCw, Trophy, Users } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
 import PageHeader from "../components/PageHeader";
 import StatusMessage from "../components/StatusMessage";
@@ -115,13 +115,13 @@ export default function GamePerformancePage() {
       description="A classroom-wide score sheet with every learner's latest, average and highest results." />
     {studentError && <StatusMessage>{studentError}</StatusMessage>}
     <div className="game-performance-toolbar">
-      <label className="student-picker">Student
+      <label className="student-picker designed-select"><span><Users />Learner scope</span><div>
         <select value={selectedEmail} onChange={event => {
           setSelectedEmail(event.target.value); setSelectedGame("All games"); setSelectedActivity("All activities");
         }}>
           <option value="ALL">All students ({students.length})</option>
           {students.map(student => <option key={student.email} value={student.email}>{student.fname} {student.lname} · {student.email}</option>)}
-        </select>
+        </select><ChevronDown /></div>
       </label>
       <button type="button" className="game-performance-refresh" onClick={() => setReload(value => value + 1)}
         disabled={!students.length || loading}><RotateCw size={16} /> Refresh scores</button>
@@ -138,9 +138,9 @@ export default function GamePerformancePage() {
       <div className="game-performance-workspace">
         <div className="game-performance-workspace-head"><div><small>CLASSROOM RECORDS</small><h2>{sheetView === "results" ? "Game results" : "Every attempt"}</h2><p>{sheetView === "results" ? "Compare each learner's latest, average and highest score." : "Review each play in date order, including speaking feedback."}</p></div><span>{sheetView === "results" ? `${resultRows.length} rows` : `${filtered.length} attempts`}</span></div>
         <div className="game-performance-viewbar">
-          <label>Show<select value={sheetView} onChange={event => setSheetView(event.target.value as "results" | "attempts")}><option value="results">Game results</option><option value="attempts">Every attempt</option></select></label>
-          <label>Game<select value={selectedGame} onChange={event => { setSelectedGame(event.target.value); setSelectedActivity("All activities"); }}><option>All games</option>{games.map(game => <option key={game} value={game}>{game}</option>)}</select></label>
-          {sheetView === "attempts" && selectedGame !== "All games" && activities.length > 0 && <label>Activity<select value={selectedActivity} onChange={event => setSelectedActivity(event.target.value)}><option>All activities</option>{activities.map(activity => <option key={activity}>{activity}</option>)}</select></label>}
+          <label className="designed-select"><span><Filter />Record view</span><div><select value={sheetView} onChange={event => setSheetView(event.target.value as "results" | "attempts")}><option value="results">Game results</option><option value="attempts">Every attempt</option></select><ChevronDown /></div></label>
+          <label className="designed-select"><span><Gamepad2 />Game</span><div><select value={selectedGame} onChange={event => { setSelectedGame(event.target.value); setSelectedActivity("All activities"); }}><option>All games</option>{games.map(game => <option key={game} value={game}>{game}</option>)}</select><ChevronDown /></div></label>
+          {sheetView === "attempts" && selectedGame !== "All games" && activities.length > 0 && <label className="designed-select"><span><BarChart3 />Activity</span><div><select value={selectedActivity} onChange={event => setSelectedActivity(event.target.value)}><option>All activities</option>{activities.map(activity => <option key={activity}>{activity}</option>)}</select><ChevronDown /></div></label>}
         </div>
         {sheetView === "results" && <>
           {selectedGame === "All games" && <p className="game-performance-view-tip">Showing one row per game. Choose a game above to see its activities.</p>}

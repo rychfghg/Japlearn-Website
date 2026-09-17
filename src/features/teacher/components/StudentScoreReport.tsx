@@ -1,4 +1,4 @@
-import { Download, RefreshCw } from "lucide-react";
+import { ChevronDown, Download, RefreshCw, UserRound } from "lucide-react";
 import { useEffect, useState } from "react";
 import { teacherApi } from "../services/teacherApi";
 import type { Student, TeacherGamePerformance } from "../types";
@@ -30,10 +30,10 @@ export default function StudentScoreReport({ students }: { students: Student[] }
   };
   return <div className="student-score-report">
     <div className="tile-head"><div><h3>Student progress report</h3><p>Recorded game results and speaking feedback, linked to the student's account.</p></div></div>
-    <div className="tool-bar">
-      <select aria-label="Student" value={email} onChange={e => setEmail(e.target.value)}>{students.map(s => <option key={s.email} value={s.email}>{s.fname} {s.lname}</option>)}</select>
-      <button className="head-action" disabled={loading || !email} onClick={() => setRefresh(n => n + 1)}><RefreshCw />Refresh</button>
-      <button className="head-action" disabled={!data} onClick={exportReport}><Download />Export attempts</button>
+    <div className="reports-filterbar">
+      <label className="designed-select"><span><UserRound />Learner</span><div><select aria-label="Student" value={email} onChange={e => setEmail(e.target.value)}>{students.map(s => <option key={s.email} value={s.email}>{s.fname} {s.lname}</option>)}</select><ChevronDown /></div></label>
+      <button className="report-refresh-button" disabled={loading || !email} onClick={() => setRefresh(n => n + 1)}><RefreshCw />Refresh</button>
+      <button className="report-export-button" disabled={!data} onClick={exportReport}><Download />Export attempts</button>
     </div>
     {loading && <p role="status">Loading recorded results…</p>}
     {error && <p role="alert">{error}</p>}

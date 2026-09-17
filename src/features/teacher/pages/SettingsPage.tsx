@@ -1,4 +1,4 @@
-import { ArrowRight, Check, Eye, GraduationCap, Languages, LayoutPanelTop, RotateCcw, ShieldCheck, Sparkles } from "lucide-react";
+import { ArrowRight, Check, CircleHelp, Eye, GraduationCap, Languages, LayoutPanelTop, RotateCcw, ShieldCheck, Sparkles } from "lucide-react";
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 
@@ -44,6 +44,7 @@ export default function SettingsPage() {
 
         <aside className="settings-side-column">
           <section className="settings-account-card"><span><ShieldCheck /></span><small>ACCOUNT & SECURITY</small><h3>Your educator account</h3><p>Review the identity connected to this teacher workspace.</p><Link to="/teacher/profile">View teacher profile <ArrowRight /></Link></section>
+          <section className="settings-account-card settings-guide-card"><span><CircleHelp /></span><small>HELP & GUIDANCE</small><h3>Teacher portal guide</h3><p>Open step-by-step instructions for classrooms, lessons, activities, reports, and QuackSlate.</p><Link to="/teacher/guide">Open help and guide <ArrowRight /></Link></section>
           <section className="settings-classroom-card"><span><GraduationCap /></span><div><small>CLASSROOM READY</small><b>Your preferences will not affect learner accounts.</b></div></section>
         </aside>
       </div>

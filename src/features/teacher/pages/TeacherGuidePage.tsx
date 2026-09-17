@@ -20,28 +20,22 @@ const guides = [
 
 export default function TeacherGuidePage() {
   return <section className="teacher-guide-page">
-    <div className="teacher-guide-intro">
-      <span className="teacher-guide-hero-icon"><CircleHelp /></span>
-      <div><small>STEP-BY-STEP PORTAL GUIDE</small><h2>Choose what you want to do.</h2><p>Each tutorial shows where to go, what to select, and what happens next.</p></div>
-      <Link to="/teacher/classes">Open my classes <ArrowRight /></Link>
-    </div>
-
-    <nav className="teacher-guide-jump" aria-label="Guide sections">
-      {guides.map((guide) => <a key={guide.id} href={`#${guide.id}`}>{guide.title}</a>)}
-    </nav>
-
-    <div className="teacher-guide-grid">
-      {guides.map((guide, index) => { const Icon=guide.icon; return <article id={guide.id} key={guide.id}>
-        <div className="teacher-guide-card-top"><span><Icon /></span><small>{String(index+1).padStart(2,"0")}</small></div>
-        <h3>{guide.title}</h3><p>{guide.text}</p>
-        <ol>{guide.steps.map((step, stepIndex) => <li key={step}><span>{stepIndex + 1}</span><p>{step}</p></li>)}</ol>
-        <Link to={guide.to}>Go to {guide.title}<ArrowRight /></Link>
-      </article>; })}
-    </div>
-
-    <div className="teacher-guide-support">
-      <span><LifeBuoy /></span><div><small>NEED A QUICK CHECK?</small><h3>Safe teaching workflow</h3><p>Confirm the correct class or section before publishing. Preview dates and times before sharing a code, and use Reports after students finish.</p></div>
-      <div><span><ShieldCheck /> Account-specific records</span><span><CheckCircle2 /> Saved learner progress</span><span><Sparkles /> Guided portal tools</span></div>
+    <div className="teacher-guide-shell">
+      <aside className="teacher-guide-contents">
+        <div><span><CircleHelp /></span><small>HELP CENTER</small><h2>Teacher guide</h2><p>Select a topic to jump directly to its tutorial.</p></div>
+        <nav aria-label="Guide topics">{guides.map((guide, index) => { const Icon=guide.icon; return <a key={guide.id} href={`#${guide.id}`}><Icon /><span><small>{String(index+1).padStart(2,"0")}</small>{guide.title}</span><ArrowRight /></a>; })}</nav>
+        <Link className="teacher-guide-class-link" to="/teacher/classes">Open my classes <ArrowRight /></Link>
+      </aside>
+      <main className="teacher-guide-manual">
+        <header><small>STEP-BY-STEP PORTAL MANUAL</small><h1>How can we help?</h1><p>Follow each workflow in order. Every tutorial includes the exact page to open and the action to take next.</p></header>
+        <div className="teacher-guide-trust"><span><ShieldCheck />Account-specific records</span><span><CheckCircle2 />Saved learner progress</span><span><Sparkles />Guided portal tools</span></div>
+        {guides.map((guide, index) => { const Icon=guide.icon; return <section id={guide.id} className="teacher-guide-topic" key={guide.id}>
+          <div className="teacher-guide-topic-heading"><span><Icon /></span><div><small>TUTORIAL {String(index+1).padStart(2,"0")}</small><h2>{guide.title}</h2><p>{guide.text}</p></div></div>
+          <ol>{guide.steps.map((step, stepIndex) => <li key={step}><span>{stepIndex + 1}</span><div><small>STEP {stepIndex + 1}</small><p>{step}</p></div></li>)}</ol>
+          <Link to={guide.to}>Open {guide.title}<ArrowRight /></Link>
+        </section>; })}
+        <footer><LifeBuoy /><div><small>BEFORE YOU PUBLISH</small><h3>Use the safe teaching workflow.</h3><p>Confirm the correct class or section, preview schedules before sharing a code, and review Reports after learners finish.</p></div></footer>
+      </main>
     </div>
   </section>;
 }
