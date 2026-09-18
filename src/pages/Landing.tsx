@@ -93,7 +93,7 @@ const appScreens = [
 
 export default function Landing() {
   const androidDownloadUrl =
-    "https://expo.dev/accounts/reybacolod/projects/japlearn/builds/7d9cda71-2486-4016-8f72-4719765a8361";
+    "https://expo.dev/accounts/reybacolod/projects/japlearn/builds/304b7846-a840-4367-b0d2-3a772ba598cc";
   const [activeScreen, setActiveScreen] = useState(appScreens[0]);
   const [scrollProgress, setScrollProgress] = useState(0);
   const [navScrolled, setNavScrolled] = useState(false);
