@@ -1232,7 +1232,8 @@ a {
 .signup-success p b { color: #4a3354; word-break: break-word; }
 @media (max-width: 680px) {
   .login-panel form, .signup-panel form, .signup-success { padding: 25px 20px; border-radius: 22px; }
-  .signup-name-grid { grid-template-columns: 1fr; gap: 0; }
+  .teacher-signup-page .signup-name-grid { grid-template-columns: 1fr; gap: 14px; }
+  .teacher-signup-page .signup-name-grid + .field-float { margin-top: 14px; }
 }
 
 /* Focused, split-screen authentication experience */
@@ -1988,7 +1989,8 @@ a {
   .teacher-signup-page .auth-form-heading { margin-bottom: 23px; }
   .login-page-teacher .login-panel h1,
   .teacher-signup-page .login-panel h1 { font-size: 29px; }
-  .signup-name-grid { grid-template-columns: 1fr; gap: 0; }
+  .teacher-signup-page .signup-name-grid { grid-template-columns: 1fr; gap: 14px; }
+  .teacher-signup-page .signup-name-grid + .field-float { margin-top: 14px; }
 }
 .side-head button {
   display: none;
