@@ -75,8 +75,8 @@ export default function Login({ role }: LoginProps) {
             {isTeacher ? (
               <>
                 <span className="teacher-auth-kicker"><Sparkles /> TEACHER WORKSPACE</span>
-                <b>Guide every learner with clarity.</b>
-                <p>Lessons, classroom progress, and learning insights—organized in one calm workspace.</p>
+                <b>Your classroom, ready.</b>
+                <p>Manage lessons, learners, and progress in one place.</p>
                 <div className="teacher-auth-proof">
                   <span><BookOpenCheck /> Plan with purpose</span>
                   <span><ShieldCheck /> Your classes stay private</span>
@@ -117,14 +117,14 @@ export default function Login({ role }: LoginProps) {
         <form onSubmit={submit}>
           <div className="auth-form-heading">
           {isTeacher ? (
-            <span className="portal-pill"><LockKeyhole /> TEACHER SIGN IN</span>
+            <span className="portal-pill"><LockKeyhole /> SECURE TEACHER ACCESS</span>
           ) : (
             <span className="portal-pill">
               <LockKeyhole /> {role.toUpperCase()} PORTAL
             </span>
           )}
-          <h1>Welcome back</h1>
-          <p>{isTeacher ? "Sign in to continue to your teaching workspace." : `Sign in to continue to your ${role} workspace.`}</p>
+          <h1>{isTeacher ? "Teacher sign in" : "Welcome back"}</h1>
+          <p>{isTeacher ? "Use your educator account to continue." : `Sign in to continue to your ${role} workspace.`}</p>
           </div>
 
           {error && <div className="form-error">{error}</div>}

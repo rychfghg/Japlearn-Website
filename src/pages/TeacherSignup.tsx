@@ -83,8 +83,8 @@ export default function TeacherSignup() {
         <div className="login-scene signup-scene login-scene-minimal">
           <div className="login-message">
             <span className="teacher-auth-kicker"><Sparkles /> JOIN JAPLEARN</span>
-            <b>Build a classroom learners enjoy returning to.</b>
-            <p>Create your educator workspace, invite students, and turn progress into clear next steps.</p>
+            <b>Teach with clarity.</b>
+            <p>Create your educator workspace and invite your learners.</p>
             <div className="teacher-auth-proof">
               <span><GraduationCap /> Classroom-ready tools</span>
               <span><BadgeCheck /> Simple guided setup</span>
@@ -114,8 +114,8 @@ export default function TeacherSignup() {
             <span className="portal-pill">
               <GraduationCap /> TEACHER ACCOUNT
             </span>
-            <h1>Create your workspace</h1>
-            <p>Tell us who you are. We’ll send one email to verify your account.</p>
+            <h1>Create teacher account</h1>
+            <p>Enter your details and verify your email to begin.</p>
             </div>
 
             {error && <div className="form-error">{error}</div>}
@@ -155,7 +155,7 @@ export default function TeacherSignup() {
             </div>
 
             <button className="submit" disabled={loading}>
-              {loading ? "Creating your workspace…" : "Create my workspace"}
+              {loading ? "Creating your account…" : "Create account"}
               {!loading && <ArrowRight />}
             </button>
 
