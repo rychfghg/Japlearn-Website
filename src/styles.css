@@ -7153,3 +7153,9 @@ button.tile-link { border: 0; background: transparent; padding: 0; font-family: 
 .treset-done h1 { margin: 16px 0 7px; color: #2d1737; font-size: clamp(30px, 4vw, 40px); letter-spacing: -.03em; }
 .treset-done p { margin: 0 0 8px; color: #817486; line-height: 1.55; }
 .treset-done .submit { width: 100%; }
+
+/* Teacher auth: snugger form cards (admin login unaffected) */
+.login-page-teacher .login-panel form { width: min(420px, 100%); padding: clamp(24px, 2.6vw, 34px); }
+.teacher-signup-page .login-panel form { width: min(480px, 100%); padding: clamp(24px, 2.6vw, 34px); }
+.login-page-teacher .login-panel h1,
+.teacher-signup-page .login-panel h1 { font-size: clamp(30px, 2.8vw, 38px); }
