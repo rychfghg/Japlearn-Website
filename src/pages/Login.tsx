@@ -8,7 +8,7 @@ import {
   EyeOff,
   LockKeyhole,
   Mail,
-  Sparkles,
+  Presentation,
   MailCheck,
   ShieldCheck,
   X,
@@ -108,7 +108,7 @@ export default function Login({ role }: LoginProps) {
           <div className="login-message">
             {isTeacher ? (
               <>
-                <span className="teacher-auth-kicker"><Sparkles /> TEACHER WORKSPACE</span>
+                <span className="teacher-auth-kicker"><Presentation /> TEACHER WORKSPACE</span>
                 <b>Your classroom, ready.</b>
                 <p>Manage lessons, learners, and progress in one place.</p>
                 <div className="teacher-auth-proof">

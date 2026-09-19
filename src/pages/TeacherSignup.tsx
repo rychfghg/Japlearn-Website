@@ -8,7 +8,7 @@ import {
   GraduationCap,
   LockKeyhole,
   Mail,
-  Sparkles,
+  UserPlus,
   UserRound,
 } from "lucide-react";
 import { Link, useNavigate } from "react-router-dom";
@@ -82,7 +82,7 @@ export default function TeacherSignup() {
         <Brand light />
         <div className="login-scene signup-scene login-scene-minimal">
           <div className="login-message">
-            <span className="teacher-auth-kicker"><Sparkles /> JOIN JAPLEARN</span>
+            <span className="teacher-auth-kicker"><UserPlus /> JOIN JAPLEARN</span>
             <b>Teach with clarity.</b>
             <p>Create your educator workspace and invite your learners.</p>
             <div className="teacher-auth-proof">
