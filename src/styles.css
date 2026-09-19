@@ -3620,8 +3620,7 @@ a {
   box-shadow:
     0 42px 80px #321b3c34,
     inset 0 0 0 1px #ffffff2c;
-  aspect-ratio: 9 / 19.5;
-  transform: none;
+  transform: rotateY(4deg) rotateX(1deg);
   transition:
     transform 0.4s ease,
     box-shadow 0.4s ease;
@@ -3630,15 +3629,15 @@ a {
 }
 .landing .phone-frame:hover {
   box-shadow: 0 50px 95px #321b3c42;
-  transform: translateY(-7px);
+  transform: rotateY(0) rotateX(0) translateY(-7px);
 }
 .landing .phone-frame img {
   width: 100%;
-  height: 100%;
+  height: auto;
   border-radius: 34px;
   background: #faf7fc;
-  object-fit: cover;
-  object-position: top center;
+  object-fit: initial;
+  object-position: initial;
 }
 .landing .phone-frame::after {
   inset: 8px;
