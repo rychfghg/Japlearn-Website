@@ -6931,3 +6931,22 @@ button.tile-link { border: 0; background: transparent; padding: 0; font-family: 
 .game-performance-viewbar{display:grid;grid-template-columns:repeat(3,minmax(0,260px));gap:12px;align-items:end;margin-bottom:16px}.game-performance-viewbar label{display:grid;gap:6px;color:#5c496a;font-size:11px;font-weight:800}.game-performance-viewbar select{width:100%;min-width:0;border:1px solid #e0d3e9;border-radius:12px;padding:11px 34px 11px 12px;background:#fff;color:#342040;font-size:13px;font-weight:700}.game-performance-viewbar select:focus-visible{outline:3px solid #dec4f4;outline-offset:2px}.game-performance-view-tip{margin:0 0 13px;color:#83728c;font-size:11px}.game-performance-workspace .game-score-sheet-scroll{max-height:640px}
 @media(max-width:700px){.game-performance-workspace{padding:16px;border-radius:18px}.game-performance-viewbar{grid-template-columns:1fr}.game-performance-workspace-head{flex-wrap:wrap}}
 .game-performance-workspace .game-score-sheet:not(.game-score-history-sheet) :is(thead th,tbody td):nth-child(n+3):nth-child(-n+6){text-align:right}.game-performance-workspace .game-score-history-sheet :is(thead th,tbody td):nth-child(4){text-align:right}
+
+/* Teacher forgot-password link + popup */
+.forgot-row { display: flex; justify-content: flex-end; margin-top: 10px; }
+.forgot-link { border: 0; background: none; padding: 2px 0; color: #7b26ce; font: inherit; font-size: 12px; font-weight: 800; cursor: pointer; }
+.forgot-link:hover { text-decoration: underline; }
+.reset-backdrop { position: fixed; inset: 0; z-index: 100; display: grid; place-items: center; padding: 20px; background: rgba(34,15,46,.55); backdrop-filter: blur(6px); animation: reset-fade .18s ease; }
+.reset-card { position: relative; width: min(420px, 100%); padding: 32px 30px 28px; border-radius: 26px; background: #fff; box-shadow: 0 30px 80px rgba(34,15,46,.35); animation: reset-rise .22s ease; }
+.reset-card h2 { margin: 16px 0 6px; color: #2d1737; font: 900 24px Nunito, sans-serif; letter-spacing: -.02em; }
+.reset-card p { margin: 0 0 18px; color: #817486; font-size: 13px; line-height: 1.55; }
+.reset-card .submit { width: 100%; }
+.reset-card .form-error { margin-bottom: 4px; }
+.reset-icon { width: 52px; height: 52px; border-radius: 17px; display: grid; place-items: center; background: #f1e7fa; color: #7b26ce; }
+.reset-icon svg { width: 24px; }
+.reset-icon.done { background: #edf7e6; color: #57952e; }
+.reset-close { position: absolute; top: 16px; right: 16px; width: 34px; height: 34px; border: 0; border-radius: 11px; display: grid; place-items: center; background: #f5f0f8; color: #7c6e82; cursor: pointer; }
+.reset-close:hover { background: #ece2f3; color: #4a3355; }
+.reset-close svg { width: 17px; }
+@keyframes reset-fade { from { opacity: 0; } }
+@keyframes reset-rise { from { opacity: 0; transform: translateY(12px) scale(.98); } }

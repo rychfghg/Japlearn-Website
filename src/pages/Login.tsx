@@ -9,12 +9,14 @@ import {
   LockKeyhole,
   Mail,
   Sparkles,
+  MailCheck,
   ShieldCheck,
+  X,
 } from "lucide-react";
 import { Link, useNavigate } from "react-router-dom";
 import Brand from "../components/Brand";
 import mascot from "../assets/idle.png";
-import { loginUser, type PortalRole } from "../lib/api";
+import { EMAIL_PATTERN, loginUser, requestPasswordReset, type PortalRole } from "../lib/api";
 import { session } from "../lib/auth";
 
 type LoginProps = {
@@ -28,6 +30,38 @@ export default function Login({ role }: LoginProps) {
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
+  const [resetOpen, setResetOpen] = useState(false);
+  const [resetEmail, setResetEmail] = useState("");
+  const [resetError, setResetError] = useState("");
+  const [resetSending, setResetSending] = useState(false);
+  const [resetSent, setResetSent] = useState(false);
+
+  const openReset = () => {
+    setResetEmail(email);
+    setResetError("");
+    setResetSent(false);
+    setResetOpen(true);
+  };
+
+  async function submitReset(event: FormEvent) {
+    event.preventDefault();
+    if (resetSending) return;
+    const normalized = resetEmail.trim().toLowerCase();
+    if (!EMAIL_PATTERN.test(normalized)) {
+      setResetError("Enter a valid email address, such as name@gmail.com.");
+      return;
+    }
+    setResetSending(true);
+    setResetError("");
+    try {
+      await requestPasswordReset(normalized);
+      setResetSent(true);
+    } catch (resetFailure) {
+      setResetError(resetFailure instanceof Error ? resetFailure.message : "Could not send the reset email.");
+    } finally {
+      setResetSending(false);
+    }
+  }
 
   async function submit(event: FormEvent) {
     event.preventDefault();
@@ -166,6 +200,9 @@ export default function Login({ role }: LoginProps) {
                   {showPassword ? <EyeOff /> : <Eye />}
                 </button>
               </div>
+              <div className="forgot-row">
+                <button type="button" className="forgot-link" onClick={openReset}>Forgot password?</button>
+              </div>
             </>
           ) : (
             <>
@@ -222,6 +259,49 @@ export default function Login({ role }: LoginProps) {
           </div>
         </form>
       </section>
+      {isTeacher && resetOpen && (
+        <div className="reset-backdrop" onMouseDown={(event) => event.target === event.currentTarget && setResetOpen(false)}>
+          <div className="reset-card" role="dialog" aria-modal="true" aria-labelledby="reset-title">
+            <button type="button" className="reset-close" onClick={() => setResetOpen(false)} aria-label="Close">
+              <X />
+            </button>
+            {resetSent ? (
+              <>
+                <span className="reset-icon done"><MailCheck /></span>
+                <h2 id="reset-title">Check your inbox</h2>
+                <p>If <b>{resetEmail.trim().toLowerCase()}</b> belongs to a JapLearn account, a reset link is on its way. It expires in a few hours.</p>
+                <button type="button" className="submit" onClick={() => setResetOpen(false)}>
+                  Back to sign in <ArrowRight />
+                </button>
+              </>
+            ) : (
+              <form onSubmit={submitReset} noValidate>
+                <span className="reset-icon"><LockKeyhole /></span>
+                <h2 id="reset-title">Reset your password</h2>
+                <p>Enter the email you use for JapLearn and we'll send you a reset link.</p>
+                {resetError && <div className="form-error">{resetError}</div>}
+                <div className="field-float">
+                  <span className="field-icon"><Mail /></span>
+                  <input
+                    type="email"
+                    id="reset-email"
+                    value={resetEmail}
+                    onChange={(event) => { setResetEmail(event.target.value); setResetError(""); }}
+                    placeholder=" "
+                    autoComplete="email"
+                    autoFocus
+                  />
+                  <label htmlFor="reset-email">Email address</label>
+                </div>
+                <button className="submit" disabled={resetSending}>
+                  {resetSending ? "Sending…" : "Send reset link"}
+                  {!resetSending && <ArrowRight />}
+                </button>
+              </form>
+            )}
+          </div>
+        </div>
+      )}
     </main>
   );
 }

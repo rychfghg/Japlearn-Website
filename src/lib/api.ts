@@ -95,3 +95,18 @@ export async function loginUser(
     portalSessionToken: data.portalSessionToken,
   };
 }
+
+export const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[A-Za-z]{2,}$/;
+
+/** Same Brevo-backed flow the student app uses. The backend never reveals whether the email exists. */
+export async function requestPasswordReset(email: string) {
+  const response = await fetch(`${API_URL}/api/users/forgot-password`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ email: email.trim().toLowerCase() }),
+  });
+  if (!response.ok) {
+    if (response.status === 429) throw new Error("Too many requests. Please wait a minute and try again.");
+    throw new Error("We couldn't send the reset email. Please try again.");
+  }
+}
