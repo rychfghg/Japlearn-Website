@@ -11,9 +11,9 @@ type SeoDetails = {
 
 const PUBLIC_ROUTES: Record<string, SeoDetails> = {
   "/": {
-    title: "JapLearn | Interactive Japanese Learning",
+    title: "JapLearn | Learn Japanese Online with Lessons, Games & Speaking Practice",
     description:
-      "Discover JapLearn, an interactive Japanese learning platform with guided lessons, games, speaking practice, classroom tools, and progress insights.",
+      "Learn Japanese with JapLearn: hiragana, katakana, vocabulary and grammar lessons, fun games, AI speaking practice, and a free teacher portal to track class progress.",
     index: true,
   },
   "/teacher/login": {
@@ -23,7 +23,7 @@ const PUBLIC_ROUTES: Record<string, SeoDetails> = {
     index: true,
   },
   "/teacher/create-account": {
-    title: "Create a Teacher Account | JapLearn",
+    title: "Create a Free Teacher Account | JapLearn Japanese Classroom",
     description:
       "Create a JapLearn teacher account and start organizing Japanese classes, learners, lessons, communication activities, and reports.",
     index: true,

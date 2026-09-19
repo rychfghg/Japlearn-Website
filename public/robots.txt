@@ -1,4 +1,15 @@
 User-agent: *
 Allow: /
+Allow: /teacher/login
+Allow: /teacher/create-account
+Disallow: /admin
+Disallow: /teacher/reset-password
+Disallow: /teacher/classes
+Disallow: /teacher/students
+Disallow: /teacher/lessons
+Disallow: /teacher/activities
+Disallow: /teacher/reports
+Disallow: /teacher/profile
+Disallow: /teacher/settings
 
 Sitemap: https://portal.japlearn.com/sitemap.xml
