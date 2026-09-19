@@ -9,7 +9,8 @@ import {
   MessageCircleMore,
   MonitorSmartphone,
   ShieldCheck,
-  Sparkles,
+  Languages,
+  BadgeCheck,
   Users,
 } from "lucide-react";
 import { useEffect, useState } from "react";
@@ -160,7 +161,7 @@ export default function Landing() {
       <section className="landing-hero" data-reveal>
         <div className="hero-copy">
           <span className="eyebrow">
-            <Sparkles size={15} /> Learn Japanese. Practice naturally. Grow
+            <Languages size={15} /> Learn Japanese. Practice naturally. Grow
             confidently.
           </span>
           <h1>
@@ -338,7 +339,7 @@ export default function Landing() {
               <h3>{activeScreen.title}</h3>
               <p>{activeScreen.text}</p>
               <div className="story-marker">
-                <Sparkles /> Designed to feel clear, rewarding, and distinctly
+                <BadgeCheck /> Designed to feel clear, rewarding, and distinctly
                 JapLearn.
               </div>
             </div>
