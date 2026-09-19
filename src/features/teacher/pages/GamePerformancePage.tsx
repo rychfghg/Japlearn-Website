@@ -1,19 +1,31 @@
-import { BarChart3, ChevronDown, Clock3, Filter, Gamepad2, MessageCircleMore, RotateCw, Trophy, Users } from "lucide-react";
+import { BarChart3, Clock3, Gamepad2, ListOrdered, MessageCircleMore, RotateCw, Trophy, TriangleAlert, Users } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
-import PageHeader from "../components/PageHeader";
-import StatusMessage from "../components/StatusMessage";
+import ScopeBar, { DEFAULT_SCOPE, type Scope, scopeLabel, studentsInScope } from "../components/ScopeBar";
 import { teacherApi } from "../services/teacherApi";
 import type { GameAttempt, Student, TeacherGamePerformance } from "../types";
 
-const scoreText = (value: number | null) => value == null ? "—" : `${value}%`;
+const pct = (value: number | null) => (value == null ? "—" : `${Math.round(value)}%`);
 const when = (value: string | null) => {
-  if (!value) return "Date unavailable";
+  if (!value) return "—";
   const date = new Date(value);
-  return Number.isNaN(date.getTime()) ? value : date.toLocaleString();
+  return Number.isNaN(date.getTime()) ? value : date.toLocaleDateString(undefined, { month: "short", day: "numeric", year: "numeric" });
 };
-const metric = (label: string, value: number | null) => (
-  <span className="game-performance-metric" key={label}><small>{label}</small><strong>{scoreText(value)}</strong></span>
-);
+
+type Summary = { attempts: number; latest: number | null; average: number | null; highest: number | null; latestAt: string | null };
+
+/** Latest / average / highest over the scored attempts in `attempts`. */
+function summarize(attempts: GameAttempt[]): Summary {
+  const sorted = [...attempts].sort((a, b) => new Date(b.playedAt || 0).getTime() - new Date(a.playedAt || 0).getTime());
+  const scored = sorted.filter((a) => a.percentage != null);
+  const values = scored.map((a) => a.percentage as number);
+  return {
+    attempts: attempts.length,
+    latest: scored[0]?.percentage ?? null,
+    average: values.length ? values.reduce((s, v) => s + v, 0) / values.length : null,
+    highest: values.length ? Math.max(...values) : null,
+    latestAt: sorted[0]?.playedAt ?? null,
+  };
+}
 
 function SpeakingFeedback({ attempt }: { attempt: GameAttempt }) {
   const scores = [
@@ -23,53 +35,55 @@ function SpeakingFeedback({ attempt }: { attempt: GameAttempt }) {
   ] as const;
   const hasDetails = Boolean(attempt.feedbackSummary || attempt.areasForImprovement?.length
     || attempt.expressionsPracticed?.length || scores.some(([, value]) => value != null));
-  if (!hasDetails) return <span className="game-performance-no-feedback">No detailed feedback was saved for this session.</span>;
-  return <details className="game-performance-feedback">
-    <summary><MessageCircleMore size={16} /> View speaking feedback</summary>
-    <div className="game-performance-feedback-body">
-      {attempt.feedbackSummary && <p>{attempt.feedbackSummary}</p>}
-      <div className="game-performance-feedback-scores">
-        {scores.filter(([, value]) => value != null).map(([label, value]) => metric(label, value))}
+  if (!hasDetails) return null;
+  return (
+    <details className="gs-feedback">
+      <summary><MessageCircleMore /> Speaking feedback</summary>
+      <div>
+        {attempt.feedbackSummary && <p>{attempt.feedbackSummary}</p>}
+        <div className="gs-feedback-scores">
+          {scores.filter(([, v]) => v != null).map(([label, v]) => <span key={label}><small>{label}</small><b>{pct(v)}</b></span>)}
+        </div>
+        {attempt.areasForImprovement?.length > 0 && <p><b>Practice next:</b> {attempt.areasForImprovement.join(" · ")}</p>}
+        {attempt.expressionsPracticed?.length > 0 && <p><b>Expressions practiced:</b> {attempt.expressionsPracticed.join(" · ")}</p>}
       </div>
-      {attempt.conversationTurns != null && <small>{attempt.conversationTurns} learner responses</small>}
-      {attempt.areasForImprovement?.length > 0 && <p><b>Practice next:</b> {attempt.areasForImprovement.join(" · ")}</p>}
-      {attempt.expressionsPracticed?.length > 0 && <p><b>Expressions practiced:</b> {attempt.expressionsPracticed.join(" · ")}</p>}
-    </div>
-  </details>;
+    </details>
+  );
 }
 
 export default function GamePerformancePage() {
   const [students, setStudents] = useState<Student[]>([]);
-  const [selectedEmail, setSelectedEmail] = useState("ALL");
-  const [studentError, setStudentError] = useState("");
+  const [scope, setScope] = useState<Scope>(DEFAULT_SCOPE);
+  const [rosterError, setRosterError] = useState("");
   const [performances, setPerformances] = useState<Record<string, TeacherGamePerformance>>({});
-  const [performanceError, setPerformanceError] = useState("");
+  const [loadError, setLoadError] = useState("");
   const [loading, setLoading] = useState(false);
   const [reload, setReload] = useState(0);
-  const [selectedGame, setSelectedGame] = useState("All games");
-  const [selectedActivity, setSelectedActivity] = useState("All activities");
-  const [sheetView, setSheetView] = useState<"results" | "attempts">("results");
+  const [game, setGame] = useState("All games");
+  const [activity, setActivity] = useState("All activities");
+  const [view, setView] = useState<"board" | "log">("board");
 
   useEffect(() => {
     let active = true;
-    teacherApi.getAllStudents().then(data => {
-      if (!active) return;
-      setStudents(data);
-    }).catch(() => { if (active) setStudentError("Your class roster could not be loaded. Please refresh or sign in again."); });
+    teacherApi.getAllStudents()
+      .then((data) => { if (active) setStudents(data); })
+      .catch(() => { if (active) setRosterError("Your class roster could not be loaded. Please refresh or sign in again."); });
     return () => { active = false; };
   }, []);
 
+  const targets = useMemo(() => studentsInScope(students, scope), [students, scope]);
+
   useEffect(() => {
-    const emails = selectedEmail === "ALL" ? students.map(student => student.email) : [selectedEmail];
-    if (!emails.length) { setPerformances({}); return; }
+    const emails = targets.map((s) => s.email);
+    if (!emails.length) { setPerformances({}); setLoading(false); return; }
     let active = true;
-    setLoading(true); setPerformances({}); setPerformanceError("");
+    setLoading(true); setPerformances({}); setLoadError("");
     void (async () => {
       const loaded: Record<string, TeacherGamePerformance> = {};
       let failed = 0;
-      // Keep roster-wide requests bounded so a large class does not overwhelm the API.
+      // Bounded batches so a whole-class sheet doesn't flood the API.
       for (let start = 0; start < emails.length; start += 4) {
-        const batch = await Promise.allSettled(emails.slice(start, start + 4).map(email => teacherApi.getGamePerformance(email)));
+        const batch = await Promise.allSettled(emails.slice(start, start + 4).map((email) => teacherApi.getGamePerformance(email)));
         batch.forEach((result, index) => {
           if (result.status === "fulfilled") loaded[emails[start + index].toLowerCase()] = result.value;
           else failed += 1;
@@ -77,98 +91,172 @@ export default function GamePerformancePage() {
         if (!active) return;
       }
       setPerformances(loaded);
-      if (failed) setPerformanceError(`${failed} student record${failed === 1 ? "" : "s"} could not be loaded. The sheet is incomplete; try Refresh scores.`);
+      if (failed) setLoadError(`${failed} learner record${failed === 1 ? "" : "s"} could not be loaded, so this sheet is incomplete. Try Refresh.`);
       setLoading(false);
     })();
     return () => { active = false; };
-  }, [students, selectedEmail, reload]);
+  }, [targets, reload]);
 
-  const studentName = (email: string) => {
-    const student = students.find(item => item.email.toLowerCase() === email.toLowerCase());
-    return student ? `${student.fname} ${student.lname}`.trim() || email : email;
-  };
-  const records = useMemo(() => students.flatMap(student => {
-    const data = performances[student.email.toLowerCase()];
-    if (!data) return [];
-    return data.games.flatMap(game => [
-      { email: student.email, game: game.name, activity: "Overall", summary: game.summary, child: false },
-      ...game.activities.map(activity => ({ email: student.email, game: game.name, activity: activity.label, summary: activity, child: true })),
-    ]);
-  }), [students, performances]);
-  const history = useMemo(() => students.flatMap(student =>
-    (performances[student.email.toLowerCase()]?.attempts || []).map(attempt => ({ studentEmail: student.email, attempt }))
-  ).sort((a, b) => new Date(b.attempt.playedAt || 0).getTime() - new Date(a.attempt.playedAt || 0).getTime()), [students, performances]);
-  const games = useMemo(() => [...new Set(records.filter(row => !row.child).map(row => row.game))], [records]);
-  const activities = useMemo(() => [...new Set(records.filter(row => row.game === selectedGame && row.child).map(row => row.activity))], [records, selectedGame]);
-  const resultRows = useMemo(() => selectedGame === "All games"
-    ? records.filter(row => !row.child)
-    : records.filter(row => row.game === selectedGame), [records, selectedGame]);
-  const filtered = history.filter(({ attempt }) =>
-    (selectedGame === "All games" || attempt.game === selectedGame) &&
-    (selectedActivity === "All activities" || attempt.activity === selectedActivity ||
-      (selectedActivity === "Reply Coach" && attempt.activity.startsWith("Reply Coach · "))));
-  const totalAttempts = Object.values(performances).reduce((sum, data) => sum + data.totalAttempts, 0);
-  const playedGames = new Set(history.map(row => row.attempt.game)).size;
+  useEffect(() => { setGame("All games"); setActivity("All activities"); }, [scope]);
 
-  return <section className="full-panel game-performance-page">
-    <PageHeader eyebrow="LEARNER RECORD" title="Game scores"
-      description="A classroom-wide score sheet with every learner's latest, average and highest results." />
-    {studentError && <StatusMessage>{studentError}</StatusMessage>}
-    <div className="game-performance-toolbar">
-      <label className="student-picker designed-select"><span><Users />Learner scope</span><div>
-        <select value={selectedEmail} onChange={event => {
-          setSelectedEmail(event.target.value); setSelectedGame("All games"); setSelectedActivity("All activities");
-        }}>
-          <option value="ALL">All students ({students.length})</option>
-          {students.map(student => <option key={student.email} value={student.email}>{student.fname} {student.lname} · {student.email}</option>)}
-        </select><ChevronDown /></div>
-      </label>
-      <button type="button" className="game-performance-refresh" onClick={() => setReload(value => value + 1)}
-        disabled={!students.length || loading}><RotateCw size={16} /> Refresh scores</button>
-    </div>
-    {!students.length && !studentError && !loading && <div className="game-performance-empty">No students are linked to your classes yet.</div>}
-    {loading && <div className="game-performance-empty">Loading the score sheet…</div>}
-    {performanceError && <StatusMessage>{performanceError}</StatusMessage>}
-    {!loading && Object.keys(performances).length > 0 && <>
-      <div className="game-performance-overview">
-        <div><Trophy size={20} /><b>{totalAttempts}</b><small>Total saved attempts</small></div>
-        <div><BarChart3 size={20} /><b>{playedGames}</b><small>Games played</small></div>
-        <div><Clock3 size={20} /><b>{history[0] ? when(history[0].attempt.playedAt) : "—"}</b><small>Most recent activity</small></div>
-      </div>
-      <div className="game-performance-workspace">
-        <div className="game-performance-workspace-head"><div><small>CLASSROOM RECORDS</small><h2>{sheetView === "results" ? "Game results" : "Every attempt"}</h2><p>{sheetView === "results" ? "Compare each learner's latest, average and highest score." : "Review each play in date order, including speaking feedback."}</p></div><span>{sheetView === "results" ? `${resultRows.length} rows` : `${filtered.length} attempts`}</span></div>
-        <div className="game-performance-viewbar">
-          <label className="designed-select"><span><Filter />Record view</span><div><select value={sheetView} onChange={event => setSheetView(event.target.value as "results" | "attempts")}><option value="results">Game results</option><option value="attempts">Every attempt</option></select><ChevronDown /></div></label>
-          <label className="designed-select"><span><Gamepad2 />Game</span><div><select value={selectedGame} onChange={event => { setSelectedGame(event.target.value); setSelectedActivity("All activities"); }}><option>All games</option>{games.map(game => <option key={game} value={game}>{game}</option>)}</select><ChevronDown /></div></label>
-          {sheetView === "attempts" && selectedGame !== "All games" && activities.length > 0 && <label className="designed-select"><span><BarChart3 />Activity</span><div><select value={selectedActivity} onChange={event => setSelectedActivity(event.target.value)}><option>All activities</option>{activities.map(activity => <option key={activity}>{activity}</option>)}</select><ChevronDown /></div></label>}
-        </div>
-        {sheetView === "results" && <>
-          {selectedGame === "All games" && <p className="game-performance-view-tip">Showing one row per game. Choose a game above to see its activities.</p>}
-          {resultRows.length ? <div className="game-score-sheet-scroll" role="region" aria-label="Game scores by student" tabIndex={0}>
-        <table className="game-score-sheet">
-          <thead><tr><th scope="col">Student</th><th scope="col">Game / activity</th><th scope="col">Attempts</th><th scope="col">Latest</th><th scope="col">Average</th><th scope="col">Highest</th><th scope="col">Last played</th></tr></thead>
-          <tbody>{resultRows.map(row => <tr key={`${row.email}-${row.game}-${row.activity}`} className={row.child ? "game-score-sheet-child" : "game-score-sheet-parent"}>
-            <th scope="row"><span>{studentName(row.email)}</span><small>{row.email}</small></th>
-            <td><span>{row.child ? row.activity : row.game}</span>{row.child && <small>{row.game}</small>}</td>
-            <td>{row.summary.attempts}<small>{row.summary.scoredAttempts} scored</small></td>
-            <td>{scoreText(row.summary.latest)}</td><td>{scoreText(row.summary.average)}</td><td>{scoreText(row.summary.highest)}</td><td>{row.summary.latestAt ? when(row.summary.latestAt) : "—"}</td>
-          </tr>)}</tbody>
-        </table>
-          </div> : <div className="game-performance-empty">No game results match this selection yet.</div>}
-        </>}
-        {sheetView === "attempts" && (filtered.length ? <div className="game-score-sheet-scroll" role="region" aria-label="Every game attempt" tabIndex={0}>
-        <table className="game-score-sheet game-score-history-sheet">
-          <thead><tr><th scope="col">Student</th><th scope="col">Game</th><th scope="col">Activity</th><th scope="col">Score</th><th scope="col">Played</th><th scope="col">Status / feedback</th></tr></thead>
-          <tbody>{filtered.map(({ studentEmail, attempt }, index) => <tr key={`${studentEmail}-${attempt.game}-${attempt.id || index}`}>
-            <th scope="row"><span>{studentName(studentEmail)}</span><small>{studentEmail}</small></th>
-            <td>{attempt.game}</td><td><span>{attempt.activity}</span>{attempt.mode && <small>{attempt.mode.replaceAll("_", " ").toLowerCase()}</small>}</td>
-            <td><strong>{scoreText(attempt.percentage)}</strong><small>{attempt.score != null ? `${attempt.score}${attempt.maxScore ? ` / ${attempt.maxScore}` : ""} points` : "Practice only"}</small></td>
-            <td>{when(attempt.playedAt)}</td>
-            <td><span className={`game-performance-status ${attempt.status === "COMPLETED" ? "done" : ""}`}>{attempt.status === "COMPLETED" ? "Completed" : "In progress"}</span>{attempt.game === "QuackTalk" && <SpeakingFeedback attempt={attempt} />}</td>
-          </tr>)}</tbody>
-        </table>
-        </div> : <div className="game-performance-empty">No attempts match this selection yet.</div>)}
-      </div>
-    </>}
-  </section>;
+  const loadedStudents = targets.filter((s) => performances[s.email.toLowerCase()]);
+  const attemptsOf = (email: string) => performances[email.toLowerCase()]?.attempts ?? [];
+  const allAttempts = useMemo(
+    () => loadedStudents.flatMap((s) => attemptsOf(s.email).map((attempt) => ({ student: s, attempt })))
+      .sort((a, b) => new Date(b.attempt.playedAt || 0).getTime() - new Date(a.attempt.playedAt || 0).getTime()),
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [performances, targets],
+  );
+  const games = useMemo(() => [...new Set(allAttempts.map((r) => r.attempt.game))].sort(), [allAttempts]);
+  const activities = useMemo(
+    () => [...new Set(allAttempts.filter((r) => r.attempt.game === game).map((r) => r.attempt.activity))].sort(),
+    [allAttempts, game],
+  );
+  const matches = (a: GameAttempt) =>
+    (game === "All games" || a.game === game) && (activity === "All activities" || a.activity === activity);
+
+  const inView = allAttempts.filter((r) => matches(r.attempt));
+  const overall = summarize(inView.map((r) => r.attempt));
+  const single = scope.mode === "student";
+
+  const rows = loadedStudents
+    .map((s) => ({ student: s, summary: summarize(attemptsOf(s.email).filter(matches)) }))
+    .sort((a, b) => (b.summary.average ?? -1) - (a.summary.average ?? -1));
+
+  // For one learner: a card per game, or per activity once a game is picked.
+  const cardGroups = single && loadedStudents[0]
+    ? (game === "All games" ? games : activities).map((name) => ({
+        name,
+        summary: summarize(attemptsOf(loadedStudents[0].email).filter((a) => (game === "All games" ? a.game === name : a.game === game && a.activity === name))),
+      })).filter((g) => g.summary.attempts > 0)
+    : [];
+
+  return (
+    <section className="gs-page">
+      <ScopeBar students={students} scope={scope} onChange={setScope} disabled={loading}>
+        <button type="button" className="rp-secondary" onClick={() => setReload((n) => n + 1)} disabled={!targets.length || loading}>
+          <RotateCw className={loading ? "rp-spin" : ""} /> Refresh
+        </button>
+      </ScopeBar>
+
+      {rosterError && <p className="rp-alert" role="alert"><TriangleAlert /> {rosterError}</p>}
+      {loadError && <p className="rp-alert" role="alert"><TriangleAlert /> {loadError}</p>}
+
+      {loading && (
+        <div className="rp-loading"><div className="rp-loading-track indeterminate"><span /></div><p>Loading scores for {scopeLabel(students, scope)}…</p></div>
+      )}
+
+      {!loading && !targets.length && !rosterError && (
+        <div className="rp-empty"><span><Users /></span><h3>No learners here yet</h3><p>No students match this selection.</p></div>
+      )}
+
+      {!loading && targets.length > 0 && (
+        <>
+          <div className="rp-stats">
+            <div><span className="rp-stat-icon violet"><Users /></span><b>{loadedStudents.length}</b><small>{single ? "Learner" : "Learners"}</small></div>
+            <div><span className="rp-stat-icon green"><Gamepad2 /></span><b>{overall.attempts}</b><small>Attempts</small></div>
+            <div><span className="rp-stat-icon orange"><Trophy /></span><b>{pct(overall.average)}</b><small>Average score</small></div>
+            <div><span className="rp-stat-icon pink"><Clock3 /></span><b>{when(overall.latestAt)}</b><small>Last played</small></div>
+          </div>
+
+          <div className="gs-toolbar">
+            <div className="gs-games" role="tablist" aria-label="Game">
+              {["All games", ...games].map((name) => (
+                <button key={name} type="button" role="tab" aria-selected={game === name} className={game === name ? "on" : ""}
+                  onClick={() => { setGame(name); setActivity("All activities"); }}>
+                  {name}
+                </button>
+              ))}
+            </div>
+            <div className="gs-view">
+              <button type="button" className={view === "board" ? "on" : ""} onClick={() => setView("board")}><BarChart3 /> Scoreboard</button>
+              <button type="button" className={view === "log" ? "on" : ""} onClick={() => setView("log")}><ListOrdered /> Attempt log</button>
+            </div>
+          </div>
+
+          {game !== "All games" && activities.length > 1 && (
+            <div className="gs-activities">
+              {["All activities", ...activities].map((name) => (
+                <button key={name} type="button" className={activity === name ? "on" : ""} onClick={() => setActivity(name)}>{name}</button>
+              ))}
+            </div>
+          )}
+
+          {view === "board" && (single ? (
+            cardGroups.length ? (
+              <div className="gs-cards">
+                {cardGroups.map(({ name, summary }) => (
+                  <article key={name} className="gs-card">
+                    <header><span><Gamepad2 /></span><div><b>{name}</b><small>{summary.attempts} attempt{summary.attempts === 1 ? "" : "s"} · {when(summary.latestAt)}</small></div></header>
+                    <div className="gs-card-main"><b>{pct(summary.average)}</b><small>average</small></div>
+                    <div className="rp-bar"><span style={{ width: `${summary.average ?? 0}%` }} /></div>
+                    <footer>
+                      <div><small>Latest</small><b>{pct(summary.latest)}</b></div>
+                      <div><small>Highest</small><b>{pct(summary.highest)}</b></div>
+                    </footer>
+                  </article>
+                ))}
+              </div>
+            ) : <div className="rp-empty"><span><Gamepad2 /></span><h3>No games played yet</h3><p>Scores appear here once this learner finishes a game.</p></div>
+          ) : (
+            <div className="rp-table-wrap">
+              <table className="rp-table gs-table">
+                <thead>
+                  <tr><th>#</th><th>Learner</th><th>Attempts</th><th>Latest</th><th>Average</th><th>Highest</th><th>Last played</th></tr>
+                </thead>
+                <tbody>
+                  {rows.map(({ student, summary }, index) => (
+                    <tr key={student.email} className={summary.attempts ? "" : "gs-idle"}>
+                      <td className="rp-rank">{summary.average == null ? "–" : index + 1}</td>
+                      <td>
+                        <div className="rp-learner">
+                          <span>{student.fname?.[0]}{student.lname?.[0]}</span>
+                          <div><b>{student.fname} {student.lname}</b><small>{student.classCode || "Unassigned"}</small></div>
+                        </div>
+                      </td>
+                      <td>{summary.attempts}</td>
+                      <td className={summary.latest == null ? "rp-muted" : ""}>{pct(summary.latest)}</td>
+                      <td>
+                        <div className="rp-overall">
+                          <div className="rp-bar"><span style={{ width: `${summary.average ?? 0}%` }} /></div>
+                          <b>{pct(summary.average)}</b>
+                        </div>
+                      </td>
+                      <td className={summary.highest == null ? "rp-muted" : ""}>{pct(summary.highest)}</td>
+                      <td className="rp-muted">{when(summary.latestAt)}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          ))}
+
+          {view === "log" && (inView.length ? (
+            <div className="gs-log">
+              {inView.map(({ student, attempt }, index) => (
+                <article key={`${student.email}-${attempt.game}-${attempt.id || index}`} className="gs-log-row">
+                  <div className="gs-log-score" data-tone={attempt.percentage == null ? "none" : attempt.percentage >= 85 ? "great" : attempt.percentage >= 60 ? "good" : "low"}>
+                    {pct(attempt.percentage)}
+                  </div>
+                  <div className="gs-log-body">
+                    <b>{attempt.activity}</b>
+                    <small>
+                      {attempt.game}
+                      {!single && <> · {student.fname} {student.lname}</>}
+                      {attempt.score != null && <> · {attempt.score}{attempt.maxScore ? `/${attempt.maxScore}` : ""} pts</>}
+                    </small>
+                    {attempt.game === "QuackTalk" && <SpeakingFeedback attempt={attempt} />}
+                  </div>
+                  <div className="gs-log-meta">
+                    <span className={`rp-pill ${attempt.status === "COMPLETED" ? "great" : "none"}`}>{attempt.status === "COMPLETED" ? "Completed" : "In progress"}</span>
+                    <small>{when(attempt.playedAt)}</small>
+                  </div>
+                </article>
+              ))}
+            </div>
+          ) : <div className="rp-empty"><span><ListOrdered /></span><h3>No attempts yet</h3><p>Nothing matches this selection.</p></div>)}
+        </>
+      )}
+    </section>
+  );
 }
