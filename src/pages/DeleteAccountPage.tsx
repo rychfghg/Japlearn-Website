@@ -65,9 +65,14 @@ export default function DeleteAccountPage() {
         body: JSON.stringify({ email: email.trim().toLowerCase() }),
       });
       if (!response.ok) {
-        setError(response.status === 429
-          ? "Too many requests. Please wait a minute and try again."
-          : "We could not start the deletion right now. Please try again.");
+        if (response.status === 429) {
+          setError("Too many requests. Please wait a minute and try again.");
+        } else if (response.status === 401 || response.status === 403) {
+          // The server rejected the request itself, rather than the account.
+          setError(`Account deletion is temporarily unavailable on our server. Please email ${SUPPORT_EMAIL} and we will delete your account for you.`);
+        } else {
+          setError(`We could not start the deletion right now. Please try again, or email ${SUPPORT_EMAIL} for help.`);
+        }
         return;
       }
       const body = await response.json().catch(() => ({ status: "sent" }));
