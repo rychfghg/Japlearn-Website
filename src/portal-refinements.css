@@ -285,3 +285,43 @@ h1,h2,h3,h4 { font-family: "Nunito", "DM Sans", sans-serif; }
 .teacher-guide-page{display:grid;gap:22px;max-width:1450px;margin:0 auto;padding-bottom:40px}.teacher-guide-intro{display:grid;grid-template-columns:auto 1fr auto;align-items:center;gap:20px;overflow:hidden;padding:27px 30px;border:1px solid #e3d6ea;border-radius:25px;background:linear-gradient(125deg,#fff 45%,#f2e6fa);box-shadow:0 14px 36px rgba(59,31,70,.07)}.teacher-guide-hero-icon{display:grid;place-items:center;width:64px;height:64px;border-radius:20px;background:linear-gradient(145deg,#6d23aa,#9333da);color:#fff;box-shadow:0 12px 28px rgba(113,38,169,.22)}.teacher-guide-hero-icon svg{width:29px}.teacher-guide-intro small{color:#72a64c;font-size:9px;font-weight:900;letter-spacing:1.5px}.teacher-guide-intro h2{margin:6px 0;color:#392243;font:400 25px "Jua",sans-serif}.teacher-guide-intro p{margin:0;color:#88758e;font-size:10px}.teacher-guide-intro>a{display:flex;align-items:center;gap:8px;padding:12px 16px;border-radius:13px;background:#792abb;color:#fff;text-decoration:none;font-size:10px;font-weight:900;box-shadow:0 9px 23px rgba(121,42,187,.2)}.teacher-guide-intro>a svg{width:16px}.teacher-guide-jump{display:flex;flex-wrap:wrap;gap:7px;padding:10px;border:1px solid #e8deec;border-radius:15px;background:#fff}.teacher-guide-jump a{padding:8px 11px;border-radius:9px;background:#f8f4fa;color:#745d80;text-decoration:none;font-size:8px;font-weight:900}.teacher-guide-jump a:hover{background:#eee2f7;color:#7129a8}.teacher-guide-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:17px}.teacher-guide-grid article{scroll-margin-top:20px;display:flex;flex-direction:column;min-height:235px;padding:22px;border:1px solid #e6dbe9;border-radius:21px;background:#fff;box-shadow:0 11px 28px rgba(59,32,69,.05);transition:.2s ease}.teacher-guide-grid article:hover{transform:translateY(-3px);border-color:#ceb7dd;box-shadow:0 17px 35px rgba(59,32,69,.09)}.teacher-guide-card-top{display:flex;align-items:center;justify-content:space-between}.teacher-guide-card-top>span{display:grid;place-items:center;width:46px;height:46px;border-radius:14px;background:#eee2f7;color:#792db4}.teacher-guide-card-top svg{width:21px}.teacher-guide-card-top small{color:#d8cadd;font-size:17px;font-weight:900}.teacher-guide-grid h3{margin:16px 0 7px;color:#42264d;font:400 18px "Jua",sans-serif}.teacher-guide-grid p{margin:0;color:#8b7a92;font-size:9px;line-height:1.65}.teacher-guide-grid ol{display:grid;gap:4px;margin:12px 0 0;padding-left:18px;color:#816e89;font-size:8px}.teacher-guide-grid article>a{display:flex;align-items:center;gap:6px;width:max-content;margin-top:auto;padding-top:18px;color:#762bb0;text-decoration:none;font-size:9px;font-weight:900}.teacher-guide-grid article>a svg{width:14px}.teacher-guide-support{display:grid;grid-template-columns:auto 1fr auto;align-items:center;gap:18px;padding:22px 25px;border:1px solid #dce9d3;border-radius:21px;background:linear-gradient(120deg,#fbfff8,#edf7e6)}.teacher-guide-support>span{display:grid;place-items:center;width:49px;height:49px;border-radius:15px;background:#73a94c;color:#fff}.teacher-guide-support>span svg{width:23px}.teacher-guide-support small{color:#6a9d44;font-size:8px;font-weight:900;letter-spacing:1.2px}.teacher-guide-support h3{margin:4px 0;color:#3d4d30;font-size:14px}.teacher-guide-support p{margin:0;color:#7e8d73;font-size:9px}.teacher-guide-support>div:last-child{display:flex;flex-wrap:wrap;justify-content:flex-end;gap:7px}.teacher-guide-support>div:last-child span{display:flex;align-items:center;gap:5px;padding:7px 9px;border-radius:9px;background:#fff;color:#668447;font-size:8px;font-weight:800}.teacher-guide-support>div:last-child svg{width:13px}
 @media(max-width:1100px){.slate-tutorial-steps{grid-template-columns:repeat(2,1fr)}.slate-tutorial-steps article:last-child{grid-column:1/-1}.teacher-guide-grid{grid-template-columns:repeat(2,minmax(0,1fr))}.teacher-guide-support{grid-template-columns:auto 1fr}.teacher-guide-support>div:last-child{grid-column:1/-1;justify-content:flex-start}}
 @media(max-width:700px){.slate-page-tools{justify-content:stretch}.slate-page-tools>button{width:100%;justify-content:center}.slate-tutorial-dialog{width:calc(100vw - 20px);max-height:calc(100dvh - 20px);border-radius:21px}.slate-tutorial-heading{padding:27px 58px 24px 23px}.slate-tutorial-heading h2{font-size:23px}.slate-tutorial-steps{grid-template-columns:1fr;padding:17px}.slate-tutorial-steps article,.slate-tutorial-steps article:last-child{grid-column:auto;min-height:0}.slate-tutorial-note{margin:0 17px 15px}.slate-tutorial-actions{align-items:stretch;flex-direction:column-reverse;padding:15px 17px}.slate-tutorial-actions a,.slate-tutorial-actions button{justify-content:center}.teacher-guide-intro{grid-template-columns:auto 1fr;padding:22px}.teacher-guide-intro>a{grid-column:1/-1;justify-content:center}.teacher-guide-grid{grid-template-columns:1fr}.teacher-guide-support{grid-template-columns:1fr}.teacher-guide-support>div:last-child{grid-column:auto}.teacher-guide-jump{overflow-x:auto;flex-wrap:nowrap}.teacher-guide-jump a{white-space:nowrap}}
+
+/* Teacher guide: contents column stays in place while the manual scrolls */
+.teacher-guide-shell{overflow:visible;align-items:start}
+.teacher-guide-contents{position:sticky;top:100px;align-self:start;max-height:calc(100vh - 124px);overflow-y:auto;overscroll-behavior:contain;border-radius:27px 0 0 27px;scrollbar-width:thin;scrollbar-color:#d9c7e6 transparent}
+.teacher-guide-contents::-webkit-scrollbar{width:7px}
+.teacher-guide-contents::-webkit-scrollbar-thumb{border-radius:6px;background:#dfd0e9}
+.teacher-guide-contents::-webkit-scrollbar-track{background:transparent}
+/* With a static page header the column can sit closer to the top. */
+.teacher-static-header .teacher-guide-contents{top:18px;max-height:calc(100vh - 40px)}
+.teacher-compact .teacher-guide-contents{top:82px;max-height:calc(100vh - 104px)}
+.teacher-compact.teacher-static-header .teacher-guide-contents{top:18px;max-height:calc(100vh - 40px)}
+
+.teacher-guide-contents>div{position:sticky;top:0;z-index:2;padding-bottom:14px;background:linear-gradient(180deg,#f8f2fc 76%,rgba(248,242,252,0))}
+.teacher-guide-contents nav{padding-bottom:4px}
+.teacher-guide-contents nav a{position:relative;scroll-margin:8px 0}
+.teacher-guide-contents nav a.is-active{background:#fff;color:#68289a;box-shadow:0 7px 18px rgba(57,30,68,.07)}
+.teacher-guide-contents nav a.is-active>svg:first-child{color:#7b2ac0}
+.teacher-guide-contents nav a.is-active:before{content:"";position:absolute;left:2px;top:9px;bottom:9px;width:3px;border-radius:3px;background:#7b2ac0}
+.teacher-guide-contents nav a.is-active small{color:#9b73b8}
+.teacher-guide-class-link{position:sticky;bottom:6px;margin-top:auto;box-shadow:0 -10px 14px 12px #f9f4fc,0 9px 20px rgba(118,41,181,.18)}
+
+/* Reading progress across the manual */
+.teacher-guide-progress{display:grid;gap:6px;margin:4px 8px 14px}
+.teacher-guide-progress-track{height:5px;border-radius:5px;background:#e9dcf1;overflow:hidden}
+.teacher-guide-progress-track>span{display:block;height:100%;border-radius:5px;background:linear-gradient(90deg,#7b2ac0,#a44ae0);transition:width .25s ease}
+.teacher-guide-progress small{color:#96849d;font-size:8px;font-weight:900;letter-spacing:.8px}
+
+/* Manual column polish */
+.teacher-guide-manual>header h1{letter-spacing:-.01em}
+.teacher-guide-topic{scroll-margin-top:110px}
+.teacher-static-header .teacher-guide-topic{scroll-margin-top:26px}
+.teacher-guide-topic:first-of-type{border-top:0}
+.teacher-guide-topic-heading>span{background:linear-gradient(145deg,#f1e4fa,#e6d4f6)}
+
+@media(max-width:700px){
+  .teacher-guide-contents,.teacher-guide-contents>div,.teacher-guide-class-link{position:static;max-height:none;overflow:visible}
+  .teacher-guide-contents{border-radius:21px 21px 0 0}
+  .teacher-guide-topic{scroll-margin-top:16px}
+  .teacher-guide-progress{margin:2px 0 12px}
+}

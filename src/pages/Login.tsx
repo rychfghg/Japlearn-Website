@@ -18,6 +18,7 @@ import Brand from "../components/Brand";
 import mascot from "../assets/idle.png";
 import { EMAIL_PATTERN, loginUser, requestPasswordReset, type PortalRole } from "../lib/api";
 import { session } from "../lib/auth";
+import { startPage } from "../features/teacher/preferences";
 
 type LoginProps = {
   role: PortalRole;
@@ -78,7 +79,8 @@ export default function Login({ role }: LoginProps) {
       }
 
       session.set(user);
-      navigate(role === "teacher" ? "/teacher" : "/admin", { replace: true });
+      // Teachers land on the page they chose in Settings.
+      navigate(role === "teacher" ? startPage() : "/admin", { replace: true });
     } catch (loginError) {
       setError(
         loginError instanceof Error ? loginError.message : "Login failed.",

@@ -13,10 +13,11 @@ import {
   Users,
   X,
 } from "lucide-react";
-import { Fragment, type FormEvent, useState } from "react";
+import { Fragment, type FormEvent, useEffect, useState } from "react";
 import { NavLink, Outlet, useLocation, useNavigate } from "react-router-dom";
 import Brand from "../../../components/Brand";
 import { session } from "../../../lib/auth";
+import { applyPreferences, clearPreferenceClasses, loadPreferences } from "../preferences";
 
 const navigation = [
   { to: "/teacher", label: "Overview", icon: LayoutDashboard, end: true, group: "Workspace" },
@@ -73,7 +74,14 @@ export default function TeacherLayout() {
     setSearchFocused(false);
   };
 
+  // Saved preferences apply to every teacher screen, including after a page reload.
+  useEffect(() => {
+    applyPreferences(loadPreferences());
+    return clearPreferenceClasses;
+  }, []);
+
   const logout = () => {
+    clearPreferenceClasses();
     session.clear();
     navigate("/teacher/login", { replace: true });
   };
