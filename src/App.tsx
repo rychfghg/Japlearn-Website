@@ -5,6 +5,8 @@ import Login from "./pages/Login";
 import TeacherSignup from "./pages/TeacherSignup";
 import TeacherResetPassword from "./pages/TeacherResetPassword";
 import PublicInfoPage from "./pages/PublicInfoPage";
+import DeleteAccountPage from "./pages/DeleteAccountPage";
+import DeleteAccountConfirmPage from "./pages/DeleteAccountConfirmPage";
 import SeoManager from "./components/SeoManager";
 import AdminQuestionBankPage from "./features/admin/pages/AdminQuestionBankPage";
 import AdminQuackResponsePage from "./features/admin/pages/AdminQuackResponsePage";
@@ -62,6 +64,8 @@ export default function App() {
         <Route path="/terms" element={<PublicInfoPage />} />
         <Route path="/accessibility" element={<PublicInfoPage />} />
         <Route path="/contact" element={<PublicInfoPage />} />
+        <Route path="/delete-account" element={<DeleteAccountPage />} />
+        <Route path="/delete-account/confirm" element={<DeleteAccountConfirmPage />} />
 
         <Route
           path="/teacher"

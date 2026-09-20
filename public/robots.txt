@@ -4,6 +4,7 @@ Allow: /teacher/login
 Allow: /teacher/create-account
 Disallow: /admin
 Disallow: /teacher/reset-password
+Disallow: /delete-account/confirm
 Disallow: /teacher/classes
 Disallow: /teacher/students
 Disallow: /teacher/lessons
