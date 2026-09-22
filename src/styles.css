@@ -7474,3 +7474,93 @@ button.tile-link { border: 0; background: transparent; padding: 0; font-family: 
   .dacc-actions { flex-direction:column-reverse; }
   .dacc-cancel,.dacc-danger { width:100%; }
 }
+
+/* Admin console login */
+.adm-login { position:relative; min-height:100vh; display:flex; flex-direction:column; overflow:hidden; color:#e7e3f4; background:#0d0b1f; }
+.adm-grid { position:absolute; inset:0; pointer-events:none; background-image:radial-gradient(rgba(170,150,255,.16) 1px, transparent 1px); background-size:26px 26px; mask-image:radial-gradient(ellipse at 50% 40%, #000 30%, transparent 78%); -webkit-mask-image:radial-gradient(ellipse at 50% 40%, #000 30%, transparent 78%); }
+.adm-glow { position:absolute; border-radius:50%; filter:blur(90px); pointer-events:none; }
+.adm-glow-1 { width:520px; height:520px; left:-140px; top:-160px; background:rgba(118,56,230,.38); }
+.adm-glow-2 { width:460px; height:460px; right:-120px; bottom:-180px; background:rgba(46,108,214,.28); }
+
+.adm-top { position:relative; z-index:2; display:flex; align-items:center; justify-content:space-between; gap:16px; flex-wrap:wrap; padding:22px clamp(18px,5vw,56px); }
+.adm-back { display:inline-flex; align-items:center; gap:7px; padding:9px 14px; border:1px solid rgba(255,255,255,.12); border-radius:11px; color:#c9c2e2; background:rgba(255,255,255,.04); font-size:13px; font-weight:700; text-decoration:none; }
+.adm-back:hover { color:#fff; border-color:rgba(255,255,255,.24); }
+.adm-back svg { width:15px; }
+
+.adm-shell { position:relative; z-index:2; flex:1; display:grid; grid-template-columns:minmax(0,1fr) minmax(340px,440px); align-items:center; gap:clamp(28px,6vw,90px); width:100%; max-width:1140px; margin:0 auto; padding:24px clamp(18px,5vw,40px) 40px; }
+
+.adm-kicker { display:inline-flex; align-items:center; gap:8px; padding:7px 12px; border:1px solid rgba(160,130,255,.3); border-radius:999px; color:#c4b3ff; background:rgba(120,80,240,.12); font-size:11px; font-weight:800; letter-spacing:1.2px; }
+.adm-kicker svg { width:14px; }
+.adm-intro h2 { margin:20px 0 14px; max-width:15ch; color:#fff; font-size:clamp(32px,4.4vw,52px); line-height:1.06; letter-spacing:-.035em; }
+.adm-intro > p { margin:0; max-width:46ch; color:#a9a2c4; font-size:15px; line-height:1.65; }
+
+.adm-caps { display:grid; gap:12px; margin:30px 0 0; padding:0; list-style:none; max-width:470px; }
+.adm-caps li { display:flex; align-items:center; gap:14px; padding:14px 16px; border:1px solid rgba(255,255,255,.08); border-radius:16px; background:rgba(255,255,255,.03); }
+.adm-caps li > span { display:grid; place-items:center; width:40px; height:40px; flex:none; border-radius:12px; color:#d6caff; background:linear-gradient(145deg,rgba(128,78,240,.35),rgba(80,60,200,.18)); border:1px solid rgba(170,140,255,.25); }
+.adm-caps li > span svg { width:18px; }
+.adm-caps b { display:block; color:#f1edfc; font-size:14px; }
+.adm-caps small { display:block; margin-top:3px; color:#9890b6; font-size:12.5px; }
+
+.adm-card { padding:clamp(24px,3.4vw,34px); border:1px solid rgba(255,255,255,.1); border-radius:24px; background:linear-gradient(160deg,rgba(28,24,56,.92),rgba(18,16,40,.92)); box-shadow:0 30px 80px rgba(0,0,0,.45), inset 0 1px 0 rgba(255,255,255,.06); backdrop-filter:blur(14px); }
+.adm-card-head { display:flex; align-items:center; gap:14px; }
+.adm-card-icon { display:grid; place-items:center; width:48px; height:48px; flex:none; border-radius:15px; color:#fff; background:linear-gradient(145deg,#7a3ff0,#4f63e8); box-shadow:0 12px 28px rgba(110,70,240,.4); }
+.adm-card-icon svg { width:21px; }
+.adm-card-head small { color:#9c8fd6; font-size:10px; font-weight:800; letter-spacing:1.4px; }
+.adm-card-head h1 { margin:4px 0 0; color:#fff; font-size:22px; letter-spacing:-.02em; }
+.adm-card-lead { margin:14px 0 20px; color:#a29bbe; font-size:13.5px; line-height:1.55; }
+
+.adm-error { display:flex; align-items:center; gap:8px; margin-bottom:16px; padding:11px 13px; border:1px solid rgba(240,110,130,.35); border-radius:13px; color:#ffb6c2; background:rgba(200,50,80,.14); font-size:13px; font-weight:600; }
+.adm-error svg { width:16px; flex:none; }
+
+.adm-label { display:block; margin:0 0 7px; color:#cfc8e6; font-size:12.5px; font-weight:700; }
+.adm-field { display:flex; align-items:center; gap:10px; margin-bottom:16px; padding:0 13px; border:1px solid rgba(255,255,255,.12); border-radius:14px; background:rgba(8,7,22,.55); transition:border-color .18s ease, box-shadow .18s ease; }
+.adm-field:focus-within { border-color:rgba(150,110,255,.7); box-shadow:0 0 0 4px rgba(120,80,240,.18); }
+.adm-field > svg { width:17px; flex:none; color:#8f86b3; }
+.adm-field:focus-within > svg { color:#c4b3ff; }
+.adm-field input { flex:1; min-width:0; padding:14px 0; border:0; background:transparent; color:#fff; font-size:14.5px; font-family:inherit; }
+.adm-field input::placeholder { color:#6f688d; }
+.adm-field input:focus { outline:none; }
+.adm-toggle { display:grid; place-items:center; padding:6px; border:0; border-radius:9px; color:#8f86b3; background:transparent; cursor:pointer; }
+.adm-toggle:hover { color:#fff; background:rgba(255,255,255,.06); }
+.adm-toggle svg { width:17px; }
+.adm-caps-warn { display:flex; align-items:center; gap:6px; margin:-8px 0 14px; color:#f5c46c; font-size:12px; font-weight:700; }
+.adm-caps-warn svg { width:14px; }
+
+.adm-submit { display:inline-flex; align-items:center; justify-content:center; gap:8px; width:100%; margin-top:4px; padding:15px 18px; border:0; border-radius:14px; color:#fff; background:linear-gradient(135deg,#7a3ff0,#4f63e8); font-size:14.5px; font-weight:800; font-family:inherit; cursor:pointer; box-shadow:0 14px 30px rgba(100,70,235,.4); transition:transform .15s ease, box-shadow .15s ease; }
+.adm-submit:hover:not(:disabled) { transform:translateY(-1px); box-shadow:0 18px 36px rgba(100,70,235,.5); }
+.adm-submit:disabled { opacity:.65; cursor:not-allowed; }
+.adm-submit svg { width:17px; }
+
+.adm-foot { display:flex; align-items:flex-start; gap:9px; margin-top:20px; padding-top:18px; border-top:1px solid rgba(255,255,255,.08); color:#8f88ad; font-size:12px; line-height:1.55; }
+.adm-foot svg { width:16px; flex:none; color:#7fd49a; margin-top:1px; }
+
+.adm-legal { position:relative; z-index:2; display:flex; justify-content:center; gap:10px; padding:0 18px 24px; color:#6f688d; font-size:12.5px; }
+.adm-legal a { color:#a29bbe; text-decoration:none; }
+.adm-legal a:hover { color:#fff; }
+
+@media(max-width:900px){
+  .adm-shell { grid-template-columns:1fr; max-width:520px; }
+  .adm-intro h2 { max-width:none; }
+  .adm-caps { display:none; }
+}
+@media(max-width:520px){
+  .adm-card { border-radius:20px; }
+  .adm-intro h2 { font-size:30px; }
+}
+
+/* Admin student list: class column and class picker */
+.admin-user-table.has-guided-access.has-class .admin-user-row{grid-template-columns:1fr 1.1fr 1.1fr .85fr .75fr .95fr .5fr}
+.class-cell{display:grid;gap:3px;justify-items:start;min-width:0}
+.class-cell small{color:#94879a;font-size:10.5px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:100%}
+.class-chip{display:inline-block;max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;padding:5px 9px;border-radius:8px;color:#6c2cad;background:#f2e8fb;border:1px solid #e6d6f5;font-style:normal;font-size:11px;font-weight:800;letter-spacing:.3px}
+.class-chip.none{color:#9a8ea0;background:#f6f3f8;border-color:#ece6ef;font-weight:700}
+.admin-edit-modal .admin-class-select{border:1px solid #dfd4e3;border-radius:11px;padding:11px;background:#fff;color:#3d2447;font:inherit;font-size:13px}
+.admin-class-hint{color:#9a8ea0;font-size:10.5px;font-style:normal;font-weight:600}
+@media(max-width:1050px){
+  .admin-user-table.has-guided-access.has-class .admin-user-row{grid-template-columns:1fr 1.1fr .9fr .8fr 1fr .5fr}
+  .admin-user-table.has-guided-access.has-class .admin-user-row>span:nth-child(3){display:grid}
+  .admin-user-table.has-guided-access.has-class .admin-user-row>span:nth-child(4){display:none}
+}
+@media(max-width:760px){
+  .admin-user-table.has-guided-access.has-class .admin-user-row{grid-template-columns:minmax(0,1fr) minmax(0,1fr)}
+}
