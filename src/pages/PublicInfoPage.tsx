@@ -1,4 +1,9 @@
-import { ArrowLeft, ExternalLink, Mail } from "lucide-react";
+import {
+  ArrowLeft, BadgeCheck, Building2, CalendarDays, Check, Clock, Database, ExternalLink, FileText, Gift,
+  GraduationCap, KeyRound, ListOrdered, type LucideIcon, Mail, Mic, Printer, RefreshCw, Scale, Server,
+  ShieldCheck, SlidersHorizontal, Smartphone, Sparkles, Trash2, Users,
+} from "lucide-react";
+import { useEffect, useState } from "react";
 import { Link, useLocation } from "react-router-dom";
 import Brand from "../components/Brand";
 
@@ -139,41 +144,186 @@ const pages: Record<string, PageContent> = {
   },
 };
 
+type Highlight = { icon: LucideIcon; title: string; text: string };
+
+// Plain-language summary shown above each document.
+const HIGHLIGHTS: Record<string, Highlight[]> = {
+  "/privacy": [
+    { icon: BadgeCheck, title: "Never sold", text: "We do not sell your data or use it for advertising." },
+    { icon: Mic, title: "Microphone on request", text: "Only in speaking activities, after you allow it." },
+    { icon: GraduationCap, title: "Teacher sees their class", text: "Only the teacher of the class you join." },
+    { icon: Trash2, title: "Delete any time", text: "In the app or on the web, immediately." },
+  ],
+  "/terms": [
+    { icon: Gift, title: "Free to use", text: "No subscriptions or in-app purchases." },
+    { icon: Users, title: "Ages 13 and up", text: "Or younger learners enrolled by their school." },
+    { icon: Sparkles, title: "Scores are learning aids", text: "Automatic feedback, not formal certification." },
+    { icon: Trash2, title: "Leave whenever", text: "Delete your account at any time." },
+  ],
+};
+
+// A fitting icon for each section, matched on words in its title.
+const SECTION_ICONS: [RegExp, LucideIcon][] = [
+  [/collect|information we/i, Database],
+  [/microphone|voice|speaking/i, Mic],
+  [/permission/i, Smartphone],
+  [/how information is used|use of|how we use/i, Sparkles],
+  [/teacher|classes|class/i, GraduationCap],
+  [/provider|process|sharing/i, Building2],
+  [/security|protect/i, ShieldCheck],
+  [/storage|retention|location/i, Server],
+  [/delet|ending/i, Trash2],
+  [/choice|rights/i, SlidersHorizontal],
+  [/child|school use|who can use/i, Users],
+  [/account/i, KeyRound],
+  [/acceptable/i, Scale],
+  [/score|feedback|result/i, Sparkles],
+  [/availability|changes/i, RefreshCw],
+  [/owner|content/i, FileText],
+  [/contact|help/i, Mail],
+];
+
+const iconFor = (title: string): LucideIcon => SECTION_ICONS.find(([pattern]) => pattern.test(title))?.[1] ?? FileText;
+const slug = (value: string) => value.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/(^-|-$)/g, "");
+
+const DOC_TABS = [
+  { to: "/privacy", label: "Privacy Policy" },
+  { to: "/terms", label: "Terms of Use" },
+  { to: "/accessibility", label: "Accessibility" },
+  { to: "/contact", label: "Help & contact" },
+];
+
 export default function PublicInfoPage() {
   const { pathname } = useLocation();
   const page = pages[pathname] ?? pages["/contact"];
+  const highlights = HIGHLIGHTS[pathname];
+  const [activeId, setActiveId] = useState("");
+
+  const sections = page.sections.map((section) => ({ ...section, id: slug(section.title) }));
+  const words = page.sections.reduce(
+    (total, section) => total + [...(section.paragraphs ?? []), ...(section.items ?? [])].join(" ").split(/\s+/).length,
+    0,
+  );
+  const minutes = Math.max(1, Math.round(words / 200));
+
+  // Highlight the section being read in the table of contents.
+  useEffect(() => {
+    window.scrollTo(0, 0);
+    setActiveId(sections[0]?.id ?? "");
+    const observer = new IntersectionObserver(
+      (entries) => {
+        const visible = entries
+          .filter((entry) => entry.isIntersecting)
+          .sort((a, b) => a.boundingClientRect.top - b.boundingClientRect.top)[0];
+        if (visible) setActiveId(visible.target.id);
+      },
+      { rootMargin: "-90px 0px -60% 0px" },
+    );
+    sections.forEach((section) => {
+      const element = document.getElementById(section.id);
+      if (element) observer.observe(element);
+    });
+    return () => observer.disconnect();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [pathname]);
 
   return (
-    <main className="public-info-page">
-      <nav className="public-info-nav">
+    <main className="legal-page">
+      <nav className="legal-nav">
         <Brand />
-        <Link to="/"><ArrowLeft /> Back to JapLearn</Link>
+        <Link to="/" className="legal-back"><ArrowLeft /> Back to JapLearn</Link>
       </nav>
-      <header className="public-info-hero">
-        <span>{page.eyebrow}</span>
+
+      <header className="legal-hero">
+        <span className="legal-eyebrow">{page.eyebrow}</span>
         <h1>{page.title}</h1>
         <p>{page.intro}</p>
-        <small>Last updated September 20, 2026</small>
+        <div className="legal-meta">
+          <span><CalendarDays /> Updated September 20, 2026</span>
+          <span><Clock /> {minutes} min read</span>
+          <span><ListOrdered /> {sections.length} sections</span>
+          <button type="button" onClick={() => window.print()}><Printer /> Print or save as PDF</button>
+        </div>
       </header>
-      <div className="public-info-layout">
-        <article className="public-info-content">
-          {page.sections.map((section) => (
-            <section key={section.title}>
-              <h2>{section.title}</h2>
-              {section.paragraphs?.map((paragraph) => <p key={paragraph}>{paragraph}</p>)}
-              {section.items && <ul>{section.items.map((item) => <li key={item}>{item}</li>)}</ul>}
-            </section>
-          ))}
-        </article>
-        <aside className="public-info-contact">
-          <Mail />
-          <span>CONTACT JAPLEARN</span>
-          <h2>Still need help?</h2>
-          <p>Send your question to our support email.</p>
-          <a href={`mailto:${CONTACT_EMAIL}`}>{CONTACT_EMAIL}<ExternalLink /></a>
-        </aside>
+
+      <div className="legal-tabs" role="tablist" aria-label="JapLearn documents">
+        {DOC_TABS.map((tab) => (
+          <Link key={tab.to} to={tab.to} role="tab" aria-selected={pathname === tab.to} className={pathname === tab.to ? "on" : ""}>
+            {tab.label}
+          </Link>
+        ))}
       </div>
-      <footer className="public-info-footer">© 2026 JapLearn · Japanese made interactive.</footer>
+
+      {highlights && (
+        <section className="legal-glance" aria-label="At a glance">
+          <small>AT A GLANCE</small>
+          <div>
+            {highlights.map(({ icon: Icon, title, text }) => (
+              <article key={title}>
+                <span><Icon /></span>
+                <b>{title}</b>
+                <p>{text}</p>
+              </article>
+            ))}
+          </div>
+        </section>
+      )}
+
+      <div className="legal-layout">
+        <aside className="legal-toc" aria-label="On this page">
+          <small>ON THIS PAGE</small>
+          <ol>
+            {sections.map((section, index) => (
+              <li key={section.id}>
+                <a href={`#${section.id}`} className={activeId === section.id ? "on" : ""}>
+                  <em>{String(index + 1).padStart(2, "0")}</em>{section.title}
+                </a>
+              </li>
+            ))}
+          </ol>
+        </aside>
+
+        <article className="legal-body">
+          {sections.map((section, index) => {
+            const Icon = iconFor(section.title);
+            return (
+              <section key={section.id} id={section.id} className="legal-section">
+                <header>
+                  <span className="legal-section-icon"><Icon /></span>
+                  <div>
+                    <small>SECTION {String(index + 1).padStart(2, "0")}</small>
+                    <h2>{section.title}</h2>
+                  </div>
+                </header>
+                {section.paragraphs?.map((paragraph) => <p key={paragraph}>{paragraph}</p>)}
+                {section.items && (
+                  <ul>
+                    {section.items.map((item) => <li key={item}><Check />{item}</li>)}
+                  </ul>
+                )}
+              </section>
+            );
+          })}
+
+          <aside className="legal-contact">
+            <span><Mail /></span>
+            <div>
+              <b>Questions about this page?</b>
+              <p>Write to us and a person from the JapLearn team will reply.</p>
+            </div>
+            <a href={`mailto:${CONTACT_EMAIL}`}>{CONTACT_EMAIL} <ExternalLink /></a>
+          </aside>
+        </article>
+      </div>
+
+      <footer className="legal-footer">
+        <span>© 2026 JapLearn · Japanese made interactive.</span>
+        <nav>
+          <Link to="/privacy">Privacy</Link>
+          <Link to="/terms">Terms</Link>
+          <Link to="/delete-account">Delete account</Link>
+        </nav>
+      </footer>
     </main>
   );
 }
