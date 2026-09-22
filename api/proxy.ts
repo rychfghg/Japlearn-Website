@@ -39,9 +39,26 @@ function clientIp(request: Request): string {
   return first || request.headers.get("x-real-ip") || "";
 }
 
+// vercel.json rewrites /api/<path> to /api/proxy?__jlpath=<path>. Plain (non-Next)
+// Vercel projects do not support catch-all file names such as [...path].ts, which
+// only ever matched single-segment addresses like /api/health.
+const PATH_PARAM = "__jlpath";
+
+export function backendTarget(requestUrl: string): string {
+  const incoming = new URL(requestUrl);
+  const rewrittenPath = incoming.searchParams.get(PATH_PARAM);
+  incoming.searchParams.delete(PATH_PARAM);
+
+  // Without the rewrite parameter, the function was called by its own address.
+  const path = rewrittenPath !== null
+    ? `/api/${rewrittenPath.replace(/^\/+/, "")}`
+    : incoming.pathname;
+  const query = incoming.searchParams.toString();
+  return `${BACKEND_URL}${path}${query ? `?${query}` : ""}`;
+}
+
 async function relay(request: Request): Promise<Response> {
-  const incoming = new URL(request.url);
-  const target = `${BACKEND_URL}${incoming.pathname}${incoming.search}`;
+  const target = backendTarget(request.url);
 
   const headers = new Headers();
   request.headers.forEach((value, key) => {
