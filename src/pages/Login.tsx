@@ -272,7 +272,7 @@ export default function Login({ role }: LoginProps) {
             <span className="portal-pill"><LockKeyhole /> SECURE TEACHER ACCESS</span>
           ) : (
             <span className="portal-pill">
-              <LockKeyhole /> {role.toUpperCase()} PORTAL
+              <LockKeyhole /> {String(role).toUpperCase()} PORTAL
             </span>
           )}
           <h1>{isTeacher ? "Teacher sign in" : "Welcome back"}</h1>
