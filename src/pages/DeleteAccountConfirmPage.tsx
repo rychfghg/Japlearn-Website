@@ -63,26 +63,29 @@ export default function DeleteAccountConfirmPage() {
   }
 
   return (
-    <main className="dacc-page">
-      <header className="dacc-top">
+    <main className="legal-page">
+      <nav className="legal-nav">
         <Brand />
-        <Link to="/" className="dacc-back"><ArrowLeft /> Back to JapLearn</Link>
-      </header>
+        <Link to="/" className="legal-back"><ArrowLeft /> Back to JapLearn</Link>
+      </nav>
 
-      <section className="dacc-shell dacc-shell-single">
+      <section className="dacc-single">
         {stage === "checking" && (
-          <div className="dacc-card dacc-result">
-            <span className="dacc-icon sent"><Clock /></span>
-            <h1>Checking your link…</h1>
+          <div className="legal-section dacc-card dacc-result">
+            <header>
+              <span className="legal-section-icon"><Clock /></span>
+              <div><small>ONE MOMENT</small><h2>Checking your link…</h2></div>
+            </header>
             <p className="dacc-lead">One moment while we confirm this deletion link is still valid.</p>
           </div>
         )}
 
         {stage === "ready" && (
-          <form className="dacc-card" onSubmit={submit} noValidate>
-            <span className="dacc-icon danger"><Trash2 /></span>
-            <span className="dacc-kicker">FINAL STEP</span>
-            <h1>Delete this account permanently?</h1>
+          <form className="legal-section dacc-card" onSubmit={submit} noValidate>
+            <header>
+              <span className="legal-section-icon"><Trash2 /></span>
+              <div><small>FINAL STEP</small><h2>Delete this account permanently?</h2></div>
+            </header>
             <p className="dacc-lead">
               You are about to delete <b>{accountEmail}</b> and everything saved with it: lesson progress,
               badges, game scores and speaking feedback. This cannot be undone.
@@ -114,9 +117,11 @@ export default function DeleteAccountConfirmPage() {
         )}
 
         {stage === "expired" && (
-          <div className="dacc-card dacc-result">
-            <span className="dacc-icon review"><ShieldAlert /></span>
-            <h1>This link is no longer valid</h1>
+          <div className="legal-section dacc-card dacc-result">
+            <header>
+              <span className="legal-section-icon"><ShieldAlert /></span>
+              <div><small>EXPIRED LINK</small><h2>This link is no longer valid</h2></div>
+            </header>
             <p className="dacc-lead">
               Deletion links expire 30 minutes after they are sent, and each one works only once.
               Nothing has been deleted. Start again to get a fresh link.
@@ -129,9 +134,11 @@ export default function DeleteAccountConfirmPage() {
         )}
 
         {stage === "done" && (
-          <div className="dacc-card dacc-result">
-            <span className="dacc-icon done"><CircleCheckBig /></span>
-            <h1>Your account has been deleted</h1>
+          <div className="legal-section dacc-card dacc-result">
+            <header>
+              <span className="legal-section-icon done"><CircleCheckBig /></span>
+              <div><small>COMPLETE</small><h2>Your account has been deleted</h2></div>
+            </header>
             <p className="dacc-lead">
               {accountEmail ? <>The account <b>{accountEmail}</b> and</> : <>Your account and</>} all of its learning
               records have been permanently removed from JapLearn. You can sign up again any time with the same
@@ -141,6 +148,15 @@ export default function DeleteAccountConfirmPage() {
           </div>
         )}
       </section>
+
+      <footer className="legal-footer">
+        <span>© 2026 JapLearn · Japanese made interactive.</span>
+        <nav>
+          <Link to="/privacy">Privacy</Link>
+          <Link to="/terms">Terms</Link>
+          <Link to="/contact">Help &amp; contact</Link>
+        </nav>
+      </footer>
     </main>
   );
 }

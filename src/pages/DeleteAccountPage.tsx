@@ -85,22 +85,40 @@ export default function DeleteAccountPage() {
   }
 
   return (
-    <main className="dacc-page">
-      <header className="dacc-top">
+    <main className="legal-page">
+      <nav className="legal-nav">
         <Brand />
-        <Link to="/" className="dacc-back"><ArrowLeft /> Back to JapLearn</Link>
+        <Link to="/" className="legal-back"><ArrowLeft /> Back to JapLearn</Link>
+      </nav>
+
+      <header className="legal-hero">
+        <span className="legal-eyebrow">ACCOUNT DELETION</span>
+        <h1>Delete your JapLearn account</h1>
+        <p>
+          Ask us to permanently delete your account and everything saved with it. We email you a
+          confirmation link first, so only the owner of the account can complete the deletion.
+        </p>
+        <div className="legal-meta">
+          <span><Clock /> Link expires in 30 minutes</span>
+          <span><Trash2 /> Permanent and immediate</span>
+          <span><ShieldAlert /> Owner confirmation required</span>
+        </div>
       </header>
 
-      <section className="dacc-shell">
+      <div className="legal-layout dacc-layout">
         <div className="dacc-main">
           {stage === "form" && (
-            <form className="dacc-card" onSubmit={submit} noValidate>
-              <span className="dacc-icon danger"><Trash2 /></span>
-              <span className="dacc-kicker">ACCOUNT DELETION</span>
-              <h1>Delete your JapLearn account</h1>
+            <form className="legal-section dacc-card" onSubmit={submit} noValidate>
+              <header>
+                <span className="legal-section-icon"><Trash2 /></span>
+                <div>
+                  <small>STEP 01</small>
+                  <h2>Confirm it is your account</h2>
+                </div>
+              </header>
               <p className="dacc-lead">
-                Ask us to permanently delete your account and everything saved with it. We email you a
-                confirmation link first, so only the owner of the account can complete the deletion.
+                Enter the email address you use to sign in. If an account exists, we send a
+                confirmation link to that address.
               </p>
 
               <div className="dacc-removed">
@@ -150,9 +168,11 @@ export default function DeleteAccountPage() {
           )}
 
           {stage === "sent" && (
-            <div className="dacc-card dacc-result">
-              <span className="dacc-icon sent"><MailCheck /></span>
-              <h1>Check your email</h1>
+            <div className="legal-section dacc-card dacc-result">
+              <header>
+                <span className="legal-section-icon"><MailCheck /></span>
+                <div><small>NEXT STEP</small><h2>Check your email</h2></div>
+              </header>
               <p className="dacc-lead">
                 If an account exists for <b>{email.trim().toLowerCase()}</b>, we have sent a confirmation link.
                 Open it and type <b>DELETE</b> to finish. Nothing has been deleted yet.
@@ -169,9 +189,11 @@ export default function DeleteAccountPage() {
           )}
 
           {stage === "review" && (
-            <div className="dacc-card dacc-result">
-              <span className="dacc-icon review"><ShieldAlert /></span>
-              <h1>This account needs a quick review</h1>
+            <div className="legal-section dacc-card dacc-result">
+              <header>
+                <span className="legal-section-icon"><ShieldAlert /></span>
+                <div><small>TEACHER ACCOUNT</small><h2>This account needs a quick review</h2></div>
+              </header>
               <p className="dacc-lead">
                 Teacher accounts are connected to classes, lessons and learner records, so a person checks
                 them before deletion. The JapLearn team has been notified and will contact you by email.
@@ -209,7 +231,16 @@ export default function DeleteAccountPage() {
             See our <Link to="/privacy">Privacy Policy</Link> for how JapLearn handles your information.
           </p>
         </aside>
-      </section>
+      </div>
+
+      <footer className="legal-footer">
+        <span>© 2026 JapLearn · Japanese made interactive.</span>
+        <nav>
+          <Link to="/privacy">Privacy</Link>
+          <Link to="/terms">Terms</Link>
+          <Link to="/contact">Help &amp; contact</Link>
+        </nav>
+      </footer>
     </main>
   );
 }

@@ -7660,3 +7660,15 @@ button.tile-link { border: 0; background: transparent; padding: 0; font-family: 
   .legal-layout { display:block; }
   .legal-section, .legal-glance article, .legal-contact { box-shadow:none; break-inside:avoid; }
 }
+
+/* Delete-account pages, matching the legal document layout */
+.legal-layout.dacc-layout { grid-template-columns:minmax(0,1fr) minmax(280px,340px); }
+.dacc-main { display:grid; gap:14px; min-width:0; }
+.legal-section.dacc-card { display:block; }
+.legal-section.dacc-card .dacc-lead { margin:0 0 16px; color:#5c4d65; font-size:14.5px; line-height:1.7; }
+.legal-section.dacc-card .legal-section-icon { color:#c8384c; background:linear-gradient(145deg,#fdf0f2,#f9dde2); }
+.legal-section.dacc-card .legal-section-icon.done { color:#5d9c38; background:linear-gradient(145deg,#eef8e8,#dff0d4); }
+.legal-section.dacc-card > header small { color:#b04256; }
+.dacc-single { max-width:640px; margin:22px auto 0; padding:0 clamp(18px,5vw,24px); }
+.dacc-single .legal-section { scroll-margin-top:0; }
+@media (max-width:960px) { .legal-layout.dacc-layout { grid-template-columns:1fr; } }
