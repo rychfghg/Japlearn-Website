@@ -91,7 +91,7 @@ const pages: Record<string, PageContent> = {
       ] },
       { title: "Accounts", items: [
         "Provide accurate account information and keep sign-in details private.",
-        "Student accounts are activated after email confirmation and teacher approval.",
+        "Student accounts are activated after email confirmation and JapLearn admin approval.",
         "Teachers may access only the classes and learners assigned to their own account.",
         "Do not share an account or attempt to access another person's records.",
       ] },
