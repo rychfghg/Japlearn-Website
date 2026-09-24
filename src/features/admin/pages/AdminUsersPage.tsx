@@ -4,6 +4,7 @@ import { API_URL, portalFetch as fetch } from "../../../lib/api";
 
 type ManagedUser = { id: string; fname: string; lname: string; email: string; role: string; approved: boolean; emailConfirmed: boolean; guidedPhraseEnabled: boolean; password?: string; classCode?: string };
 type ClassOption = { classCode: string; classTitle: string; ownerTeacherEmail: string };
+const mongoIdOrder = (id: string) => /^[0-9a-f]{24}$/i.test(id) ? id.toLowerCase() : null;
 
 export default function AdminUsersPage({ role }: { role: "student" | "teacher" }) {
   const [users, setUsers] = useState<ManagedUser[]>([]);
@@ -11,7 +12,7 @@ export default function AdminUsersPage({ role }: { role: "student" | "teacher" }
   const [approvalFilter, setApprovalFilter] = useState("all");
   const [classFilter, setClassFilter] = useState("all");
   const [guidedFilter, setGuidedFilter] = useState("all");
-  const [sortBy, setSortBy] = useState("name-asc");
+  const [sortBy, setSortBy] = useState("newest");
   const [editing, setEditing] = useState<ManagedUser | null>(null);
   const [message, setMessage] = useState("");
   const [accessUpdating, setAccessUpdating] = useState<string[]>([]);
@@ -70,6 +71,12 @@ export default function AdminUsersPage({ role }: { role: "student" | "teacher" }
     return matchesSearch && (!isStudent || (matchesApproval && matchesClass && matchesGuided));
   }).sort((a, b) => {
     if (!isStudent) return 0;
+    if (sortBy === "newest" || sortBy === "oldest") {
+      const aId = mongoIdOrder(a.id);
+      const bId = mongoIdOrder(b.id);
+      if (aId && bId) return sortBy === "newest" ? bId.localeCompare(aId) : aId.localeCompare(bId);
+      return 0;
+    }
     if (sortBy === "name-desc") return `${b.fname} ${b.lname}`.localeCompare(`${a.fname} ${a.lname}`);
     if (sortBy === "class") return (assignments[a.email?.trim().toLowerCase()] || a.classCode || "").localeCompare(assignments[b.email?.trim().toLowerCase()] || b.classCode || "") || `${a.fname} ${a.lname}`.localeCompare(`${b.fname} ${b.lname}`);
     return `${a.fname} ${a.lname}`.localeCompare(`${b.fname} ${b.lname}`);
@@ -142,8 +149,8 @@ export default function AdminUsersPage({ role }: { role: "student" | "teacher" }
       <label>Approval<select value={approvalFilter} onChange={(event) => setApprovalFilter(event.target.value)}><option value="all">All students</option><option value="approved">Approved</option><option value="pending">Not approved</option></select></label>
       <label>Class<select value={classFilter} onChange={(event) => setClassFilter(event.target.value)}><option value="all">All classes</option><option value="with-class">With a class</option><option value="no-class">No class</option>{availableClasses.map((code) => <option key={code} value={code}>{classLabel(code) ? `${classLabel(code)} · ${code}` : code}</option>)}</select></label>
       <label>Guided Phrase<select value={guidedFilter} onChange={(event) => setGuidedFilter(event.target.value)}><option value="all">Allowed and blocked</option><option value="allowed">Allowed</option><option value="blocked">Blocked</option></select></label>
-      <label>Sort by<select value={sortBy} onChange={(event) => setSortBy(event.target.value)}><option value="name-asc">Name A–Z</option><option value="name-desc">Name Z–A</option><option value="class">Class code</option></select></label>
-      <button type="button" className="admin-filter-clear" onClick={() => { setQuery(""); setApprovalFilter("all"); setClassFilter("all"); setGuidedFilter("all"); setSortBy("name-asc"); }}>Clear filters</button>
+      <label>Sort by<select value={sortBy} onChange={(event) => setSortBy(event.target.value)}><option value="newest">Newest added</option><option value="oldest">First added</option><option value="name-asc">Name A–Z</option><option value="name-desc">Name Z–A</option><option value="class">Class code</option></select></label>
+      <button type="button" className="admin-filter-clear" onClick={() => { setQuery(""); setApprovalFilter("all"); setClassFilter("all"); setGuidedFilter("all"); setSortBy("newest"); }}>Clear filters</button>
     </div>}
     <div className={`admin-user-table ${role === "student" ? "has-guided-access has-class" : ""}`}><div className="admin-user-row headings"><span>Account</span><span>Email</span>{isStudent && <span>Class</span>}<span>Verification</span><span>Access</span>{role === "student" && <span>Guided Phrase</span>}<span>Actions</span></div>
       {visible.map((user) => <div className="admin-user-row" key={user.id}>
