@@ -94,7 +94,7 @@ const appScreens = [
 
 export default function Landing() {
   const androidDownloadUrl =
-    "https://expo.dev/accounts/reybacolod/projects/japlearn/builds/8ec043bc-f503-40ac-a16a-62e1b4bfa16a";
+    "https://github.com/rychfghg/JapLearn-2.0/releases/tag/v1.0.1";
   const [activeScreen, setActiveScreen] = useState(appScreens[0]);
   const [scrollProgress, setScrollProgress] = useState(0);
   const [navScrolled, setNavScrolled] = useState(false);
