@@ -189,7 +189,7 @@ export default function Landing() {
             </span>
             <span className="download-status-divider" aria-hidden="true" />
             <span className="download-status-soon">
-              Google Play and App Store <b>coming soon</b>
+              Google Play release <b>coming soon</b>
             </span>
           </div>
           <div className="trust-row">
@@ -471,7 +471,7 @@ export default function Landing() {
         <div>
           <span className="section-kicker purple-kicker">START YOUR JAPLEARN JOURNEY</span>
           <h2>Japanese practice, ready when you are.</h2>
-          <p>Download the Android app today. Google Play and App Store releases are coming soon.</p>
+          <p>Download the Android app today. A Google Play release is coming soon.</p>
         </div>
         <a className="primary apk-download" href={androidDownloadUrl}>
           <Download size={18} /> Get the Android APK
@@ -491,7 +491,7 @@ export default function Landing() {
         </div>
         <div className="landing-footer-bottom">
           <span>© 2026 JapLearn. All rights reserved.</span>
-          <span>Android and web · iPhone access through the web</span>
+          <span>Android app · Teacher portal on the web</span>
         </div>
       </footer>
     </main>
