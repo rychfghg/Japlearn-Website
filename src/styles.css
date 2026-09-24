@@ -7648,6 +7648,13 @@ button.tile-link { border: 0; background: transparent; padding: 0; font-family: 
 }
 
 /* Admin student list: class column and class picker */
+.admin-student-filters{display:flex;flex-wrap:wrap;align-items:end;gap:12px;padding:16px;background:#fff;border:1px solid #e4dae8;border-radius:17px}
+.admin-student-filters label{display:grid;gap:6px;min-width:145px;flex:1 1 160px;color:#67576e;font-size:12px;font-weight:700}
+.admin-student-filters select{width:100%;min-height:42px;padding:9px 34px 9px 12px;border:1px solid #dfd4e3;border-radius:11px;background:#fcf9fe;color:#3d2447;font:inherit;font-size:13px;cursor:pointer}
+.admin-student-filters select:focus-visible,.admin-filter-clear:focus-visible{outline:3px solid #d5b7ee;outline-offset:2px}
+.admin-filter-clear{min-height:42px;padding:9px 13px;border:1px solid #e3d5ec;border-radius:11px;background:#f7effb;color:#6d259d;font:inherit;font-size:12px;font-weight:700;cursor:pointer}
+.admin-filter-clear:hover{background:#efdef8}
+@media(max-width:560px){.admin-student-filters label{flex-basis:calc(50% - 6px);min-width:0}.admin-filter-clear{width:100%}}
 .admin-user-table.has-guided-access.has-class .admin-user-row{grid-template-columns:1fr 1.1fr 1.1fr .85fr .75fr .95fr .5fr}
 .class-cell{display:grid;gap:3px;justify-items:start;min-width:0}
 .class-cell small{color:#94879a;font-size:10.5px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:100%}

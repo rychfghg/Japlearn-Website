@@ -8,6 +8,10 @@ type ClassOption = { classCode: string; classTitle: string; ownerTeacherEmail: s
 export default function AdminUsersPage({ role }: { role: "student" | "teacher" }) {
   const [users, setUsers] = useState<ManagedUser[]>([]);
   const [query, setQuery] = useState("");
+  const [approvalFilter, setApprovalFilter] = useState("all");
+  const [classFilter, setClassFilter] = useState("all");
+  const [guidedFilter, setGuidedFilter] = useState("all");
+  const [sortBy, setSortBy] = useState("name-asc");
   const [editing, setEditing] = useState<ManagedUser | null>(null);
   const [message, setMessage] = useState("");
   const [accessUpdating, setAccessUpdating] = useState<string[]>([]);
@@ -39,7 +43,7 @@ export default function AdminUsersPage({ role }: { role: "student" | "teacher" }
       setAssignments({});
     }
   };
-  const classOf = (user: ManagedUser) => assignments[user.email?.trim().toLowerCase()] || "";
+  const classOf = (user: ManagedUser) => assignments[user.email?.trim().toLowerCase()] || user.classCode || "";
   const classLabel = (code: string) => {
     const match = classOptions.find((option) => option.classCode === code);
     return match?.classTitle ? `${match.classTitle}` : "";
@@ -53,7 +57,23 @@ export default function AdminUsersPage({ role }: { role: "student" | "teacher" }
     }
   };
   useEffect(() => { void load(); }, [role]);
-  const visible = useMemo(() => users.filter((user) => `${user.fname} ${user.lname} ${user.email} ${assignments[user.email?.trim().toLowerCase()] || ""}`.toLowerCase().includes(query.toLowerCase())), [users, query, assignments]);
+  const availableClasses = useMemo(() => [...new Set([
+    ...classOptions.map((option) => option.classCode),
+    ...Object.values(assignments),
+  ].filter(Boolean))].sort((a, b) => a.localeCompare(b)), [classOptions, assignments]);
+  const visible = useMemo(() => users.filter((user) => {
+    const code = assignments[user.email?.trim().toLowerCase()] || user.classCode || "";
+    const matchesSearch = `${user.fname} ${user.lname} ${user.email} ${code}`.toLowerCase().includes(query.trim().toLowerCase());
+    const matchesApproval = approvalFilter === "all" || (approvalFilter === "approved" ? user.approved : !user.approved);
+    const matchesClass = classFilter === "all" || (classFilter === "with-class" ? !!code : classFilter === "no-class" ? !code : code === classFilter);
+    const matchesGuided = guidedFilter === "all" || (guidedFilter === "allowed" ? user.guidedPhraseEnabled : !user.guidedPhraseEnabled);
+    return matchesSearch && (!isStudent || (matchesApproval && matchesClass && matchesGuided));
+  }).sort((a, b) => {
+    if (!isStudent) return 0;
+    if (sortBy === "name-desc") return `${b.fname} ${b.lname}`.localeCompare(`${a.fname} ${a.lname}`);
+    if (sortBy === "class") return (assignments[a.email?.trim().toLowerCase()] || a.classCode || "").localeCompare(assignments[b.email?.trim().toLowerCase()] || b.classCode || "") || `${a.fname} ${a.lname}`.localeCompare(`${b.fname} ${b.lname}`);
+    return `${a.fname} ${a.lname}`.localeCompare(`${b.fname} ${b.lname}`);
+  }), [users, query, assignments, approvalFilter, classFilter, guidedFilter, sortBy, isStudent]);
 
   const update = async (user: ManagedUser, changes: Partial<ManagedUser>) => {
     const response = await fetch(`${API_URL}/api/users/${user.id}`, { method: "PUT", headers: { "Content-Type": "application/json" }, body: JSON.stringify(changes) });
@@ -118,6 +138,13 @@ export default function AdminUsersPage({ role }: { role: "student" | "teacher" }
     <header><div><small>ACCOUNT DIRECTORY</small><h1>{title}</h1><p>Review contact details, confirmation status, approval, and account access.</p></div><div className="header-actions"><button className="soft-button" onClick={() => void load()}><RefreshCw size={16} />Refresh</button><button className="primary-button" onClick={create}><Plus size={16} />Add {role}</button></div></header>
     {message && <div className="admin-notice">{message}</div>}
     <div className="admin-user-toolbar"><Search /><input placeholder={`Search ${role}s by name or email`} value={query} onChange={(event) => setQuery(event.target.value)} /><span>{visible.length} records</span>{role === "student" && <><button className="bulk-guided allow" onClick={() => void setGuidedAccessForAll(true)}>Allow all</button><button className="bulk-guided block" onClick={() => void setGuidedAccessForAll(false)}>Block all</button></>}</div>
+    {isStudent && <div className="admin-student-filters" aria-label="Student list filters">
+      <label>Approval<select value={approvalFilter} onChange={(event) => setApprovalFilter(event.target.value)}><option value="all">All students</option><option value="approved">Approved</option><option value="pending">Not approved</option></select></label>
+      <label>Class<select value={classFilter} onChange={(event) => setClassFilter(event.target.value)}><option value="all">All classes</option><option value="with-class">With a class</option><option value="no-class">No class</option>{availableClasses.map((code) => <option key={code} value={code}>{classLabel(code) ? `${classLabel(code)} · ${code}` : code}</option>)}</select></label>
+      <label>Guided Phrase<select value={guidedFilter} onChange={(event) => setGuidedFilter(event.target.value)}><option value="all">Allowed and blocked</option><option value="allowed">Allowed</option><option value="blocked">Blocked</option></select></label>
+      <label>Sort by<select value={sortBy} onChange={(event) => setSortBy(event.target.value)}><option value="name-asc">Name A–Z</option><option value="name-desc">Name Z–A</option><option value="class">Class code</option></select></label>
+      <button type="button" className="admin-filter-clear" onClick={() => { setQuery(""); setApprovalFilter("all"); setClassFilter("all"); setGuidedFilter("all"); setSortBy("name-asc"); }}>Clear filters</button>
+    </div>}
     <div className={`admin-user-table ${role === "student" ? "has-guided-access has-class" : ""}`}><div className="admin-user-row headings"><span>Account</span><span>Email</span>{isStudent && <span>Class</span>}<span>Verification</span><span>Access</span>{role === "student" && <span>Guided Phrase</span>}<span>Actions</span></div>
       {visible.map((user) => <div className="admin-user-row" key={user.id}>
         <span className="user-cell"><i>{user.fname?.[0]}{user.lname?.[0]}</i><b>{user.fname} {user.lname}</b></span><span>{user.email}</span>
