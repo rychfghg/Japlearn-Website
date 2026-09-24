@@ -7596,6 +7596,54 @@ button.tile-link { border: 0; background: transparent; padding: 0; font-family: 
   .adm-intro h2 { font-size:30px; }
 }
 
+/* Focused admin sign-in. Only the admin route uses these overrides. */
+.adm-login {
+  min-height:100vh;
+  min-height:100dvh;
+  color:#30243d;
+  background:
+    radial-gradient(circle at 12% 12%,rgba(201,160,244,.32),transparent 32%),
+    radial-gradient(circle at 88% 88%,rgba(178,221,165,.24),transparent 34%),
+    #fbf8ff;
+}
+.adm-shell {
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  max-width:none;
+  padding:32px 20px;
+}
+.adm-card {
+  width:100%;
+  max-width:420px;
+  padding:36px;
+  border:1px solid #eadff2;
+  border-radius:24px;
+  background:#fff;
+  box-shadow:0 24px 60px rgba(80,41,113,.1);
+  backdrop-filter:none;
+}
+.adm-brand { display:flex; align-items:center; gap:11px; margin-bottom:30px; color:#392349; font-size:17px; font-weight:650; letter-spacing:-.02em; }
+.adm-brand img { display:block; width:42px; height:42px; border-radius:12px; object-fit:cover; }
+.adm-card h1 { margin:0 0 28px; color:#30243d; font-size:26px; font-weight:600; letter-spacing:-.035em; }
+.adm-label { margin-bottom:8px; color:#51465c; font-size:13px; font-weight:500; }
+.adm-field { margin-bottom:19px; border:1px solid #e5ddea; border-radius:12px; background:#fdfbff; }
+.adm-field:focus-within { border-color:#8c50ce; box-shadow:0 0 0 3px rgba(140,80,206,.12); }
+.adm-field > svg { color:#796987; }
+.adm-field:focus-within > svg { color:#7930bb; }
+.adm-field input { color:#30243d; }
+.adm-field input::placeholder { color:#a098a8; }
+.adm-toggle { color:#796987; }
+.adm-toggle:hover { color:#5e259d; background:#f3eafa; }
+.adm-submit { margin-top:6px; border-radius:12px; background:#7224bc; font-weight:600; box-shadow:none; }
+.adm-submit:hover:not(:disabled) { background:#601aa5; box-shadow:0 8px 20px rgba(114,36,188,.16); }
+.adm-error { color:#9f294c; background:#fff2f5; border-color:#f3d3dd; }
+.adm-caps-warn { color:#8f5d11; }
+@media(max-width:520px) {
+  .adm-shell { padding:20px 16px; }
+  .adm-card { padding:28px 24px; border-radius:20px; }
+}
+
 /* Admin student list: class column and class picker */
 .admin-user-table.has-guided-access.has-class .admin-user-row{grid-template-columns:1fr 1.1fr 1.1fr .85fr .75fr .95fr .5fr}
 .class-cell{display:grid;gap:3px;justify-items:start;min-width:0}

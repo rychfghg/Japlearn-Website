@@ -6,11 +6,8 @@ import {
   DatabaseZap,
   Eye,
   EyeOff,
-  Gamepad2,
-  KeyRound,
   LockKeyhole,
   TriangleAlert,
-  Users,
   Mail,
   Presentation,
   MailCheck,
@@ -20,6 +17,7 @@ import {
 import { Link, useNavigate } from "react-router-dom";
 import Brand from "../components/Brand";
 import mascot from "../assets/idle.png";
+import appLogo from "../assets/app-logo.png";
 import { EMAIL_PATTERN, loginUser, requestPasswordReset, type PortalRole } from "../lib/api";
 import { session } from "../lib/auth";
 import { startPage } from "../features/teacher/preferences";
@@ -103,46 +101,13 @@ export default function Login({ role }: LoginProps) {
   if (!isTeacher) {
     return (
       <main className="adm-login">
-        <span className="adm-grid" aria-hidden="true" />
-        <span className="adm-glow adm-glow-1" aria-hidden="true" />
-        <span className="adm-glow adm-glow-2" aria-hidden="true" />
-
-        <header className="adm-top">
-          <Brand light />
-          <Link to="/" className="adm-back"><ArrowLeft /> Back to website</Link>
-        </header>
-
         <div className="adm-shell">
-          <section className="adm-intro">
-            <span className="adm-kicker"><ShieldCheck /> 管理者ポータル · ADMIN CONSOLE</span>
-            <h2>Run the whole of JapLearn from one place.</h2>
-            <p>Approve accounts, curate every game, and keep the platform secure for teachers and learners.</p>
-
-            <ul className="adm-caps">
-              <li>
-                <span><Users /></span>
-                <div><b>Accounts and approvals</b><small>Review students and teachers waiting for access</small></div>
-              </li>
-              <li>
-                <span><Gamepad2 /></span>
-                <div><b>Game content</b><small>Edit Quack-a-Mole, QuackSlate, QuackTalk and more</small></div>
-              </li>
-              <li>
-                <span><KeyRound /></span>
-                <div><b>Access control</b><small>Administrator sessions only, expiring automatically</small></div>
-              </li>
-            </ul>
-          </section>
-
           <form className="adm-card" onSubmit={submit}>
-            <div className="adm-card-head">
-              <span className="adm-card-icon"><LockKeyhole /></span>
-              <div>
-                <small>RESTRICTED ACCESS</small>
-                <h1>Administrator sign in</h1>
-              </div>
+            <div className="adm-brand">
+              <img src={appLogo} alt="JapLearn logo" />
+              <span>JapLearn</span>
             </div>
-            <p className="adm-card-lead">Use the administrator account issued by the JapLearn team.</p>
+            <h1>Admin sign in</h1>
 
             {error && <div className="adm-error" role="alert"><TriangleAlert /> {error}</div>}
 
@@ -154,7 +119,7 @@ export default function Login({ role }: LoginProps) {
                 type="email"
                 value={email}
                 onChange={(event) => setEmail(event.target.value)}
-                placeholder="admin@japlearn.com"
+                placeholder="Enter your email"
                 required
                 autoComplete="email"
               />
@@ -186,24 +151,11 @@ export default function Login({ role }: LoginProps) {
             {capsOn && <p className="adm-caps-warn"><TriangleAlert /> Caps Lock is on</p>}
 
             <button className="adm-submit" disabled={loading}>
-              {loading ? "Verifying access…" : "Sign in to console"}
+              {loading ? "Signing in…" : "Sign in"}
               {!loading && <ArrowRight />}
             </button>
-
-            <div className="adm-foot">
-              <ShieldCheck />
-              <span>Only administrator accounts can continue. Sessions expire automatically and every request is verified.</span>
-            </div>
           </form>
         </div>
-
-        <footer className="adm-legal">
-          <Link to="/privacy">Privacy</Link>
-          <span>·</span>
-          <Link to="/terms">Terms</Link>
-          <span>·</span>
-          <Link to="/teacher/login">Teacher sign in</Link>
-        </footer>
       </main>
     );
   }
