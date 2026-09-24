@@ -101,6 +101,9 @@ export default function Login({ role }: LoginProps) {
   if (!isTeacher) {
     return (
       <main className="adm-login">
+        <header className="adm-top">
+          <Link to="/" className="adm-back"><ArrowLeft /> Back to website</Link>
+        </header>
         <div className="adm-shell">
           <form className="adm-card" onSubmit={submit}>
             <div className="adm-brand">

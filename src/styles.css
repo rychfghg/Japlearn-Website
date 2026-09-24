@@ -7606,6 +7606,9 @@ button.tile-link { border: 0; background: transparent; padding: 0; font-family: 
     radial-gradient(circle at 88% 88%,rgba(178,221,165,.24),transparent 34%),
     #fbf8ff;
 }
+.adm-top { padding:24px clamp(16px,4vw,48px) 0; }
+.adm-back { color:#654b79; border-color:#e7ddec; background:rgba(255,255,255,.8); font-weight:500; }
+.adm-back:hover { color:#58218f; border-color:#cdb4e1; }
 .adm-shell {
   display:flex;
   align-items:center;
