@@ -20,6 +20,33 @@ export default function AdminUsersPage({ role }: { role: "student" | "teacher" }
   const [classOptions, setClassOptions] = useState<ClassOption[]>([]);
   const [assignments, setAssignments] = useState<Record<string, string>>({});
   const isStudent = role === "student";
+  // null = not loaded yet (or the backend has no setting endpoint).
+  const [autoApprove, setAutoApprove] = useState<boolean | null>(null);
+  const [autoApproveSaving, setAutoApproveSaving] = useState(false);
+
+  useEffect(() => {
+    if (!isStudent) return;
+    fetch(`${API_URL}/api/admin/registration-settings`)
+      .then((response) => response.ok ? response.json() : null)
+      .then((body) => setAutoApprove(typeof body?.studentAutoApprove === "boolean" ? body.studentAutoApprove : null))
+      .catch(() => setAutoApprove(null));
+  }, [isStudent]);
+
+  const toggleAutoApprove = async () => {
+    if (autoApprove === null || autoApproveSaving) return;
+    const next = !autoApprove;
+    setAutoApproveSaving(true);
+    try {
+      const response = await fetch(`${API_URL}/api/admin/registration-settings`, { method: "PUT", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ studentAutoApprove: next }) });
+      if (!response.ok) throw new Error();
+      setAutoApprove(next);
+      setMessage(next ? "Auto-approval is on. New student accounts are approved automatically." : "Auto-approval is off. New student accounts need your approval.");
+    } catch {
+      setMessage("The auto-approval setting could not be saved. Please try again.");
+    } finally {
+      setAutoApproveSaving(false);
+    }
+  };
 
   const load = async () => {
     setMessage("");
@@ -145,6 +172,10 @@ export default function AdminUsersPage({ role }: { role: "student" | "teacher" }
   const title = role === "student" ? "Student management" : "Teacher management";
   return <div className="admin-users-page">
     <header><div><small>ACCOUNT DIRECTORY</small><h1>{title}</h1><p>Review contact details, confirmation status, approval, and account access.</p></div><div className="header-actions"><button className="soft-button" onClick={() => void load()}><RefreshCw size={16} />Refresh</button><button className="primary-button" onClick={create}><Plus size={16} />Add {role}</button></div></header>
+    {isStudent && <div className="admin-auto-approve">
+      <div><strong>Auto-approve new students</strong><p>{autoApprove === null ? "Unavailable until the updated backend is running." : autoApprove ? "On: students who sign up are approved automatically (they still confirm their email)." : "Off: each new student waits for your manual approval."}</p></div>
+      <button type="button" role="switch" aria-checked={!!autoApprove} aria-label="Auto-approve new students" disabled={autoApprove === null || autoApproveSaving} onClick={() => void toggleAutoApprove()} className={`admin-switch${autoApprove ? " on" : ""}`}><span /></button>
+    </div>}
     {message && <div className="admin-notice">{message}</div>}
     <div className="admin-user-toolbar"><Search /><input placeholder={`Search ${role}s by name or email`} value={query} onChange={(event) => setQuery(event.target.value)} /><span>{visible.length} records</span>{role === "student" && <><button className="bulk-guided allow" onClick={() => void setGuidedAccessForAll(true)}>Allow all</button><button className="bulk-guided block" onClick={() => void setGuidedAccessForAll(false)}>Block all</button></>}</div>
     {isStudent && <div className="admin-student-filters" aria-label="Student list filters">
