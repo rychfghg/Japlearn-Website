@@ -131,7 +131,9 @@ export default function AdminUsersPage({ role }: { role: "student" | "teacher" }
     if (isStudent) {
       const saved = await response.json().catch(() => null);
       const studentId = user.id || saved?.id;
-      const previous = user.id ? classOf(user) : "";
+      // Compare against the stored class, not the edited form (which already holds the new pick).
+      const original = users.find((item) => item.id === user.id);
+      const previous = user.id && original ? classOf(original) : "";
       if (studentId && classCode.trim() !== previous) {
         try { await saveClass(studentId, classCode.trim()); }
         catch (error) { classNote = ` The class was not changed: ${error instanceof Error ? error.message : "please try again"}.`; }
