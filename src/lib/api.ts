@@ -21,7 +21,8 @@ export type User = {
 export function portalFetch(input: RequestInfo | URL, init: RequestInit = {}) {
   let token = "";
   try {
-    token = String(JSON.parse(localStorage.getItem("japlearn_portal_user") || "null")?.portalSessionToken || "");
+    // Admin sessions are in sessionStorage, teacher sessions in localStorage.
+    token = String(JSON.parse(sessionStorage.getItem("japlearn_portal_user") || localStorage.getItem("japlearn_portal_user") || "null")?.portalSessionToken || "");
   } catch { /* An invalid local session is handled as signed out by the route guard. */ }
   const headers = new Headers(init.headers);
   if (token) headers.set("X-Portal-Token", token);
