@@ -102,7 +102,8 @@ export default function TeacherSignup() {
             <h1>Check your email</h1>
             <p>
               We sent a confirmation link to <b>{form.email}</b>. Confirm your
-              email, then return to the teacher login.
+              email. A JapLearn admin will then review and approve your teacher
+              account before you can sign in.
             </p>
             <button className="submit" onClick={() => navigate("/teacher/login")}>
               Continue to teacher login <ArrowRight />

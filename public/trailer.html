@@ -1,0 +1,359 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>JapLearn Trailer</title>
+<meta name="description" content="JapLearn: Japanese, made interactive. A tour of the app: Home, Learn, Talk with Sumi, Exercises and Profile." />
+<link rel="icon" href="/japlearn-logo.png" />
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Jua&family=Inter:wght@400;600;800&display=swap" rel="stylesheet" />
+<style>
+  :root {
+    --violet: #8423d9; --violet-2: #a24deb; --deep: #3a0f5c; --ink: #1d0b2b; --lime: #c8f0a8; --pink: #ff9fcb;
+    --white: #ffffff; --soft: rgba(255,255,255,.72);
+    --ease: cubic-bezier(.22,.9,.24,1);
+  }
+  * { box-sizing: border-box; margin: 0; }
+  html, body { height: 100%; background: #0b0312; color: var(--white); font-family: Inter, system-ui, sans-serif; overflow: hidden; }
+
+  /* 16:9 stage; 1em = 1% of stage width */
+  .frame { position: fixed; inset: 0; display: grid; place-items: center; }
+  .stage {
+    position: relative; width: min(100vw, calc(100vh * 16 / 9)); aspect-ratio: 16 / 9; overflow: hidden;
+    font-size: min(1vw, calc(100vh * 16 / 9 / 100));
+    background:
+      radial-gradient(70% 90% at 78% 30%, rgba(162,77,235,.45), transparent 60%),
+      radial-gradient(50% 60% at 8% 95%, rgba(255,159,203,.18), transparent 70%),
+      radial-gradient(120% 120% at 15% 0%, #5b1a90 0%, var(--deep) 42%, var(--ink) 100%);
+  }
+  .blob { position: absolute; border-radius: 50%; filter: blur(3em); opacity: .55; animation: drift 16s ease-in-out infinite alternate; }
+  .blob.a { width: 42em; height: 42em; background: #7b26ce; top: -18em; right: -10em; }
+  .blob.b { width: 28em; height: 28em; background: #2f8f6b; bottom: -16em; left: -10em; opacity: .3; animation-duration: 20s; }
+  .blob.c { width: 20em; height: 20em; background: #d9468c; bottom: -8em; right: 28em; opacity: .22; animation-duration: 24s; }
+  @keyframes drift { to { transform: translate(-4em, 3em) scale(1.1); } }
+  .kana-rain span { position: absolute; font-family: Jua, sans-serif; color: rgba(255,255,255,.055); font-size: 6.5em; animation: fall linear infinite; }
+  @keyframes fall { from { transform: translateY(-20%) rotate(0); } to { transform: translateY(130vh) rotate(20deg); } }
+  .petal { position: absolute; top: -4em; width: 1.4em; height: 1em; background: linear-gradient(135deg, #ffd6e8, var(--pink)); border-radius: 1em .2em 1em .2em; opacity: .5; animation: petal linear infinite; }
+  @keyframes petal { 0% { transform: translate(0, 0) rotate(0); } 50% { transform: translate(6em, 32em) rotate(160deg); } 100% { transform: translate(-2em, 64em) rotate(340deg); } }
+  .grain { position: absolute; inset: 0; pointer-events: none; opacity: .5; background-image: radial-gradient(rgba(255,255,255,.035) 1px, transparent 1px); background-size: .5em .5em; }
+  .vignette { position: absolute; inset: 0; pointer-events: none; background: radial-gradient(120% 90% at 50% 50%, transparent 60%, rgba(0,0,0,.45)); }
+
+  /* Scenes (captions + decorations). The phone lives outside so it never re-enters. */
+  .scene { position: absolute; inset: 0; opacity: 0; visibility: hidden; transition: opacity .7s var(--ease), visibility .7s; }
+  .scene.active { opacity: 1; visibility: visible; }
+  .in { opacity: 0; }
+  .scene.active .in { animation: rise .9s var(--ease) both; }
+  .scene.active .d1 { animation-delay: .15s !important; } .scene.active .d2 { animation-delay: .3s !important; }
+  .scene.active .d3 { animation-delay: .45s !important; } .scene.active .d4 { animation-delay: .6s !important; }
+  .scene.active .d5 { animation-delay: .9s !important; } .scene.active .d6 { animation-delay: 1.3s !important; }
+  .scene.active .d7 { animation-delay: 1.8s !important; } .scene.active .d8 { animation-delay: 2.4s !important; }
+  .scene.active .d9 { animation-delay: 3s !important; }
+  @keyframes rise { from { opacity: 0; transform: translateY(2em); filter: blur(.3em); } to { opacity: 1; transform: none; filter: none; } }
+  @keyframes pop { 0% { opacity: 0; transform: scale(.3) rotate(-10deg); } 65% { opacity: 1; transform: scale(1.1) rotate(3deg); } 100% { opacity: 1; transform: none; } }
+  @keyframes floaty { 50% { translate: 0 -1.2em; } }
+  .float { animation: floaty 4s ease-in-out infinite; }
+
+  h1, h2 { font-family: Jua, sans-serif; font-weight: 400; line-height: 1.04; }
+  h2 { font-size: 5.2em; margin-top: .3em; }
+  h2 em { font-style: normal; color: var(--lime); }
+  .lead { font-size: 1.8em; color: var(--soft); margin-top: .7em; line-height: 1.45; }
+
+  /* Caption column */
+  .caption { position: absolute; left: 7em; top: 50%; transform: translateY(-50%); width: 34em; }
+  .eyebrow { display: inline-flex; align-items: center; gap: .8em; font-weight: 800; letter-spacing: .3em; font-size: 1.15em; color: var(--lime); }
+  .eyebrow b { font-family: Jua, sans-serif; font-weight: 400; letter-spacing: 0; font-size: 1.3em; color: var(--ink); background: var(--lime); border-radius: .5em; padding: .15em .5em; }
+  .dots { display: flex; gap: .6em; margin-top: 2.4em; }
+  .dots i { width: 1.2em; height: .5em; border-radius: 99em; background: rgba(255,255,255,.2); }
+  .dots i.on { width: 3.6em; background: var(--lime); }
+
+  /* ---------- Persistent phone ---------- */
+  .device {
+    position: absolute; left: 47em; top: 50%; width: 25.5em; aspect-ratio: 615 / 1035; z-index: 4;
+    transform: translate(0, -50%) translateY(6em) rotate(-4deg) scale(.92); opacity: 0;
+    transition: transform 1.1s var(--ease), opacity .8s var(--ease), left 1.1s var(--ease);
+  }
+  .stage.with-device .device { opacity: 1; transform: translate(0, -50%) rotate(0) scale(1); }
+  .stage.outro .device { left: 12em; transform: translate(0, -50%) rotate(-6deg) scale(1.02); }
+  .device .body { position: absolute; inset: 0; padding: .95em; border-radius: 4em; background: linear-gradient(145deg, #3a2154, #120719 55%); box-shadow: 0 4em 7em rgba(0,0,0,.55), 0 0 0 .2em rgba(255,255,255,.12), inset 0 0 0 .18em #4b2a6b; }
+  .device .body::after { content: ""; position: absolute; top: 1.6em; left: 50%; width: 6.6em; height: 1.5em; transform: translateX(-50%); border-radius: 99em; background: #0b0312; z-index: 6; }
+  .device .halo { position: absolute; inset: -6em; border-radius: 50%; background: radial-gradient(circle, rgba(200,240,168,.18), rgba(162,77,235,.25) 40%, transparent 68%); filter: blur(1.5em); z-index: -1; }
+  .glass { position: absolute; inset: .95em; border-radius: 3.1em; overflow: hidden; background: #faf7fd; }
+  .glass::after { content: ""; position: absolute; inset: 0; z-index: 5; pointer-events: none; background: linear-gradient(115deg, rgba(255,255,255,.18) 0%, transparent 28%, transparent 70%, rgba(255,255,255,.06) 100%); }
+
+  /* Pages slide like app navigation */
+  .page { position: absolute; inset: 0; transform: translateX(100%); transition: transform .75s var(--ease), filter .75s; background: #faf7fd; }
+  .page.current { transform: translateX(0); z-index: 2; }
+  .page.prev { transform: translateX(-28%); filter: brightness(.85); z-index: 1; }
+  /* Screens inside a page "scroll" from one screenshot to the next */
+  .shot { position: absolute; inset: 0; opacity: 0; transform: translateY(10%); transition: opacity .7s var(--ease), transform .9s var(--ease); }
+  .shot.on { opacity: 1; transform: none; }
+  .shot.past { opacity: 0; transform: translateY(-10%); }
+  .shot img { width: 100%; height: 100%; object-fit: cover; object-position: top; display: block; }
+
+  /* Finger tap */
+  .tap { position: absolute; z-index: 7; width: 3.4em; height: 3.4em; margin: -1.7em 0 0 -1.7em; border-radius: 50%; background: rgba(255,255,255,.6); border: .25em solid rgba(132,35,217,.85); box-shadow: 0 .6em 1.4em rgba(0,0,0,.3); opacity: 0; pointer-events: none; }
+  .tap::after { content: ""; position: absolute; inset: -.3em; border-radius: 50%; border: .25em solid rgba(200,240,168,.9); opacity: 0; }
+  .tap.go { animation: tapMove 1.1s var(--ease) both; }
+  .tap.go::after { animation: ripple .7s .55s ease-out both; }
+  @keyframes tapMove { 0% { opacity: 0; transform: translate(5em, -7em) scale(1.3); } 50% { opacity: 1; transform: none; } 62% { transform: scale(.78); } 78% { transform: scale(1); opacity: 1; } 100% { opacity: 0; transform: scale(1); } }
+  @keyframes ripple { from { opacity: 1; transform: scale(.5); } to { opacity: 0; transform: scale(2.6); } }
+
+  /* ---------- Decorations around the phone ---------- */
+  .deco { position: absolute; }
+  .glass-card { background: rgba(255,255,255,.1); border: .1em solid rgba(255,255,255,.18); backdrop-filter: blur(.8em); border-radius: 1.6em; padding: 1.2em 1.5em; box-shadow: 0 1.4em 3em rgba(0,0,0,.25); }
+  .glass-card small { display: block; font-size: 1.05em; letter-spacing: .18em; font-weight: 800; color: var(--lime); }
+  .glass-card b { display: block; font-family: Jua, sans-serif; font-weight: 400; font-size: 2.3em; margin-top: .15em; }
+  .glass-card span { font-size: 1.25em; color: var(--soft); }
+  .scene.active .deco.pop { animation: pop .8s var(--ease) both; }
+
+  /* Home: animated goal ring */
+  .ring { width: 9em; height: 9em; border-radius: 50%; display: grid; place-items: center; background: conic-gradient(var(--lime) calc(var(--p) * 1%), rgba(255,255,255,.12) 0); --p: 0; }
+  .ring::before { content: ""; position: absolute; width: 7em; height: 7em; border-radius: 50%; background: #2a0d44; }
+  .ring b { position: relative; font-family: Jua, sans-serif; font-weight: 400; font-size: 2.2em; }
+  .ring b small { font-size: .5em; color: var(--soft); }
+  @property --p { syntax: '<number>'; inherits: false; initial-value: 0; }
+  .scene.active .ring { animation: ringFill 2.4s 1.4s var(--ease) forwards; }
+  @keyframes ringFill { to { --p: 72; } }
+  .flame { font-size: 3em; display: inline-block; }
+  .scene.active .flame { animation: flicker 1.2s ease-in-out infinite; }
+  @keyframes flicker { 50% { transform: scale(1.12) rotate(-6deg); } }
+
+  /* Learn: flipping kana tiles */
+  .tile { width: 9em; height: 10.5em; perspective: 50em; }
+  .tile .in3d { position: relative; width: 100%; height: 100%; transform-style: preserve-3d; }
+  .scene.active .tile .in3d { animation: flip 1.1s var(--ease) both; }
+  @keyframes flip { 0%, 30% { transform: rotateY(0); } 100% { transform: rotateY(180deg); } }
+  .face { position: absolute; inset: 0; border-radius: 1.6em; display: grid; place-items: center; backface-visibility: hidden; font-family: Jua, sans-serif; }
+  .face.f { background: var(--white); color: var(--violet); font-size: 5.2em; box-shadow: 0 .12em 0 #d9c6ea, 0 .4em .8em rgba(0,0,0,.25); }
+  .face.b { background: linear-gradient(145deg, var(--violet-2), var(--violet)); color: var(--white); font-size: 3.6em; transform: rotateY(180deg); box-shadow: 0 .12em 0 #5e1aa3; }
+
+  /* Talk: Sumi beside the phone */
+  .sumi { position: absolute; right: -1em; bottom: -6em; height: 108%; width: 30em; z-index: 3; }
+  .sumi img { position: absolute; bottom: 0; left: 50%; height: 100%; transform: translateX(-50%); filter: drop-shadow(0 2em 3em rgba(0,0,0,.45)); }
+  .scene.active .sumi { animation: sumiIn 1.1s .3s var(--ease) both; }
+  @keyframes sumiIn { from { opacity: 0; transform: translateX(6em); } to { opacity: 1; transform: none; } }
+  .sumi .open, .sumi .blink { visibility: hidden; }
+  .sumi.talking .open { visibility: visible; }
+  .sumi.blinking .blink { visibility: visible; }
+  .subtitle { margin-top: 2.2em; background: rgba(255,255,255,.96); color: var(--ink); border-radius: 1.6em; padding: 1.3em 1.6em; box-shadow: 0 1.4em 3em rgba(0,0,0,.35); opacity: 0; transform: translateY(1em); transition: opacity .45s var(--ease), transform .45s var(--ease); position: relative; }
+  .subtitle.show { opacity: 1; transform: none; }
+  .subtitle .who { display: flex; align-items: center; gap: .6em; font-weight: 800; letter-spacing: .16em; font-size: 1em; color: var(--violet); }
+  .wave { display: inline-flex; gap: .2em; align-items: center; height: 1.4em; margin-left: auto; }
+  .wave i { width: .3em; height: 30%; border-radius: 99em; background: #d9468c; transition: height .08s; }
+  .subtitle .jp { font-family: Jua, sans-serif; font-size: 2.4em; margin-top: .25em; }
+  .subtitle .ro { font-size: 1.3em; color: #7b6a86; font-style: italic; margin-top: .2em; }
+  .subtitle .en { font-size: 1.4em; margin-top: .25em; }
+  .score { display: inline-flex; margin-top: 1.4em; gap: .6em; align-items: center; font-family: Jua, sans-serif; font-size: 2em; background: var(--lime); color: var(--ink); border-radius: 99em; padding: .3em 1em; opacity: 0; }
+  .score.show { animation: pop .7s var(--ease) both; }
+
+  /* Exercises: game feedback tokens */
+  .token { font-family: Jua, sans-serif; font-size: 2.4em; padding: .3em .9em; border-radius: 99em; color: var(--ink); box-shadow: 0 .4em 1.2em rgba(0,0,0,.3); }
+  .token.lime { background: var(--lime); } .token.pink { background: #ffc3dd; } .token.white { background: var(--white); } .token.gold { background: #ffd96b; }
+  .mole { width: 11em; }
+
+  /* Profile: badges */
+  .badge { width: 9.5em; height: 9.5em; border-radius: 50%; display: grid; place-items: center; font-family: Jua, sans-serif; font-size: 1em; position: relative; box-shadow: inset 0 -.6em 0 rgba(0,0,0,.18), 0 1em 2em rgba(0,0,0,.3); }
+  .badge span { font-size: 2.8em; }
+  .badge.red { background: radial-gradient(circle at 40% 35%, #ff6b52, #c81d12); color: #7a0d06; }
+  .badge.green { background: radial-gradient(circle at 40% 35%, #5cf06a, #13a524); color: #0a5c13; }
+  .badge.gold { background: radial-gradient(circle at 40% 35%, #ffe066, #c99a06); color: #7a5c00; }
+  .badge::after { content: "✓"; position: absolute; right: .2em; bottom: .3em; width: 2.6em; height: 2.6em; border-radius: .7em; background: #6cbf3c; color: #fff; display: grid; place-items: center; font-size: 1.1em; border: .2em solid #fff; }
+  .badge label { position: absolute; bottom: -2.6em; left: 50%; transform: translateX(-50%); font-family: Inter, sans-serif; font-weight: 800; font-size: 1.3em; color: var(--white); white-space: nowrap; }
+  .toast { display: flex; align-items: center; gap: .8em; font-size: 1.6em; font-weight: 800; color: var(--ink); background: var(--white); border-radius: 1em; padding: .7em 1.2em; box-shadow: 0 1em 2em rgba(0,0,0,.3); }
+  .toast i { font-style: normal; font-size: 1.4em; }
+
+  /* ---------- Intro ---------- */
+  .intro { position: absolute; inset: 0; display: grid; place-items: center; align-content: center; text-align: center; }
+  .kana-row { display: flex; gap: 1.6em; margin-bottom: 3em; }
+  .scene.active .kana-row .tile:nth-child(1) .in3d { animation-delay: .9s; } .scene.active .kana-row .tile:nth-child(2) .in3d { animation-delay: 1.1s; }
+  .scene.active .kana-row .tile:nth-child(3) .in3d { animation-delay: 1.3s; } .scene.active .kana-row .tile:nth-child(4) .in3d { animation-delay: 1.5s; }
+  .scene.active .kana-row .tile:nth-child(5) .in3d { animation-delay: 1.7s; }
+  .kana-row .tile:nth-child(odd) { translate: 0 1.2em; }
+  .wordmark { display: inline-flex; align-items: center; gap: .15em; font-size: 8.4em; }
+  .wordmark img { width: .95em; height: .95em; border-radius: .24em; margin-right: .18em; box-shadow: 0 .1em .3em rgba(0,0,0,.35); }
+  .wordmark span { color: var(--lime); }
+  .tagline { font-family: Jua, sans-serif; font-size: 3.4em; margin-top: .3em; color: var(--soft); }
+  .tagline em { font-style: normal; background: linear-gradient(90deg, var(--lime), #ffc3dd); -webkit-background-clip: text; background-clip: text; color: transparent; }
+  .intro-duck { position: absolute; right: 8em; bottom: -1em; width: 17em; }
+  .scene.active .intro-duck { animation: pop .9s 2.2s var(--ease) both; }
+
+  /* ---------- Outro ---------- */
+  .outro-copy { position: absolute; left: 46em; top: 50%; transform: translateY(-50%); width: 46em; }
+  .outro-copy h2 { font-size: 7em; }
+  .download { display: inline-flex; align-items: center; gap: .7em; margin-top: .9em; font-family: Jua, sans-serif; font-size: 3em; color: var(--ink); background: var(--lime); padding: .5em 1.4em; border-radius: 99em; box-shadow: 0 .22em 0 #8fc46d, 0 1em 2.4em rgba(200,240,168,.35); }
+  .scene.active .download { animation: rise .9s .6s var(--ease) both, beat 1.6s 1.8s ease-in-out infinite; }
+  @keyframes beat { 50% { transform: scale(1.05); box-shadow: 0 .22em 0 #8fc46d, 0 1em 3.6em rgba(200,240,168,.6); } }
+  .meta { margin-top: 1.4em; font-size: 1.6em; color: var(--soft); }
+  .meta b { color: var(--white); }
+
+  /* ---------- Controls ---------- */
+  .controls { position: absolute; left: 0; right: 0; bottom: 0; display: flex; align-items: center; gap: 1.2em; padding: 1.4em 2em; background: linear-gradient(transparent, rgba(0,0,0,.6)); opacity: 0; transition: opacity .3s; z-index: 20; }
+  .stage:hover .controls, .stage.paused .controls, .stage.ended .controls { opacity: 1; }
+  .controls button { font: inherit; font-size: 1.5em; font-weight: 800; color: var(--ink); background: var(--white); border: 0; border-radius: 99em; padding: .5em 1.1em; cursor: pointer; }
+  .controls button:focus-visible, .start button:focus-visible { outline: .2em solid var(--lime); outline-offset: .2em; }
+  .track { flex: 1; height: .5em; background: rgba(255,255,255,.22); border-radius: 99em; overflow: hidden; }
+  .track div { height: 100%; width: 0; background: var(--lime); }
+  .controls a { color: var(--white); font-size: 1.4em; text-decoration: none; opacity: .85; }
+  .start { position: absolute; inset: 0; display: grid; place-items: center; align-content: center; gap: 1.2em; background: rgba(11,3,18,.55); backdrop-filter: blur(.5em); z-index: 21; }
+  .start button { font-family: Jua, sans-serif; font-size: 3.4em; color: var(--ink); background: var(--lime); border: 0; border-radius: 99em; padding: .45em 1.4em; cursor: pointer; box-shadow: 0 .2em 0 #8fc46d; }
+  .start p { font-size: 1.5em; color: var(--soft); }
+  .start.hidden { display: none; }
+  .stage.paused .scene, .stage.paused .scene *, .stage.paused .tap { animation-play-state: paused !important; }
+  @media (prefers-reduced-motion: reduce) { .blob, .petal, .kana-rain span, .float { animation: none; } }
+</style>
+</head>
+<body>
+<div class="frame">
+  <div class="stage paused" id="stage">
+    <div class="blob a"></div><div class="blob b"></div><div class="blob c"></div>
+    <div class="kana-rain" id="rain" aria-hidden="true"></div>
+    <div id="petals" aria-hidden="true"></div>
+
+    <!-- Persistent phone: pages slide like the real app -->
+    <div class="device" id="device" aria-hidden="true">
+      <div class="halo"></div>
+      <div class="body"></div>
+      <div class="glass">
+        <div class="page" data-page="1">
+          <div class="shot" data-at="0"><img src="/trailer/screens/home-1.png" alt="" /></div>
+          <div class="shot" data-at="3600"><img src="/trailer/screens/home-2.png" alt="" /></div>
+        </div>
+        <div class="page" data-page="2">
+          <div class="shot" data-at="0"><img src="/trailer/screens/learn-1.png" alt="" /></div>
+          <div class="shot" data-at="3600"><img src="/trailer/screens/learn-2.png" alt="" /></div>
+        </div>
+        <div class="page" data-page="3">
+          <div class="shot" data-at="0"><img src="/trailer/screens/talk.png" alt="" /></div>
+        </div>
+        <div class="page" data-page="4">
+          <div class="shot" data-at="0"><img src="/trailer/screens/play-1.png" alt="" /></div>
+          <div class="shot" data-at="3000"><img src="/trailer/screens/play-2.webp" alt="" /></div>
+          <div class="shot" data-at="5800"><img src="/trailer/screens/play-3.webp" alt="" /></div>
+        </div>
+        <div class="page" data-page="5">
+          <div class="shot" data-at="0"><img src="/trailer/screens/profile-1.png" alt="" /></div>
+          <div class="shot" data-at="3400"><img src="/trailer/screens/profile-2.png" alt="" /></div>
+        </div>
+        <span class="tap" id="tap"></span>
+      </div>
+    </div>
+
+    <!-- 0. Intro -->
+    <section class="scene" data-duration="6200" aria-label="Intro">
+      <div class="intro">
+        <div class="kana-row">
+          <div class="tile in"><div class="in3d"><div class="face f">あ</div><div class="face b">a</div></div></div>
+          <div class="tile in d1"><div class="in3d"><div class="face f">に</div><div class="face b">ni</div></div></div>
+          <div class="tile in d2"><div class="in3d"><div class="face f">ほ</div><div class="face b">ho</div></div></div>
+          <div class="tile in d3"><div class="in3d"><div class="face f">ん</div><div class="face b">n</div></div></div>
+          <div class="tile in d4"><div class="in3d"><div class="face f">ご</div><div class="face b">go</div></div></div>
+        </div>
+        <h1 class="wordmark in d5"><img src="/trailer/applogo.png" alt="" />Jap<span>Learn</span></h1>
+        <div class="tagline in d6">Japanese, made <em>interactive.</em></div>
+      </div>
+      <img class="intro-duck float" src="/trailer/hello.png" alt="JapLearn duck waving" />
+    </section>
+
+    <!-- 1. Home -->
+    <section class="scene" data-step="1" data-duration="7600" data-tap="32" aria-label="Home">
+      <div class="caption">
+        <div class="eyebrow in"><b>01</b>HOME</div>
+        <h2 class="in d1">Your day, <em>at a glance</em></h2>
+        <p class="lead in d2">Hit your daily goal, stay connected to your class, and jump straight back into learning.</p>
+        <div class="dots in d3"><i class="on"></i><i></i><i></i><i></i><i></i></div>
+      </div>
+      <div class="deco pop d5" style="right:6em;top:12%"><div class="glass-card float" style="display:flex;align-items:center;gap:1.4em"><div class="ring" style="position:relative"><b>4<small>/20</small></b></div><div><small>DAILY GOAL</small><b>Keep it going</b><span>minutes today</span></div></div></div>
+      <div class="deco pop d7" style="right:12em;top:47%"><div class="glass-card float" style="animation-delay:-1.3s"><span class="flame">🔥</span> <b style="display:inline">7-day streak</b></div></div>
+      <div class="deco pop d8" style="right:5em;bottom:14%"><div class="glass-card float" style="animation-delay:-2.4s"><small>YOUR CLASS</small><b>Nihongo 1 ✓</b><span>Joined with a class code</span></div></div>
+    </section>
+
+    <!-- 2. Learn -->
+    <section class="scene" data-step="2" data-duration="7600" data-tap="50" aria-label="Learn">
+      <div class="caption">
+        <div class="eyebrow in"><b>02</b>LEARN</div>
+        <h2 class="in d1">Kana, words, <em>grammar</em></h2>
+        <p class="lead in d2">Three guided paths. Clear a milestone to unlock the next, from your first あ to full sentences.</p>
+        <div class="dots in d3"><i></i><i class="on"></i><i></i><i></i><i></i></div>
+      </div>
+      <div class="deco pop d5" style="right:15em;top:10%"><div class="tile float"><div class="in3d" style="animation-delay:1.6s"><div class="face f">か</div><div class="face b">ka</div></div></div></div>
+      <div class="deco pop d6" style="right:4em;top:30%"><div class="tile float" style="animation-delay:-1.5s"><div class="in3d" style="animation-delay:2.2s"><div class="face f">カ</div><div class="face b">ka</div></div></div></div>
+      <div class="deco pop d7" style="right:14em;bottom:16%"><div class="tile float" style="animation-delay:-3s"><div class="in3d" style="animation-delay:2.8s"><div class="face f">ほ</div><div class="face b">ho</div></div></div></div>
+      <div class="deco pop d9" style="right:3em;bottom:8%"><div class="glass-card"><small>NEXT MILESTONE</small><b>Words unlocked</b></div></div>
+    </section>
+
+    <!-- 3. Talk -->
+    <section class="scene" data-step="3" data-duration="12000" data-tap="69" data-sumi="true" aria-label="Talk with Sumi">
+      <div class="caption">
+        <div class="eyebrow in"><b>03</b>TALK</div>
+        <h2 class="in d1">Speak with <em>Sumi</em></h2>
+        <p class="lead in d2">Your Japanese speaking coach. Listen, answer, and practice pronunciation out loud.</p>
+        <div class="subtitle" id="subtitle">
+          <div class="who">🔊 SUMI <span class="wave" id="wave"><i></i><i></i><i></i><i></i><i></i></span></div>
+          <div class="jp" id="subJp"></div>
+          <div class="ro" id="subRo"></div>
+          <div class="en" id="subEn"></div>
+        </div>
+        <div class="score" id="scoreChip">⭐ Great pronunciation!</div>
+      </div>
+      <div class="sumi" id="sumi">
+        <img class="smile" src="/trailer/sumi-smile.png" alt="Sumi, the JapLearn speaking coach" />
+        <img class="open" src="/trailer/sumi-open.png" alt="" />
+        <img class="blink" src="/trailer/sumi-blink.png" alt="" />
+      </div>
+    </section>
+
+    <!-- 4. Exercises -->
+    <section class="scene" data-step="4" data-duration="9600" data-tap="87" aria-label="Exercises">
+      <div class="caption">
+        <div class="eyebrow in"><b>04</b>EXERCISES</div>
+        <h2 class="in d1">Five games. <em>Zero boredom.</em></h2>
+        <p class="lead in d2">Quack-a-Mole, Quackman, QuackSlate, QuackSituate and QuackResponse turn every lesson into a skill.</p>
+        <div class="dots in d3"><i></i><i></i><i></i><i class="on"></i><i></i></div>
+      </div>
+      <div class="deco pop d5" style="right:8em;top:10%"><span class="token lime float">+120 XP</span></div>
+      <div class="deco pop d7" style="right:3em;top:34%"><span class="token white float" style="animation-delay:-1s">Correct! ✓</span></div>
+      <div class="deco pop d8" style="right:12em;top:55%"><span class="token gold float" style="animation-delay:-2s">Combo ×3 🔥</span></div>
+      <div class="deco pop d9" style="right:4em;bottom:10%"><img class="mole float" src="/trailer/surprised.png" alt="" style="animation-delay:-.6s" /></div>
+    </section>
+
+    <!-- 5. Profile -->
+    <section class="scene" data-step="5" data-duration="7800" aria-label="Profile">
+      <div class="caption">
+        <div class="eyebrow in"><b>05</b>PROFILE</div>
+        <h2 class="in d1">Collect every <em>badge</em></h2>
+        <p class="lead in d2">Your account, your class, and the Character, Word and Sentence badges you've earned.</p>
+        <div class="dots in d3"><i></i><i></i><i></i><i></i><i class="on"></i></div>
+      </div>
+      <div class="deco pop d5" style="right:13em;top:9%"><div class="badge red float"><span>かな</span><label>Character</label></div></div>
+      <div class="deco pop d7" style="right:2.5em;top:33%"><div class="badge green float" style="animation-delay:-1.4s"><span>たんご</span><label>Word</label></div></div>
+      <div class="deco pop d8" style="right:13em;top:57%"><div class="badge gold float" style="animation-delay:-2.6s"><span>ぶん</span><label>Sentence</label></div></div>
+      <div class="deco pop d9" style="right:2em;bottom:8%"><div class="toast"><i>🏆</i>Badge unlocked!</div></div>
+    </section>
+
+    <!-- 6. Download -->
+    <section class="scene" data-step="1" data-outro="true" data-duration="8000" aria-label="Download JapLearn">
+      <div class="outro-copy">
+        <div class="eyebrow in"><b>あ</b>JAPLEARN</div>
+        <h2 class="in d1">Japanese,<br />made <em>interactive.</em></h2>
+        <div class="download">Download now →</div>
+        <div class="meta in d6"><b>Free on Android</b> · japlearn.com</div>
+      </div>
+      <img class="intro-duck float" src="/trailer/idle.png" alt="" style="right:4em;width:13em" />
+    </section>
+
+    <div class="grain"></div><div class="vignette"></div>
+    <div class="start" id="start"><button type="button" id="startBtn">▶ Play trailer</button><p>Sound on 🔊</p></div>
+    <div class="controls">
+      <button type="button" id="toggle">Pause</button>
+      <button type="button" id="replay">Replay</button>
+      <button type="button" id="mute">Sound: On</button>
+      <div class="track"><div id="bar"></div></div>
+      <a href="/">Back to JapLearn</a>
+    </div>
+  </div>
+</div>
+<script src="/trailer/trailer.js" defer></script>
+</body>
+</html>
