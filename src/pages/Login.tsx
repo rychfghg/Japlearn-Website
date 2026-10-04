@@ -1,4 +1,4 @@
-import { type FormEvent, useState } from "react";
+import { type FormEvent, useEffect, useState } from "react";
 import {
   ArrowLeft,
   ArrowRight,
@@ -18,7 +18,7 @@ import { Link, useNavigate } from "react-router-dom";
 import Brand from "../components/Brand";
 import mascot from "../assets/idle.png";
 import appLogo from "../assets/app-logo.png";
-import { EMAIL_PATTERN, loginUser, requestPasswordReset, type PortalRole } from "../lib/api";
+import { EMAIL_PATTERN, loginUser, notifyAdminVisit, requestPasswordReset, type PortalRole } from "../lib/api";
 import { session } from "../lib/auth";
 import { startPage } from "../features/teacher/preferences";
 
@@ -40,6 +40,11 @@ export default function Login({ role }: LoginProps) {
   const [resetError, setResetError] = useState("");
   const [resetSending, setResetSending] = useState(false);
   const [resetSent, setResetSent] = useState(false);
+
+  // Security alert to the owner whenever the admin login page is opened.
+  useEffect(() => {
+    if (role === "admin") notifyAdminVisit("/admin/login");
+  }, [role]);
 
   const openReset = () => {
     setResetEmail(email);

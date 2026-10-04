@@ -38,6 +38,12 @@ export default function TeacherSignup() {
     event.preventDefault();
     if (loading) return;
 
+    // Same rule the server enforces: only Gmail or CIT emails can sign up.
+    if (!/^[^\s@]+@(gmail\.com|cit\.edu)$/i.test(form.email.trim())) {
+      setError("Please use a valid Gmail address.");
+      return;
+    }
+
     if (form.password.length < 8) {
       setError("Use at least 8 characters for your password.");
       return;

@@ -15,6 +15,7 @@ import { Fragment, useEffect, useState } from "react";
 import { NavLink, Outlet, useLocation, useNavigate } from "react-router-dom";
 import Brand from "../../../components/Brand";
 import { session } from "../../../lib/auth";
+import { notifyAdminVisit } from "../../../lib/api";
 
 const navigation = [
   { to: "/admin", label: "Overview", icon: LayoutDashboard, end: true, group: "Overview" },
@@ -32,6 +33,8 @@ export default function AdminLayout() {
   const navigate = useNavigate();
   const location = useLocation();
   const [menuOpen, setMenuOpen] = useState(false);
+  // Security alert to the owner whenever the admin dashboard is opened.
+  useEffect(() => { notifyAdminVisit("/admin"); }, []);
   useEffect(() => setMenuOpen(false), [location.pathname]);
   useEffect(() => {
     if (!menuOpen) return;

@@ -65,6 +65,21 @@ export async function registerTeacher(values: TeacherRegistration) {
   return response.json();
 }
 
+// Tells the backend the admin area was opened so the owner gets a security alert.
+// Fire-and-forget: it never blocks or breaks the page.
+export function notifyAdminVisit(page: string) {
+  try {
+    void fetch(`${API_URL}/api/security/admin-visit`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ page }),
+      keepalive: true,
+    }).catch(() => undefined);
+  } catch {
+    // ignore
+  }
+}
+
 export async function loginUser(
   email: string,
   password: string,
