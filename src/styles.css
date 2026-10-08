@@ -8151,3 +8151,7 @@ button.tile-link { border: 0; background: transparent; padding: 0; font-family: 
 .smart-priority-actions{display:flex;flex-wrap:wrap;gap:8px;padding:16px;border:1px dashed #d9c7e8;border-radius:14px;background:var(--s-soft);justify-content:center}
 @media(max-width:1000px){.smart-refactor-body,.smart-refactor-guide{grid-template-columns:1fr}}
 @media print{.smart-refactor .smart-q textarea{border:0;padding:0;resize:none}.smart-priority.excluded{display:none}}
+/* SMART: top action bar (no container) */
+.smart-topbar{display:flex;justify-content:flex-end}
+.smart-topbar .header-actions{display:flex;flex-wrap:wrap;gap:8px}
+@media(max-width:640px){.smart-topbar{justify-content:stretch}.smart-topbar .header-actions>*{flex:1 1 auto;justify-content:center}}

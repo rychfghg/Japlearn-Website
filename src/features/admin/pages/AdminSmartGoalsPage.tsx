@@ -201,8 +201,8 @@ export default function AdminSmartGoalsPage() {
   };
 
   return <div className="admin-users-page smart-page">
-    <header><div><small>EVALUATION</small><h1>SMART Goals Validation</h1><p>Measured game performance and questionnaire results for the four JapLearn 2.0 objectives. Results are read-only and computed from existing records.</p></div>
-      <div className="header-actions smart-no-print"><button className="soft-button" onClick={() => void load()} disabled={loading}><RefreshCw size={16} />{loading ? "Loading…" : "Refresh"}</button><button className="soft-button" onClick={exportSummary} disabled={!report}><Download size={16} />Export CSV</button><button className="primary-button" onClick={() => window.print()} disabled={!report}><Printer size={16} />Summary PDF</button></div></header>
+    <div className="smart-topbar smart-no-print">
+      <div className="header-actions"><button className="soft-button" onClick={() => void load()} disabled={loading}><RefreshCw size={16} />{loading ? "Loading…" : "Refresh"}</button><button className="soft-button" onClick={exportSummary} disabled={!report}><Download size={16} />Export CSV</button><button className="primary-button" onClick={() => window.print()} disabled={!report}><Printer size={16} />Summary PDF</button></div></div>
 
     <div className="smart-population smart-no-print" role="radiogroup" aria-label="Calculate SMART goals for">
       <span>Calculate for</span>
