@@ -1,7 +1,6 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
-import { AlertTriangle, CheckCircle2, CircleDashed, ClipboardCheck, Compass, Download, FileUp, ListChecks, MessagesSquare, Printer, RefreshCw, Sparkles, Trash2, Users } from "lucide-react";
+import { AlertTriangle, CheckCircle2, CircleDashed, ClipboardCheck, Compass, Download, FileUp, ListChecks, MessagesSquare, Printer, RefreshCw, Sparkles, Users } from "lucide-react";
 import { API_URL, portalFetch as fetch } from "../../../lib/api";
-import { confirmAction } from "../../../lib/confirmAction";
 
 type GoalKey = "SMART1" | "SMART2" | "SMART3" | "SMART4";
 type Goal = {
@@ -9,13 +8,12 @@ type Goal = {
   status: "ACHIEVED" | "NOT_ACHIEVED" | "INSUFFICIENT_DATA"; eligibleStudents: number; participatingStudents: number;
   noParticipation: number | null; incomplete: number | null; lastUpdated: string | null; evidence: string; limitations: string[];
 };
-type Metric = { correct: number; total: number; percentage: number | null; status: "MEASURED" | "INCOMPLETE" | "NO_PARTICIPATION" | "NOT_ASSIGNED" };
+type Metric = { correct: number; total: number; percentage: number | null; status: "MEASURED" | "INCOMPLETE" | "NO_PARTICIPATION"; activities?: ActivityStatus[] };
+type ActivityStatus = { key: string; status: "COMPLETED" | "STARTED" | "NOT_STARTED"; completedAt: string | null };
 type StudentRow = { studentId: string; code: string; name: string; classCode: string | null; classTitle: string | null; runsAttempted: number; runsCompleted: number; assessmentDates: string[] } & Record<GoalKey, Metric>;
-type Assignment = { id: string; title: string; classCode: string; classTitle: string | null; activityKey: string; level: number | null; chapterId: string | null; requiredCount?: number; startsAt: string; dueAt: string; createdAt: string; assignedStudents?: number; completedStudents?: number };
 type Report = {
   methodVersion: string; computedAt: string; rules: string[]; eligibleStudents: number; goals: Goal[]; students: StudentRow[];
   classes: { classCode: string; classTitle: string | null }[]; studentOptions: { id: string; code: string; name: string }[];
-  assignments: { counted: Assignment[]; open: Assignment[] };
   filters: Record<string, unknown>; audit: { recordsRead: Record<string, number>; recordsExcluded: Record<string, number> };
 };
 type SurveyQuestion = { number: number; statement: string; group: string; agree: number; valid: number; percentage: number | null };
@@ -33,11 +31,21 @@ const MODULES = [
   ["ALL", "All modules"], ["QUACKSITUATE", "QuackSituate (all)"], ["RECOGNITION", "Ahiru Rescue"], ["EXPRESSION_MATCH", "Expression Match"],
   ["POLITENESS", "Politeness"], ["QUACKRESPONSE", "QuackResponse (all)"], ["REPLY_COACH", "Reply Coach"], ["RESPONSE_RUSH", "Response Rush"], ["DIALOGUE_RELAY", "Dialogue Relay"], ["QUACKTALK", "QuackTalk (all)"], ["TALK_WITH_SUMI", "Talk with Sumi"], ["GUIDED_PHRASE", "Guided Phrase Practice"],
 ] as const;
-const ACTIVITIES = [
-  ["RECOGNITION", "QuackSituate · Ahiru Rescue"], ["EXPRESSION_MATCH", "QuackSituate · Expression Match"], ["POLITENESS", "QuackSituate · Politeness"],
-  ["REPLY_COACH", "QuackResponse · Reply Coach"], ["RESPONSE_RUSH", "QuackResponse · Response Rush"], ["DIALOGUE_RELAY", "QuackResponse · Dialogue Relay"], ["TALK_WITH_SUMI", "QuackTalk · Talk with Sumi"], ["GUIDED_PHRASE", "QuackTalk · Guided Phrase Practice"], ["QUACKTALK", "QuackTalk · any session"],
-] as const;
-const activityLabel = (key: string) => ACTIVITIES.find(([value]) => value === key)?.[1] ?? key;
+const ACTIVITY_LABEL: Record<string, string> = {
+  RECOGNITION: "Ahiru Rescue", EXPRESSION_MATCH: "Expression Match", POLITENESS: "Politeness",
+  REPLY_COACH: "Reply Coach", RESPONSE_RUSH: "Response Rush", DIALOGUE_RELAY: "Dialogue Relay",
+  TALK_WITH_SUMI: "Talk with Sumi", GUIDED_PHRASE: "Guided Phrase",
+};
+const ACTIVITY_SHORT: Record<string, string> = {
+  RECOGNITION: "AR", EXPRESSION_MATCH: "EM", POLITENESS: "PO", REPLY_COACH: "RC",
+  RESPONSE_RUSH: "RR", DIALOGUE_RELAY: "DR", TALK_WITH_SUMI: "TS", GUIDED_PHRASE: "GP",
+};
+const ACTIVITY_STATUS_LABEL = { COMPLETED: "Completed", STARTED: "Started, not finished", NOT_STARTED: "Not started" } as const;
+
+/** Eight small squares, one per communication activity: filled = completed, outlined = started only. */
+function ActivityStrip({ items }: { items: ActivityStatus[] }) {
+  return <span className="smart-strip">{items.map((item) => <i key={item.key} className={item.status.toLowerCase()} title={`${ACTIVITY_LABEL[item.key] ?? item.key}: ${ACTIVITY_STATUS_LABEL[item.status]}${item.completedAt ? ` (${new Date(item.completedAt).toLocaleDateString()})` : ""}`}>{ACTIVITY_SHORT[item.key] ?? "?"}</i>)}</span>;
+}
 const STATUS_LABEL = { ACHIEVED: "Achieved", NOT_ACHIEVED: "Not Achieved", INSUFFICIENT_DATA: "Insufficient Data" } as const;
 const pct = (value: number | null | undefined) => value === null || value === undefined ? "—" : `${value.toFixed(1)}%`;
 const date = (value: string | null | undefined) => value ? new Date(value).toLocaleDateString(undefined, { year: "numeric", month: "short", day: "numeric" }) : "—";
@@ -85,7 +93,7 @@ function MetricCell({ metric, goal }: { metric: Metric; goal: GoalKey }) {
     const met = (metric.percentage ?? 0) >= TARGET[goal];
     return <span className="smart-metric"><span><b>{pct(metric.percentage)}</b><small>{metric.correct}/{metric.total}</small></span><Meter value={metric.percentage} target={TARGET[goal]} tone={met ? "good" : "low"} label={`${pct(metric.percentage)} (${metric.correct} of ${metric.total}); target ${TARGET[goal]}%`} /></span>;
   }
-  const label = { INCOMPLETE: "Incomplete", NO_PARTICIPATION: "No participation", NOT_ASSIGNED: "Not assigned" }[metric.status];
+  const label = { INCOMPLETE: "Incomplete", NO_PARTICIPATION: "No participation", }[metric.status];
   return <span className={`smart-metric empty ${metric.status.toLowerCase()}`}>{label}</span>;
 }
 
@@ -104,7 +112,6 @@ export default function AdminSmartGoalsPage() {
   const [notice, setNotice] = useState("");
   const [surveys, setSurveys] = useState<Survey[]>([]);
   const [surveyId, setSurveyId] = useState("");
-  const [chapters, setChapters] = useState<{ id: string; title: string }[]>([]);
 
   const query = useMemo(() => {
     const params = new URLSearchParams();
@@ -152,9 +159,6 @@ export default function AdminSmartGoalsPage() {
 
   useEffect(() => { void load(); }, [load]);
   useEffect(() => { void loadSurveys(); }, [loadSurveys]);
-  useEffect(() => {
-    fetch(`${API_URL}/api/reply-coach/chapters`).then((response) => response.ok ? response.json() : []).then((list) => setChapters(Array.isArray(list) ? list.map((item: { id: string; title?: string }) => ({ id: item.id, title: item.title || item.id })) : [])).catch(() => undefined);
-  }, []);
 
   const survey = surveys.find((item) => item.id === surveyId) ?? null;
   const surveyGroup = (key: string) => survey?.groups.find((group) => group.key === key) ?? null;
@@ -164,7 +168,7 @@ export default function AdminSmartGoalsPage() {
     const items: string[] = [];
     for (const goal of report.goals) {
       if (goal.status === "NOT_ACHIEVED" && goal.percentage !== null) items.push(`${goal.name}: ${pct(goal.percentage)} measured against a ${goal.target}% target (${(goal.target - goal.percentage).toFixed(1)} points short). Review the items and activities behind this result before deciding on changes.`);
-      if (goal.status === "INSUFFICIENT_DATA") items.push(`${goal.name}: not measurable from the current records. ${goal.key === "SMART4" ? "Create class assignments below so completion can be tracked from now on." : "More evaluation attempts are needed in the selected period."}`);
+      if (goal.status === "INSUFFICIENT_DATA") items.push(`${goal.name}: not measurable from the current records. ${goal.key === "SMART4" ? "No finished or started communication activities were found for these students in the selected period." : "More evaluation attempts are needed in the selected period."}`);
       if (goal.key !== "SMART4" && goal.eligibleStudents > 0 && goal.participatingStudents < goal.eligibleStudents)
         items.push(`${goal.name}: ${goal.participatingStudents} of ${goal.eligibleStudents} eligible students have measured answers (${goal.noParticipation ?? 0} with no participation, ${goal.incomplete ?? 0} incomplete). Low coverage limits how far the result generalises.`);
     }
@@ -271,12 +275,12 @@ export default function AdminSmartGoalsPage() {
       <section className="smart-section smart-no-print">
         <div className="smart-section-head"><div><small>PER STUDENT</small><h2>Student performance</h2></div><p>Percentages use the first evaluation attempt. Blank results are labelled, not scored as zero.</p></div>
         <div className="smart-table-wrap"><table className="smart-table">
-          <thead><tr><th>Student</th><th>Class</th><th>Situational</th><th>Conversational</th><th>Politeness</th><th>Completion <span className="smart-th-target">done / assigned</span></th><th>Runs attempted / completed</th><th>Assessment dates</th></tr></thead>
+          <thead><tr><th>Student</th><th>Class</th><th>Situational</th><th>Conversational</th><th>Politeness</th><th>Completion <span className="smart-th-target">done / 8</span></th><th>Runs attempted / completed</th><th>Assessment dates</th></tr></thead>
           <tbody>
             {report.students.map((row) => <tr key={row.studentId}>
               <td><b>{row.name}</b><small>{row.code}</small></td>
               <td>{row.classCode ? <><b>{row.classCode}</b>{row.classTitle && <small>{row.classTitle}</small>}</> : <small>No class</small>}</td>
-              {GOAL_KEYS.map((key) => <td key={key}><MetricCell metric={row[key]} goal={key} /></td>)}
+              {GOAL_KEYS.map((key) => <td key={key}><MetricCell metric={row[key]} goal={key} />{key === "SMART4" && row.SMART4.activities && <ActivityStrip items={row.SMART4.activities} />}</td>)}
               <td>{row.runsAttempted} / {row.runsCompleted}</td>
               <td className="smart-dates">{row.assessmentDates.length ? <>{row.assessmentDates.slice(-4).join(", ")}{row.assessmentDates.length > 4 && <small>+{row.assessmentDates.length - 4} more</small>}</> : <small>None</small>}</td>
             </tr>)}
@@ -285,7 +289,6 @@ export default function AdminSmartGoalsPage() {
         </table></div>
       </section>
 
-      <AssignmentsPanel report={report} chapters={chapters} onChanged={() => void load()} setNotice={setNotice} />
     </>}
 
     <SurveyPanel surveys={surveys} survey={survey} setSurveyId={setSurveyId} onUploaded={async (id) => { await loadSurveys(); setSurveyId(id); }} setNotice={setNotice} />
@@ -316,78 +319,6 @@ export default function AdminSmartGoalsPage() {
   </div>;
 }
 
-const UNIT_NAME: Record<string, string> = {
-  RECOGNITION: "finished run", EXPRESSION_MATCH: "level/set", POLITENESS: "level", REPLY_COACH: "chapter",
-  RESPONSE_RUSH: "finished run", DIALOGUE_RELAY: "finished run", TALK_WITH_SUMI: "session", GUIDED_PHRASE: "completed session", QUACKTALK: "session",
-};
-const UNIT_HELP: Record<string, string> = {
-  RECOGNITION: "Each finished Ahiru Rescue run counts once. Game-over runs are not saved, so they never count.",
-  EXPRESSION_MATCH: "Each distinct finished level/set counts once. Replaying the same set does not add to it.",
-  POLITENESS: "Each distinct finished level counts once. Set 3 with no level filter to require all three levels.",
-  REPLY_COACH: "Each distinct chapter marked complete counts once. Pick a chapter to require that one only.",
-  RESPONSE_RUSH: "Each finished run counts once.", DIALOGUE_RELAY: "Each finished run counts once.",
-  TALK_WITH_SUMI: "Each saved session with at least one spoken learner turn counts once.",
-  GUIDED_PHRASE: "Each completed (not just started) practice session counts once.", QUACKTALK: "Each saved session with at least one learner turn counts once.",
-};
-
-function AssignmentsPanel({ report, chapters, onChanged, setNotice }: { report: Report; chapters: { id: string; title: string }[]; onChanged: () => void; setNotice: (text: string) => void }) {
-  const [form, setForm] = useState({ classCode: "", activityKey: "POLITENESS", level: "", chapterId: "", requiredCount: "1", title: "", startsAt: "", dueAt: "" });
-  const [saving, setSaving] = useState(false);
-  const usesLevel = form.activityKey === "EXPRESSION_MATCH" || form.activityKey === "POLITENESS";
-  const all = [...report.assignments.open.map((item) => ({ ...item, open: true })), ...report.assignments.counted.map((item) => ({ ...item, open: false }))];
-
-  const create = async () => {
-    if (!form.classCode || !form.startsAt || !form.dueAt) { setNotice("Choose a class, a start date and a due date."); return; }
-    setSaving(true);
-    try {
-      const response = await fetch(`${API_URL}/api/admin/smart-goals/assignments`, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({
-        classCode: form.classCode, activityKey: form.activityKey, level: usesLevel && form.level ? Number(form.level) : null,
-        chapterId: form.activityKey === "REPLY_COACH" && form.chapterId ? form.chapterId : null, requiredCount: Math.min(20, Math.max(1, Number(form.requiredCount) || 1)), title: form.title,
-        startsAt: new Date(`${form.startsAt}T00:00:00`).toISOString(), dueAt: new Date(`${form.dueAt}T23:59:59`).toISOString(),
-      }) });
-      const body = await response.json().catch(() => null);
-      if (!response.ok) throw new Error(body?.error || "The assignment could not be saved.");
-      setNotice("Assignment saved. Completion is read from the class's game records between the start and due dates.");
-      setForm({ ...form, title: "", startsAt: "", dueAt: "" });
-      onChanged();
-    } catch (error) { setNotice(error instanceof Error ? error.message : "The assignment could not be saved."); }
-    finally { setSaving(false); }
-  };
-  const remove = async (item: Assignment) => {
-    if (!await confirmAction(`Remove the assignment "${item.title}"?`, { confirmLabel: "Remove assignment", description: "Only the assignment is removed. Student game records are not changed." })) return;
-    const response = await fetch(`${API_URL}/api/admin/smart-goals/assignments/${encodeURIComponent(item.id)}`, { method: "DELETE" });
-    setNotice(response.ok ? "Assignment removed." : "The assignment could not be removed.");
-    onChanged();
-  };
-
-  return <section className="smart-section smart-no-print">
-    <div className="smart-section-head"><div><small>SMART 4 · ASSIGNED ACTIVITIES</small><h2>Communication activity assignments</h2></div><p>New tracking. The system had no class assignment records for communication games before this, so completion is counted only for assignments created here, after their due date.</p></div>
-    <div className="smart-assign-form">
-      <label>Class<select value={form.classCode} onChange={(event) => setForm({ ...form, classCode: event.target.value })}><option value="">Choose a class</option>{report.classes.map((item) => <option key={item.classCode} value={item.classCode}>{item.classTitle ? `${item.classTitle} · ${item.classCode}` : item.classCode}</option>)}</select></label>
-      <label>Activity<select value={form.activityKey} onChange={(event) => setForm({ ...form, activityKey: event.target.value })}>{ACTIVITIES.map(([value, label]) => <option key={value} value={value}>{label}</option>)}</select></label>
-      {usesLevel && <label>Level<select value={form.level} onChange={(event) => setForm({ ...form, level: event.target.value })}><option value="">Any level</option><option value="1">Level 1</option><option value="2">Level 2</option><option value="3">Level 3</option></select></label>}
-      {form.activityKey === "REPLY_COACH" && <label>Chapter<select value={form.chapterId} onChange={(event) => setForm({ ...form, chapterId: event.target.value })}><option value="">Any chapter</option>{chapters.map((item) => <option key={item.id} value={item.id}>{item.title}</option>)}</select></label>}
-      <label title={UNIT_HELP[form.activityKey]}>Required to complete<input type="number" min={1} max={20} value={form.requiredCount} onChange={(event) => setForm({ ...form, requiredCount: event.target.value })} /><em className="smart-hint">{form.requiredCount || 1} {UNIT_NAME[form.activityKey]}{Number(form.requiredCount) === 1 ? "" : "s"}</em></label>
-      <label>Title<input maxLength={80} placeholder="e.g. Week 3 politeness practice" value={form.title} onChange={(event) => setForm({ ...form, title: event.target.value })} /></label>
-      <label>Starts<input type="date" value={form.startsAt} onChange={(event) => setForm({ ...form, startsAt: event.target.value })} /></label>
-      <label>Due<input type="date" value={form.dueAt} onChange={(event) => setForm({ ...form, dueAt: event.target.value })} /></label>
-      <button className="primary-button" onClick={() => void create()} disabled={saving}><ClipboardCheck size={16} />{saving ? "Saving…" : "Assign"}</button>
-    </div>
-    <div className="smart-table-wrap"><table className="smart-table">
-      <thead><tr><th>Assignment</th><th>Class</th><th>Window</th><th>Students completed / assigned</th><th>Counted</th><th /></tr></thead>
-      <tbody>
-        {all.map((item) => <tr key={item.id}>
-          <td><b>{item.title}</b><small>{activityLabel(item.activityKey)}{item.level ? ` · level ${item.level}` : ""}{item.chapterId ? ` · ${chapters.find((chapter) => chapter.id === item.chapterId)?.title ?? item.chapterId}` : ""} · needs {item.requiredCount ?? 1} finished {UNIT_NAME[item.activityKey] ?? "unit"}{(item.requiredCount ?? 1) === 1 ? "" : "s"}</small></td>
-          <td>{item.classCode}</td><td>{date(item.startsAt)} – {date(item.dueAt)}</td>
-          <td>{item.completedStudents ?? 0} / {item.assignedStudents ?? 0}</td>
-          <td>{item.open ? <em className="smart-status insufficient_data">Open</em> : <em className="smart-status achieved">Counted</em>}</td>
-          <td><button className="smart-icon-button" onClick={() => void remove(item)} aria-label={`Remove ${item.title}`}><Trash2 size={16} /></button></td>
-        </tr>)}
-        {!all.length && <tr><td colSpan={6} className="smart-empty">No assignments for the selected classes and period yet.</td></tr>}
-      </tbody>
-    </table></div>
-  </section>;
-}
 
 function SurveyPanel({ surveys, survey, setSurveyId, onUploaded, setNotice }: { surveys: Survey[]; survey: Survey | null; setSurveyId: (id: string) => void; onUploaded: (id: string) => Promise<void>; setNotice: (text: string) => void }) {
   const [file, setFile] = useState<{ name: string; text: string; rows: string[][] } | null>(null);
@@ -471,7 +402,7 @@ type Comparison = {
   flags: { unmatchedRows: number; noIdentifierRows: number; duplicateRows: number; matchedNotEligible: number; legacyMatchedRows: number; unmatchedRowNumbers: number[] };
 };
 
-const ACTUAL_EMPTY: Record<string, string> = { NO_PARTICIPATION: "No records", INCOMPLETE: "Incomplete", NOT_ASSIGNED: "Not assigned", INSUFFICIENT_DATA: "Insufficient data" };
+const ACTUAL_EMPTY: Record<string, string> = { NO_PARTICIPATION: "No records", INCOMPLETE: "Incomplete", INSUFFICIENT_DATA: "Insufficient data" };
 const diffLabel = (value: number | null) => value === null ? "—" : `${value > 0 ? "+" : value < 0 ? "−" : "±"}${Math.abs(value).toFixed(1)} pts`;
 
 function CompareCellView({ cell, target }: { cell: CompareCell; target: number }) {
