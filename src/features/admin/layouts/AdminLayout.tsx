@@ -1,5 +1,6 @@
 import {
   BookOpenCheck,
+  ChevronDown,
   ClipboardCheck,
   Compass,
   Gamepad2,
@@ -35,6 +36,10 @@ export default function AdminLayout() {
   const navigate = useNavigate();
   const location = useLocation();
   const [menuOpen, setMenuOpen] = useState(false);
+  const onGamePage = navigation.some((item) => item.group === "Game content" && location.pathname.startsWith(item.to));
+  // Game content folds into one entry so Sign out stays visible on short screens.
+  const [gamesOpen, setGamesOpen] = useState(onGamePage);
+  useEffect(() => { if (onGamePage) setGamesOpen(true); }, [onGamePage]);
   // Security alert to the owner whenever the admin dashboard is opened.
   useEffect(() => { notifyAdminVisit("/admin"); }, []);
   useEffect(() => setMenuOpen(false), [location.pathname]);
@@ -69,11 +74,14 @@ export default function AdminLayout() {
             const showGroup = item.group !== navigation[index - 1]?.group;
             return (
               <Fragment key={item.to}>
-                {showGroup && <span className="admin-nav-group">{item.group}</span>}
+                {showGroup && (item.group === "Game content"
+                  ? <button type="button" className={`admin-nav-group admin-nav-toggle${gamesOpen ? " open" : ""}`} onClick={() => setGamesOpen((open) => !open)} aria-expanded={gamesOpen}>{item.group}<ChevronDown /></button>
+                  : <span className="admin-nav-group">{item.group}</span>)}
+                {(item.group !== "Game content" || gamesOpen) &&
                 <NavLink to={item.to} end={item.end} onClick={() => setMenuOpen(false)}>
                   <span className="admin-nav-icon"><Icon /></span>
                   {item.label}
-                </NavLink>
+                </NavLink>}
               </Fragment>
             );
           })}

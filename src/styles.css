@@ -7866,3 +7866,7 @@ button.tile-link { border: 0; background: transparent; padding: 0; font-family: 
   .smart-table-wrap{overflow:visible;border:0}
   .smart-audit:not([open]) ol{display:block}
 }
+.admin-nav-toggle{display:flex;align-items:center;justify-content:space-between;width:calc(100% - 8px);border:0;background:#ffffff0c;border-radius:10px;padding:9px 10px;cursor:pointer;font-family:inherit;text-align:left}
+.admin-nav-toggle:hover{background:#ffffff1a;color:#fff}
+.admin-nav-toggle svg{width:16px;transition:transform .2s ease}
+.admin-nav-toggle.open svg{transform:rotate(180deg)}
