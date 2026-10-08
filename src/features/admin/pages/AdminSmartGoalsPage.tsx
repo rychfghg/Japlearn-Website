@@ -7,7 +7,6 @@ type Goal = {
   key: GoalKey; name: string; target: number; correct: number; total: number; percentage: number | null;
   status: "ACHIEVED" | "NOT_ACHIEVED" | "INSUFFICIENT_DATA"; eligibleStudents: number; participatingStudents: number;
   noParticipation: number | null; incomplete: number | null; lastUpdated: string | null; evidence: string; limitations: string[]; areas?: Area[];
-  studentsMet?: number; studentsBelow?: number; answerCorrect?: number; answerTotal?: number; answerPercentage?: number | null;
 };
 type Metric = { correct: number; total: number; percentage: number | null; status: "MEASURED" | "INCOMPLETE" | "NO_PARTICIPATION"; activities?: ActivityStatus[] };
 type ActivityStatus = { key: string; status: "COMPLETED" | "STARTED" | "NOT_STARTED"; completedAt: string | null };
@@ -249,12 +248,9 @@ export default function AdminSmartGoalsPage() {
             <div className="smart-goal-value"><b>{goal.percentage === null ? "—" : pct(goal.percentage)}</b>{gap !== null && <span className={gap >= 0 ? "up" : "down"}>{gap >= 0 ? "+" : "−"}{Math.abs(gap).toFixed(1)} pts vs target</span>}</div>
             <div className="smart-goal-bar"><Meter value={goal.percentage} target={goal.target} tone={goal.status === "ACHIEVED" ? "good" : goal.status === "NOT_ACHIEVED" ? "low" : "none"} label={`${goal.name}: ${goal.percentage === null ? "no data" : pct(goal.percentage)}, target ${goal.target}%`} /><div className="smart-goal-scale"><span>0</span><span style={{ left: `${goal.target}%` }}>Target {goal.target}%</span><span>100</span></div></div>
             <dl>
-              {goal.key === "SMART4"
-                ? <div><dt>Activities completed / expected</dt><dd>{goal.correct.toLocaleString()} / {goal.total.toLocaleString()}</dd></div>
-                : <div className="smart-dl-main"><dt>Students reaching {goal.target}%</dt><dd>{goal.correct} of {goal.total} qualified</dd></div>}
-              {goal.key !== "SMART4" && <div><dt>Below target · no records</dt><dd>{goal.studentsBelow ?? 0} · {(goal.noParticipation ?? 0) + (goal.incomplete ?? 0)}</dd></div>}
-              {goal.key !== "SMART4" && <div><dt>Answer accuracy (measured only)</dt><dd>{pct(goal.answerPercentage)} <small>{goal.answerCorrect ?? 0}/{goal.answerTotal ?? 0}</small></dd></div>}
-              <div><dt>Students with records</dt><dd>{goal.participatingStudents} of {goal.eligibleStudents}</dd></div>
+              <div><dt>{goal.key === "SMART4" ? "Completed / assigned" : "Correct / scored"}</dt><dd>{goal.correct.toLocaleString()} / {goal.total.toLocaleString()}</dd></div>
+              <div><dt>Students measured</dt><dd>{goal.participatingStudents} of {goal.eligibleStudents}</dd></div>
+              {goal.key !== "SMART4" && <div><dt>No participation · incomplete</dt><dd>{goal.noParticipation} · {goal.incomplete}</dd></div>}
               <div><dt>Last updated</dt><dd>{date(goal.lastUpdated)}</dd></div>
             </dl>
             <p className="smart-evidence">{goal.evidence}</p>
@@ -264,7 +260,7 @@ export default function AdminSmartGoalsPage() {
 
       <section className="smart-section">
         <div className="smart-section-head"><div><small>EVIDENCE SIDE BY SIDE</small><h2>Game accuracy and questionnaire agreement</h2></div>
-          <div className="smart-legend"><span><i className="game" />Game records (students reaching target; completion for SMART 4)</span><span><i className="survey" />Questionnaire (Agree or Strongly Agree)</span><span><i className="target" />Target</span></div></div>
+          <div className="smart-legend"><span><i className="game" />Game records (measured)</span><span><i className="survey" />Questionnaire (Agree or Strongly Agree)</span><span><i className="target" />Target</span></div></div>
         <div className="smart-compare">
           {report.goals.map((goal) => { const group = surveyGroup(goal.key); return <div key={goal.key} className="smart-compare-row">
             <div className="smart-compare-name"><b>{goal.name}</b><small>target ≥ {goal.target}%</small></div>
@@ -306,7 +302,7 @@ export default function AdminSmartGoalsPage() {
       <div className="smart-section-head"><div><small>EVALUATION SUMMARY</small><h2>JapLearn 2.0 SMART objectives</h2></div><p>Period {String(report.filters.from ?? "start")} to {String(report.filters.to ?? "today")} · class {String(report.filters.classCode || "all")} · module {String(report.filters.module)} · {report.filters.population === "SURVEY_MATCHED" ? "survey respondents only (email matched)" : "all eligible students"} · {report.methodVersion}</p></div>
       <p className="smart-note">Game accuracy and questionnaire agreement are separate evidence sources. They are shown side by side and are never combined into one score. No student names or emails appear in this summary.</p>
       <div className="smart-table-wrap"><table className="smart-table smart-summary-table">
-        <thead><tr><th>Objective</th><th>Target</th><th>Measured (game records)<span className="smart-th-target">students at target</span></th><th>Status</th><th>Students measured</th><th>Questionnaire agreement</th></tr></thead>
+        <thead><tr><th>Objective</th><th>Target</th><th>Measured (game records)</th><th>Status</th><th>Students measured</th><th>Questionnaire agreement</th></tr></thead>
         <tbody>{report.goals.map((goal) => { const group = surveyGroup(goal.key); return <tr key={goal.key}>
           <td><b>{goal.name}</b><small>{goal.evidence}</small></td><td>≥ {goal.target}%</td>
           <td><b>{pct(goal.percentage)}</b><small>{goal.correct} / {goal.total}</small></td>
@@ -496,17 +492,16 @@ function draftFor(goal: Goal, report: Report, survey: Survey | null, comparison:
   const statements = survey ? survey.questions.filter((q) => SURVEY_GROUP_OF[goal.key].includes(q.number)).sort((a, b) => (a.percentage ?? 101) - (b.percentage ?? 101)) : [];
   const lowStatement = statements[0];
   const isCompletion = goal.key === "SMART4";
+  const unit = isCompletion ? "completed" : "correct";
 
   let learned: string;
   if (goal.status === "INSUFFICIENT_DATA") learned = `${goal.name} could not be measured yet: there are not enough validation records for the selected students and period.`;
-  else if (goal.status === "NOT_ACHIEVED") learned = `${isCompletion ? `${goal.name} reached ${pct(goal.percentage)}` : `Only ${goal.correct} of ${goal.total} qualified students (${pct(goal.percentage)}) reached ${goal.target}% ${SHORT[goal.key].toLowerCase()} accuracy`} against the ${goal.target}% target (${(goal.target - (goal.percentage ?? 0)).toFixed(1)} points short).${weakest ? ` The weakest area was ${weakest.label} at ${pct(weakest.percentage)}.` : ""}`;
+  else if (goal.status === "NOT_ACHIEVED") learned = `${goal.name} reached ${pct(goal.percentage)} against the ${goal.target}% target (${(goal.target - (goal.percentage ?? 0)).toFixed(1)} points short).${weakest ? ` The weakest area was ${weakest.label} at ${pct(weakest.percentage)}.` : ""}`;
   else learned = `${goal.name} met the ${goal.target}% target at ${pct(goal.percentage)}${weakest ? `, but ${weakest.label} remained the lowest area at ${pct(weakest.percentage)}` : ""}.`;
   if (group?.percentage != null) learned += ` ${group.percentage}% of respondents agreed the app helped with this objective${overall?.difference != null ? `; matched students' measured result was ${Math.abs(overall.difference).toFixed(1)} points ${overall.difference >= 0 ? "above" : "below"} their perception` : ""}.`;
 
   const evidence: string[] = [];
-  evidence.push(isCompletion
-    ? `Game records: ${goal.correct} activities completed out of ${goal.total} expected (${pct(goal.percentage)}), ${goal.participatingStudents} of ${goal.eligibleStudents} students with records.`
-    : `Game records: ${goal.correct} of ${goal.total} qualified students reached ${goal.target}% (${pct(goal.percentage)}); ${goal.studentsBelow ?? 0} were below target and ${(goal.noParticipation ?? 0) + (goal.incomplete ?? 0)} had no measured records. Answer accuracy among measured students: ${pct(goal.answerPercentage)} (${goal.answerCorrect ?? 0}/${goal.answerTotal ?? 0}).`);
+  evidence.push(`Game records: ${goal.correct} ${unit} out of ${goal.total} (${pct(goal.percentage)}), ${goal.participatingStudents} of ${goal.eligibleStudents} eligible students measured.`);
   for (const item of areas.slice(0, 4)) evidence.push(isCompletion
     ? `${item.label}: completed by ${item.correct} of ${item.total} students (${pct(item.percentage)})${item.started ? `, ${item.started} started but did not finish` : ""}.`
     : `${item.label}: ${item.correct}/${item.total} correct (${pct(item.percentage)}) across ${item.students} students.`);

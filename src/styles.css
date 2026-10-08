@@ -8155,4 +8155,3 @@ button.tile-link { border: 0; background: transparent; padding: 0; font-family: 
 .smart-topbar{display:flex;justify-content:flex-end}
 .smart-topbar .header-actions{display:flex;flex-wrap:wrap;gap:8px}
 @media(max-width:640px){.smart-topbar{justify-content:stretch}.smart-topbar .header-actions>*{flex:1 1 auto;justify-content:center}}
-.smart-goal-card dl .smart-dl-main dd{color:var(--s-violet)}.smart-goal-card dd small{font-weight:600;color:var(--s-muted);margin-left:4px}
