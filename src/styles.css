@@ -8155,3 +8155,33 @@ button.tile-link { border: 0; background: transparent; padding: 0; font-family: 
 .smart-topbar{display:flex;justify-content:flex-end}
 .smart-topbar .header-actions{display:flex;flex-wrap:wrap;gap:8px}
 @media(max-width:640px){.smart-topbar{justify-content:stretch}.smart-topbar .header-actions>*{flex:1 1 auto;justify-content:center}}
+/* SMART: action buttons inside the "Calculate for" bar, right side */
+.smart-population label{margin-left:0}
+.smart-population .smart-pop-actions{display:flex;flex-wrap:wrap;gap:6px;margin-left:auto}
+.smart-population .smart-pop-actions button{background:var(--s-soft);border:1px solid var(--s-line);color:var(--s-ink)}
+.smart-population .smart-pop-actions .primary-button{background:linear-gradient(135deg,var(--s-violet),var(--s-violet-2));border-color:transparent;color:#fff}
+@media(max-width:640px){.smart-population .smart-pop-actions{margin-left:0;flex:1 1 100%}.smart-population .smart-pop-actions button{flex:1 1 auto}}
+/* SMART: attempt quality signals */
+.smart-signal-grid{display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:10px}
+.smart-signal{display:grid;gap:2px;padding:12px 14px;border-radius:14px;background:var(--s-soft);border:1px solid var(--s-line-2)}
+.smart-signal small{font-size:10px;font-weight:900;letter-spacing:.6px;text-transform:uppercase;color:var(--s-muted)}
+.smart-signal b{font:900 24px/1.15 Nunito,sans-serif;color:var(--s-ink);font-variant-numeric:tabular-nums}
+.smart-signal span{font-size:11px;color:var(--s-muted)}
+.smart-signal.na b{font-size:15px;color:var(--s-na)}
+.smart-signal-notes{margin:0;padding-left:18px;display:grid;gap:4px;font-size:12px;color:var(--s-muted);line-height:1.45}
+@media(max-width:1200px){.smart-signal-grid{grid-template-columns:repeat(3,minmax(0,1fr))}}
+@media(max-width:640px){.smart-signal-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}
+
+/* SMART: unfinished runs and drop-off */
+.smart-unfinished{display:inline-block;width:max-content;font-style:normal;font-size:10px;font-weight:800;color:#a3610b;background:#fff4e2;border-radius:6px;padding:1px 6px}
+.smart-drop-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:12px}
+.smart-drop{display:grid;gap:8px;border:1px solid var(--s-line);border-radius:16px;padding:14px 16px;background:linear-gradient(180deg,#fffaf3,#fff);box-shadow:0 1px 2px rgba(36,19,47,.04)}
+.smart-drop header{display:flex;justify-content:space-between;align-items:baseline;gap:8px}
+.smart-drop header b{font-size:13.5px;color:var(--s-ink)}
+.smart-drop header span{font-size:11px;font-weight:800;color:#a3610b;white-space:nowrap}
+.smart-drop p{margin:0;font-size:12px;color:var(--s-ink-2)}
+.smart-drop ul{list-style:none;margin:0;padding:0;display:grid;gap:5px}
+.smart-drop li{display:grid;grid-template-columns:76px 1fr 24px;align-items:center;gap:8px;font-size:11.5px;color:var(--s-ink-2)}
+.smart-drop li i{display:block;height:8px;border-radius:5px;background:#f3ecf6;overflow:hidden}
+.smart-drop li s{display:block;height:100%;background:#e3843f;border-radius:5px}
+.smart-drop li em{font-style:normal;font-weight:900;text-align:right;color:var(--s-ink)}

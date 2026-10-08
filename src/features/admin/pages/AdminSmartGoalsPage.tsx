@@ -6,13 +6,17 @@ type GoalKey = "SMART1" | "SMART2" | "SMART3" | "SMART4";
 type Goal = {
   key: GoalKey; name: string; target: number; correct: number; total: number; percentage: number | null;
   status: "ACHIEVED" | "NOT_ACHIEVED" | "INSUFFICIENT_DATA"; eligibleStudents: number; participatingStudents: number;
-  noParticipation: number | null; incomplete: number | null; lastUpdated: string | null; evidence: string; limitations: string[]; areas?: Area[];
+  noParticipation: number | null; incomplete: number | null; lastUpdated: string | null; evidence: string; limitations: string[]; areas?: Area[]; unfinishedAnswers?: number; unfinishedStudents?: number;
 };
-type Metric = { correct: number; total: number; percentage: number | null; status: "MEASURED" | "INCOMPLETE" | "NO_PARTICIPATION"; activities?: ActivityStatus[] };
+type Metric = { unfinishedAnswers?: number; correct: number; total: number; percentage: number | null; status: "MEASURED" | "INCOMPLETE" | "NO_PARTICIPATION"; activities?: ActivityStatus[] };
 type ActivityStatus = { key: string; status: "COMPLETED" | "STARTED" | "NOT_STARTED"; completedAt: string | null };
-type StudentRow = { studentId: string; code: string; name: string; classCode: string | null; classTitle: string | null; runsAttempted: number; runsCompleted: number; assessmentDates: string[] } & Record<GoalKey, Metric>;
+type DropOff = { label: string; students: number; outOf: number | null; averageReached: number; stopPoints: { answered: number; students: number }[] };
+type Signals = { incorrect: number; retries: number; hints: number | null; timeouts: number; incompleteActivities: number; technicalFailures: number | null };
+type StudentRow = { signals?: Signals; studentId: string; code: string; name: string; classCode: string | null; classTitle: string | null; runsAttempted: number; runsCompleted: number; assessmentDates: string[] } & Record<GoalKey, Metric>;
 type Report = {
   replyCoachEvaluations?: Record<string, number>;
+  signals?: Signals & { hintRecords: number; notes: string[] };
+  dropOff?: DropOff[];
   methodVersion: string; computedAt: string; rules: string[]; eligibleStudents: number; goals: Goal[]; students: StudentRow[];
   classes: { classCode: string; classTitle: string | null }[]; studentOptions: { id: string; code: string; name: string }[];
   filters: Record<string, unknown>; audit: { recordsRead: Record<string, number>; recordsExcluded: Record<string, number> };
@@ -92,7 +96,7 @@ function Meter({ value, target, tone, label }: { value: number | null; target?: 
 function MetricCell({ metric, goal }: { metric: Metric; goal: GoalKey }) {
   if (metric.status === "MEASURED") {
     const met = (metric.percentage ?? 0) >= TARGET[goal];
-    return <span className="smart-metric"><span><b>{pct(metric.percentage)}</b><small>{metric.correct}/{metric.total}</small></span><Meter value={metric.percentage} target={TARGET[goal]} tone={met ? "good" : "low"} label={`${pct(metric.percentage)} (${metric.correct} of ${metric.total}); target ${TARGET[goal]}%`} /></span>;
+    return <span className="smart-metric"><span><b>{pct(metric.percentage)}</b><small>{metric.correct}/{metric.total}</small></span>{!!metric.unfinishedAnswers && <em className="smart-unfinished" title="Answers given in a run the student did not finish. Each answered question counts as correct or incorrect; unreached questions are not counted.">{metric.unfinishedAnswers} from unfinished run</em>}<Meter value={metric.percentage} target={TARGET[goal]} tone={met ? "good" : "low"} label={`${pct(metric.percentage)} (${metric.correct} of ${metric.total}); target ${TARGET[goal]}%`} /></span>;
   }
   const label = { INCOMPLETE: "Incomplete", NO_PARTICIPATION: "No participation", }[metric.status];
   return <span className={`smart-metric empty ${metric.status.toLowerCase()}`}>{label}</span>;
@@ -201,14 +205,12 @@ export default function AdminSmartGoalsPage() {
   };
 
   return <div className="admin-users-page smart-page">
-    <div className="smart-topbar smart-no-print">
-      <div className="header-actions"><button className="soft-button" onClick={() => void load()} disabled={loading}><RefreshCw size={16} />{loading ? "Loading…" : "Refresh"}</button><button className="soft-button" onClick={exportSummary} disabled={!report}><Download size={16} />Export CSV</button><button className="primary-button" onClick={() => window.print()} disabled={!report}><Printer size={16} />Summary PDF</button></div></div>
-
     <div className="smart-population smart-no-print" role="radiogroup" aria-label="Calculate SMART goals for">
       <span>Calculate for</span>
       <button type="button" role="radio" aria-checked={population === "ALL"} className={population === "ALL" ? "on" : ""} onClick={() => setPopulation("ALL")}><Users size={15} />All eligible students</button>
       <button type="button" role="radio" aria-checked={population === "SURVEY"} disabled={!surveys.length} className={population === "SURVEY" ? "on" : ""} onClick={() => setPopulation("SURVEY")} title={surveys.length ? undefined : "Upload a questionnaire first"}><ClipboardCheck size={15} />Survey respondents only (email matched)</button>
       {population === "SURVEY" && surveys.length > 0 && <label>Questionnaire<select value={surveyId} onChange={(event) => setSurveyId(event.target.value)}>{surveys.map((item) => <option key={item.id} value={item.id}>{item.fileName} · {item.matchedRows} matched</option>)}</select></label>}
+      <div className="header-actions smart-pop-actions"><button className="soft-button" onClick={() => void load()} disabled={loading}><RefreshCw size={16} />{loading ? "Loading…" : "Refresh"}</button><button className="soft-button" onClick={exportSummary} disabled={!report}><Download size={16} />Export CSV</button><button className="primary-button" onClick={() => window.print()} disabled={!report}><Printer size={16} />Summary PDF</button></div>
     </div>
     <div className="smart-filters smart-no-print" aria-label="Evaluation filters">
       <label>From<input type="date" value={from} onChange={(event) => setFrom(event.target.value)} /></label>
@@ -250,6 +252,7 @@ export default function AdminSmartGoalsPage() {
             <dl>
               <div><dt>{goal.key === "SMART4" ? "Completed / assigned" : "Correct / scored"}</dt><dd>{goal.correct.toLocaleString()} / {goal.total.toLocaleString()}</dd></div>
               <div><dt>Students measured</dt><dd>{goal.participatingStudents} of {goal.eligibleStudents}</dd></div>
+              {goal.key !== "SMART4" && !!goal.unfinishedAnswers && <div><dt>From unfinished runs</dt><dd>{goal.unfinishedAnswers} answers · {goal.unfinishedStudents} students</dd></div>}
               {goal.key !== "SMART4" && <div><dt>No participation · incomplete</dt><dd>{goal.noParticipation} · {goal.incomplete}</dd></div>}
               <div><dt>Last updated</dt><dd>{date(goal.lastUpdated)}</dd></div>
             </dl>
@@ -290,6 +293,43 @@ export default function AdminSmartGoalsPage() {
         </table></div>
       </section>
 
+
+      {report.dropOff && <section className="smart-section">
+        <div className="smart-section-head"><div><small>DROP-OFF</small><h2>Where students stopped</h2></div><p>First attempts that were never finished. Their answered questions are already counted in the accuracy above; this shows where students quit, which points to content or flow worth reviewing.</p></div>
+        {report.dropOff.length ? <div className="smart-drop-grid">{report.dropOff.map((item) => {
+          const max = Math.max(...item.stopPoints.map((point) => point.students), 1);
+          return <article key={item.label} className="smart-drop">
+            <header><b>{item.label}</b><span>{item.students} student{item.students === 1 ? "" : "s"} stopped</span></header>
+            <p>Average reached: <b>{item.averageReached}</b>{item.outOf ? <> of {item.outOf} questions</> : " answers"}</p>
+            <ul>{item.stopPoints.slice(0, 6).map((point) => <li key={point.answered}><span>After {point.answered}{item.outOf ? `/${item.outOf}` : ""}</span><i><s style={{ width: `${(point.students / max) * 100}%` }} /></i><em>{point.students}</em></li>)}</ul>
+          </article>;
+        })}</div> : <div className="smart-empty">No unfinished first attempts for these students and period.</div>}
+        <p className="smart-note">Ahiru Rescue, Expression Match and Dialogue Relay keep only each student's latest unfinished run. Dialogue Relay progress is recorded from the app update onward.</p>
+      </section>}
+
+      {report.signals && <section className="smart-section smart-no-print">
+        <div className="smart-section-head"><div><small>ATTEMPT QUALITY</small><h2>Incorrect answers, retries, hints, timeouts and incomplete play</h2></div><p>Tracked separately from the scores. None of these change a student's accuracy; they explain it.</p></div>
+        <div className="smart-signal-grid">
+          {([["incorrect", "Incorrect answers", "first attempts, SMART 1-3"], ["retries", "Retries", "replays after the first attempt"], ["hints", "Hints used", report.signals.hintRecords ? `from ${report.signals.hintRecords} records with hint data` : "no hint data recorded yet"], ["timeouts", "Timeouts", "Reply Coach answers"], ["incompleteActivities", "Incomplete activities", "started but not finished"], ["technicalFailures", "Technical failures", "not stored by the app"]] as const).map(([key, label, note]) => {
+            const value = report.signals![key];
+            const unavailable = value === null || (key === "hints" && !report.signals!.hintRecords);
+            return <div key={key} className={`smart-signal ${unavailable ? "na" : ""}`}><small>{label}</small><b>{unavailable ? "Not recorded" : value}</b><span>{note}</span></div>;
+          })}
+        </div>
+        <div className="smart-table-wrap"><table className="smart-table">
+          <thead><tr><th>Student</th><th>Incorrect</th><th>Retries</th><th>Hints</th><th>Timeouts</th><th>Incomplete activities</th><th>Technical failures</th></tr></thead>
+          <tbody>
+            {report.students.map((row) => { const sig = row.signals; return <tr key={row.studentId}>
+              <td><b>{row.name}</b><small>{row.code}</small></td>
+              <td>{sig?.incorrect ?? "—"}</td><td>{sig?.retries ?? "—"}</td>
+              <td>{sig?.hints ?? <small>Not recorded</small>}</td><td>{sig?.timeouts ?? "—"}</td>
+              <td>{sig?.incompleteActivities ?? "—"}</td><td><small>Not recorded</small></td>
+            </tr>; })}
+            {!report.students.length && <tr><td colSpan={7} className="smart-empty">No eligible students match these filters.</td></tr>}
+          </tbody>
+        </table></div>
+        <ul className="smart-signal-notes">{report.signals.notes.map((note) => <li key={note}>{note}</li>)}</ul>
+      </section>}
     </>}
 
     <SurveyPanel surveys={surveys} survey={survey} setSurveyId={setSurveyId} onUploaded={async (id) => { await loadSurveys(); setSurveyId(id); }} setNotice={setNotice} />
@@ -510,6 +550,10 @@ function draftFor(goal: Goal, report: Report, survey: Survey | null, comparison:
     const poor = (ev.IMPOLITE ?? 0) + (ev.RUDE ?? 0) + (ev.AWKWARD ?? 0);
     if (all) evidence.push(`Reply Coach first-attempt ratings: ${poor} of ${all} answers were Awkward, Impolite or Rude (${(poor * 100 / all).toFixed(1)}%).`);
   }
+  const goalOfDrop = (label: string): GoalKey => /^(Ahiru|Expression)/.test(label) ? "SMART1" : /^Politeness/.test(label) ? "SMART3" : "SMART2";
+  for (const item of (report.dropOff ?? []).filter((d) => isCompletion || goalOfDrop(d.label) === goal.key).slice(0, 3))
+    evidence.push(`${item.label}: ${item.students} student(s) stopped before finishing (average ${item.averageReached}${item.outOf ? ` of ${item.outOf}` : ""} questions answered${item.stopPoints[0] ? `; most often after ${item.stopPoints[0].answered}` : ""}).`);
+  if ((goal.unfinishedAnswers ?? 0) > 0) evidence.push(`${goal.unfinishedAnswers} of the ${goal.total} scored answers came from runs students did not finish.`);
   if (group) evidence.push(`Questionnaire (${group.questions}): ${pct(group.percentage)} agreement from ${group.valid} valid responses.`);
   if (lowStatement) evidence.push(`Lowest statement: Q${lowStatement.number} "${lowStatement.statement}" at ${pct(lowStatement.percentage)} agreement.`);
 
