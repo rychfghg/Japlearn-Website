@@ -30,12 +30,12 @@ const GOAL_KEYS: GoalKey[] = ["SMART1", "SMART2", "SMART3", "SMART4"];
 const SHORT: Record<GoalKey, string> = { SMART1: "Situational", SMART2: "Conversational", SMART3: "Politeness", SMART4: "Completion" };
 const GOAL_LABEL: Record<GoalKey, string> = { SMART1: "Situational Communication Accuracy", SMART2: "Conversational Response Accuracy", SMART3: "Politeness Recognition Accuracy", SMART4: "Communication Activity Completion" };
 const MODULES = [
-  ["ALL", "All modules"], ["QUACKSITUATE", "QuackSituate (all)"], ["RECOGNITION", "Situational Recognition"], ["EXPRESSION_MATCH", "Expression Match"],
-  ["POLITENESS", "Politeness"], ["QUACKRESPONSE", "QuackResponse (all)"], ["REPLY_COACH", "Reply Coach"], ["RESPONSE_RUSH", "Response Rush"],
+  ["ALL", "All modules"], ["QUACKSITUATE", "QuackSituate (all)"], ["RECOGNITION", "Ahiru Rescue"], ["EXPRESSION_MATCH", "Expression Match"],
+  ["POLITENESS", "Politeness"], ["QUACKRESPONSE", "QuackResponse (all)"], ["REPLY_COACH", "Reply Coach"], ["RESPONSE_RUSH", "Response Rush"], ["DIALOGUE_RELAY", "Dialogue Relay"], ["QUACKTALK", "QuackTalk (all)"], ["TALK_WITH_SUMI", "Talk with Sumi"], ["GUIDED_PHRASE", "Guided Phrase Practice"],
 ] as const;
 const ACTIVITIES = [
-  ["RECOGNITION", "QuackSituate · Situational Recognition"], ["EXPRESSION_MATCH", "QuackSituate · Expression Match"], ["POLITENESS", "QuackSituate · Politeness"],
-  ["REPLY_COACH", "QuackResponse · Reply Coach"], ["RESPONSE_RUSH", "QuackResponse · Response Rush"], ["DIALOGUE_RELAY", "QuackResponse · Dialogue Relay"], ["QUACKTALK", "QuackTalk session"],
+  ["RECOGNITION", "QuackSituate · Ahiru Rescue"], ["EXPRESSION_MATCH", "QuackSituate · Expression Match"], ["POLITENESS", "QuackSituate · Politeness"],
+  ["REPLY_COACH", "QuackResponse · Reply Coach"], ["RESPONSE_RUSH", "QuackResponse · Response Rush"], ["DIALOGUE_RELAY", "QuackResponse · Dialogue Relay"], ["TALK_WITH_SUMI", "QuackTalk · Talk with Sumi"], ["GUIDED_PHRASE", "QuackTalk · Guided Phrase Practice"], ["QUACKTALK", "QuackTalk · any session"],
 ] as const;
 const activityLabel = (key: string) => ACTIVITIES.find(([value]) => value === key)?.[1] ?? key;
 const STATUS_LABEL = { ACHIEVED: "Achieved", NOT_ACHIEVED: "Not Achieved", INSUFFICIENT_DATA: "Insufficient Data" } as const;
@@ -382,7 +382,7 @@ function SurveyPanel({ surveys, survey, setSurveyId, onUploaded, setNotice }: { 
     const likert = rows[0].map((_, index) => index).filter((index) => isLikertColumn(rows, index));
     setFile({ name: picked.name, text, rows });
     setMapping(likert.slice(0, 10));
-    setIdColumn(rows[0].findIndex((name) => /e-?mail|student ?id|student ?code/i.test(name)));
+    setIdColumn(rows[0].findIndex((name) => /e-?mail/i.test(name)));
     setNotice(likert.length < 10 ? `Only ${likert.length} agreement columns were detected. Map the remaining questions manually.` : likert.length > 10 ? `${likert.length} agreement columns were found. The first 10 are mapped; check they are the Learning Effectiveness statements.` : "");
   };
   const upload = async () => {
@@ -407,10 +407,10 @@ function SurveyPanel({ surveys, survey, setSurveyId, onUploaded, setNotice }: { 
       <h3>Map the 10 Learning Effectiveness statements · {file.name} ({file.rows.length - 1} rows)</h3>
       <div className="smart-mapping-grid">{Array.from({ length: 10 }, (_, q) => <label key={q}>Q{q + 1} · {["Situational", "Situational", "Conversational", "Conversational", "Politeness", "Politeness", "Familiarity", "Familiarity", "Completion", "Completion"][q]}<select value={mapping[q] ?? -1} onChange={(event) => { const next = [...mapping]; next[q] = Number(event.target.value); setMapping(next); }}><option value={-1}>Choose a column</option>{header.map((name, index) => <option key={index} value={index}>{index + 1}. {name.slice(0, 90)}</option>)}</select></label>)}</div>
       <div className="smart-mapping-grid">
-        <label>Verified email or student ID column (optional)<select value={idColumn} onChange={(event) => setIdColumn(Number(event.target.value))}><option value={-1}>None: responses stay anonymous</option>{header.map((name, index) => <option key={index} value={index}>{index + 1}. {name.slice(0, 90)}</option>)}</select></label>
+        <label>Respondent email column (optional)<select value={idColumn} onChange={(event) => setIdColumn(Number(event.target.value))}><option value={-1}>None: responses stay anonymous</option>{header.map((name, index) => <option key={index} value={index}>{index + 1}. {name.slice(0, 90)}</option>)}</select></label>
         <label className="smart-check"><input type="checkbox" disabled={idColumn < 0} checked={matchedOnly && idColumn >= 0} onChange={(event) => setMatchedOnly(event.target.checked)} />Count only responses matched to a student account</label>
       </div>
-      <p className="smart-note">Responses are linked only by an exact account email or student ID (the S-code shown on this dashboard), never by name. Repeat submissions from the same student are flagged and only the first counts. Emails are not stored.</p>
+      <p className="smart-note">Responses are matched by email only: the email entered in the form is linked to the student account registered with that email, even if the name on the form is different. Names and student IDs are ignored. Repeat submissions from the same email are flagged and only the first counts. Emails are not stored.</p>
       <div className="header-actions"><button className="soft-button" onClick={() => setFile(null)}>Cancel</button><button className="primary-button" onClick={() => void upload()} disabled={uploading}><FileUp size={16} />{uploading ? "Uploading…" : "Validate and upload"}</button></div>
     </div>}
     {survey ? <>
@@ -465,7 +465,7 @@ function CompareCellView({ cell, target }: { cell: CompareCell; target: number }
 }
 
 function ComparisonPanel({ comparison, hasIdentifier }: { comparison: Comparison | null; hasIdentifier: boolean }) {
-  if (!hasIdentifier) return <section className="smart-section smart-no-print"><div className="smart-section-head"><div><small>MATCHED RESPONDENTS</small><h2>Perception vs actual performance</h2></div></div><div className="smart-empty">This questionnaire was uploaded without an email or student ID column, so respondents cannot be matched to accounts. Upload it again and choose the identifier column.</div></section>;
+  if (!hasIdentifier) return <section className="smart-section smart-no-print"><div className="smart-section-head"><div><small>MATCHED RESPONDENTS</small><h2>Perception vs actual performance</h2></div></div><div className="smart-empty">This questionnaire was uploaded without an email column, so respondents cannot be matched to accounts. Upload it again and choose the identifier column.</div></section>;
   if (!comparison) return <section className="smart-section smart-no-print"><div className="smart-empty">Loading the per-student comparison…</div></section>;
   const f = comparison.flags;
   const target = (key: GoalKey) => TARGET[key];
@@ -490,7 +490,7 @@ function ComparisonPanel({ comparison, hasIdentifier }: { comparison: Comparison
     <div className="smart-flags">
       <span><b>{comparison.matchedStudents}</b>matched eligible students</span>
       <span className={f.unmatchedRows ? "warn" : ""} title={f.unmatchedRowNumbers.length ? `CSV rows: ${f.unmatchedRowNumbers.join(", ")}` : undefined}><b>{f.unmatchedRows}</b>unmatched respondents</span>
-      <span className={f.noIdentifierRows ? "warn" : ""}><b>{f.noIdentifierRows}</b>without email or ID</span>
+      <span className={f.noIdentifierRows ? "warn" : ""}><b>{f.noIdentifierRows}</b>without an email</span>
       <span className={f.duplicateRows ? "warn" : ""}><b>{f.duplicateRows}</b>duplicates excluded</span>
       <span className={f.matchedNotEligible ? "warn" : ""}><b>{f.matchedNotEligible}</b>matched but outside filters</span>
       {f.legacyMatchedRows > 0 && <span className="warn"><b>{f.legacyMatchedRows}</b>uploaded before matching was stored: re-upload to compare</span>}
@@ -506,6 +506,6 @@ function ComparisonPanel({ comparison, hasIdentifier }: { comparison: Comparison
         {!comparison.students.length && <tr><td colSpan={5} className="smart-empty">No respondents matched an eligible student account for these filters.</td></tr>}
       </tbody>
     </table></div>
-    <p className="smart-note">Unmatched respondents and missing game records are shown as insufficient data, never as zero. Conversational accuracy uses Reply Coach and Response Rush; QuackTalk stores AI ratings rather than correct/incorrect answers, so it is not scored here.</p>
+    <p className="smart-note">Unmatched respondents and missing game records are shown as insufficient data, never as zero. Respondents are matched by email only. Conversational accuracy uses Reply Coach, Response Rush, Dialogue Relay and Talk with Sumi context scores; pronunciation scores are never used.</p>
   </section>;
 }

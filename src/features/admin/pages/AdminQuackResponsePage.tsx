@@ -53,6 +53,7 @@ type Node = {
   spritesVisible: boolean;
   tapToContinue: boolean;
   shuffleChoices: boolean;
+  assessesPoliteness?: boolean;
   nextNodeId: string;
   choices: Choice[];
 };
@@ -486,6 +487,7 @@ export default function AdminQuackResponsePage() {
                       <div className="choice-graph-editor">
                         <div className="reply-panel-heading"><span>RESPONSE BRANCHES</span><button onClick={addChoice}><Plus /> Add response</button></div>
                         <label className="inline-check"><input type="checkbox" checked={node.shuffleChoices} onChange={(event) => updateNode("shuffleChoices", event.target.checked)} /> Shuffle response positions without changing story order</label>
+                        <label className="inline-check" title="Counts this question toward SMART Goal 3 (Japanese Politeness Recognition) on the SMART Goals dashboard."><input type="checkbox" checked={!!node.assessesPoliteness} onChange={(event) => updateNode("assessesPoliteness", event.target.checked)} /> This question assesses Japanese politeness (counts toward SMART Goal 3)</label>
                         <div className="reply-meta-grid">
                           <label className="wide">Decision hint<textarea value={node.hint || ""} onChange={(event) => updateNode("hint", event.target.value)} placeholder="Guide the learner without revealing the answer." /></label>
                           <label>Hint score adjustment<input type="number" min="0" max="5" value={node.hintPenalty || 0} onChange={(event) => updateNode("hintPenalty", Number(event.target.value))} /></label>
