@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
-import { ClipboardCheck, Download, FileUp, Printer, RefreshCw, Trash2 } from "lucide-react";
+import { AlertTriangle, CheckCircle2, CircleDashed, ClipboardCheck, Compass, Download, FileUp, ListChecks, MessagesSquare, Printer, RefreshCw, Sparkles, Trash2, Users } from "lucide-react";
 import { API_URL, portalFetch as fetch } from "../../../lib/api";
 import { confirmAction } from "../../../lib/confirmAction";
 
@@ -67,8 +67,23 @@ const downloadCsv = (name: string, rows: unknown[][]) => {
   setTimeout(() => URL.revokeObjectURL(link.href), 1000);
 };
 
-function MetricCell({ metric }: { metric: Metric }) {
-  if (metric.status === "MEASURED") return <span className="smart-metric"><b>{pct(metric.percentage)}</b><small>{metric.correct}/{metric.total}</small></span>;
+const GOAL_ICON = { SMART1: Compass, SMART2: MessagesSquare, SMART3: Sparkles, SMART4: ListChecks } as const;
+const STATUS_ICON = { ACHIEVED: CheckCircle2, NOT_ACHIEVED: AlertTriangle, INSUFFICIENT_DATA: CircleDashed } as const;
+const TARGET: Record<GoalKey, number> = { SMART1: 80, SMART2: 75, SMART3: 75, SMART4: 80 };
+
+/** Horizontal bar on a 0–100 scale with a target tick. */
+function Meter({ value, target, tone, label }: { value: number | null; target?: number; tone?: string; label: string }) {
+  return <span className={`smart-meter ${tone ?? ""}`} role="img" aria-label={label} title={label}>
+    <i style={{ width: `${Math.max(0, Math.min(100, value ?? 0))}%` }} />
+    {target !== undefined && <s style={{ left: `${target}%` }} />}
+  </span>;
+}
+
+function MetricCell({ metric, goal }: { metric: Metric; goal: GoalKey }) {
+  if (metric.status === "MEASURED") {
+    const met = (metric.percentage ?? 0) >= TARGET[goal];
+    return <span className="smart-metric"><span><b>{pct(metric.percentage)}</b><small>{metric.correct}/{metric.total}</small></span><Meter value={metric.percentage} target={TARGET[goal]} tone={met ? "good" : "low"} label={`${pct(metric.percentage)} (${metric.correct} of ${metric.total}); target ${TARGET[goal]}%`} /></span>;
+  }
   const label = { INCOMPLETE: "Incomplete", NO_PARTICIPATION: "No participation", NOT_ASSIGNED: "Not assigned" }[metric.status];
   return <span className={`smart-metric empty ${metric.status.toLowerCase()}`}>{label}</span>;
 }
@@ -175,23 +190,54 @@ export default function AdminSmartGoalsPage() {
     {notice && <div className="admin-notice">{notice}</div>}
 
     {report && <>
-      <section className="smart-section">
-        <div className="smart-section-head"><div><small>ACTUAL GAME PERFORMANCE</small><h2>Objective results</h2></div><p>{report.eligibleStudents} eligible student{report.eligibleStudents === 1 ? "" : "s"} · computed {new Date(report.computedAt).toLocaleString()}</p></div>
-        <div className="smart-goal-grid">
-          {report.goals.map((goal) => <article key={goal.key} className={`smart-goal-card ${goal.status.toLowerCase()}`}>
-            <header><span>{goal.key.replace("SMART", "SMART ")}</span><em>{STATUS_LABEL[goal.status]}</em></header>
+      {(() => {
+        const achieved = report.goals.filter((goal) => goal.status === "ACHIEVED").length;
+        const notMet = report.goals.filter((goal) => goal.status === "NOT_ACHIEVED").length;
+        const noData = report.goals.filter((goal) => goal.status === "INSUFFICIENT_DATA").length;
+        const measured = report.students.filter((row) => (["SMART1", "SMART2", "SMART3"] as GoalKey[]).some((key) => row[key].status === "MEASURED")).length;
+        return <section className="smart-hero">
+          <div className="smart-hero-main"><small>OVERALL</small><h2><b>{achieved}</b> of 4 objectives achieved</h2>
+            <div className="smart-hero-track" aria-hidden="true">{report.goals.map((goal) => <i key={goal.key} className={goal.status.toLowerCase()} title={`${goal.name}: ${STATUS_LABEL[goal.status]}`} />)}</div>
+            <p>{notMet} not achieved · {noData} without enough data</p></div>
+          <div className="smart-hero-stat"><Users /><div><b>{report.eligibleStudents}</b><span>eligible students</span></div></div>
+          <div className="smart-hero-stat"><ClipboardCheck /><div><b>{measured}</b><span>with measured answers</span></div></div>
+          <div className="smart-hero-stat"><RefreshCw /><div><b>{new Date(report.computedAt).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}</b><span>computed {date(report.computedAt)}</span></div></div>
+        </section>;
+      })()}
+
+      <section className="smart-goal-grid" aria-label="Objective results">
+        {report.goals.map((goal) => {
+          const Icon = GOAL_ICON[goal.key]; const StatusIcon = STATUS_ICON[goal.status];
+          const gap = goal.percentage === null ? null : goal.percentage - goal.target;
+          return <article key={goal.key} className={`smart-goal-card ${goal.status.toLowerCase()}`}>
+            <header><span className="smart-goal-icon"><Icon /></span><span className="smart-goal-key">{goal.key.replace("SMART", "SMART ")}</span><em className={`smart-status ${goal.status.toLowerCase()}`}><StatusIcon />{STATUS_LABEL[goal.status]}</em></header>
             <h3>{goal.name}</h3>
-            <div className="smart-goal-value"><b>{goal.percentage === null ? "—" : pct(goal.percentage)}</b><span>target ≥ {goal.target}%</span></div>
-            <div className="smart-progress" role="progressbar" aria-valuenow={goal.percentage ?? 0} aria-valuemin={0} aria-valuemax={100} aria-label={`${goal.name} progress`}><i style={{ width: `${Math.min(100, goal.percentage ?? 0)}%` }} /><s style={{ left: `${goal.target}%` }} /></div>
+            <div className="smart-goal-value"><b>{goal.percentage === null ? "—" : pct(goal.percentage)}</b>{gap !== null && <span className={gap >= 0 ? "up" : "down"}>{gap >= 0 ? "+" : "−"}{Math.abs(gap).toFixed(1)} pts vs target</span>}</div>
+            <div className="smart-goal-bar"><Meter value={goal.percentage} target={goal.target} tone={goal.status === "ACHIEVED" ? "good" : goal.status === "NOT_ACHIEVED" ? "low" : "none"} label={`${goal.name}: ${goal.percentage === null ? "no data" : pct(goal.percentage)}, target ${goal.target}%`} /><div className="smart-goal-scale"><span>0</span><span style={{ left: `${goal.target}%` }}>Target {goal.target}%</span><span>100</span></div></div>
             <dl>
-              <div><dt>{goal.key === "SMART4" ? "Completed / assigned" : "Correct / scored"}</dt><dd>{goal.correct} / {goal.total}</dd></div>
+              <div><dt>{goal.key === "SMART4" ? "Completed / assigned" : "Correct / scored"}</dt><dd>{goal.correct.toLocaleString()} / {goal.total.toLocaleString()}</dd></div>
               <div><dt>Students measured</dt><dd>{goal.participatingStudents} of {goal.eligibleStudents}</dd></div>
               {goal.key !== "SMART4" && <div><dt>No participation · incomplete</dt><dd>{goal.noParticipation} · {goal.incomplete}</dd></div>}
               <div><dt>Last updated</dt><dd>{date(goal.lastUpdated)}</dd></div>
             </dl>
             <p className="smart-evidence">{goal.evidence}</p>
-          </article>)}
+          </article>;
+        })}
+      </section>
+
+      <section className="smart-section">
+        <div className="smart-section-head"><div><small>EVIDENCE SIDE BY SIDE</small><h2>Game accuracy and questionnaire agreement</h2></div>
+          <div className="smart-legend"><span><i className="game" />Game records (measured)</span><span><i className="survey" />Questionnaire (Agree or Strongly Agree)</span><span><i className="target" />Target</span></div></div>
+        <div className="smart-compare">
+          {report.goals.map((goal) => { const group = surveyGroup(goal.key); return <div key={goal.key} className="smart-compare-row">
+            <div className="smart-compare-name"><b>{goal.name}</b><small>target ≥ {goal.target}%</small></div>
+            <div className="smart-compare-bars">
+              <div><Meter value={goal.percentage} target={goal.target} tone="game" label={`Game records: ${goal.percentage === null ? "insufficient data" : pct(goal.percentage)} (${goal.correct}/${goal.total})`} /><span>{goal.percentage === null ? "Insufficient data" : pct(goal.percentage)}</span></div>
+              <div><Meter value={group?.percentage ?? null} target={goal.target} tone="survey" label={`Questionnaire: ${group ? `${pct(group.percentage)} of ${group.valid} responses` : "no questionnaire"}`} /><span>{group ? pct(group.percentage) : "No questionnaire"}</span></div>
+            </div>
+          </div>; })}
         </div>
+        <p className="smart-note">The two sources are not combined. Game records measure performance; the questionnaire measures how students perceive their learning.</p>
       </section>
 
       <section className="smart-section smart-no-print">
@@ -202,7 +248,7 @@ export default function AdminSmartGoalsPage() {
             {report.students.map((row) => <tr key={row.studentId}>
               <td><b>{row.name}</b><small>{row.code}</small></td>
               <td>{row.classCode ? <><b>{row.classCode}</b>{row.classTitle && <small>{row.classTitle}</small>}</> : <small>No class</small>}</td>
-              {GOAL_KEYS.map((key) => <td key={key}><MetricCell metric={row[key]} /></td>)}
+              {GOAL_KEYS.map((key) => <td key={key}><MetricCell metric={row[key]} goal={key} /></td>)}
               <td>{row.runsAttempted} / {row.runsCompleted}</td>
               <td className="smart-dates">{row.assessmentDates.length ? <>{row.assessmentDates.slice(-4).join(", ")}{row.assessmentDates.length > 4 && <small>+{row.assessmentDates.length - 4} more</small>}</> : <small>None</small>}</td>
             </tr>)}
@@ -354,10 +400,10 @@ function SurveyPanel({ surveys, survey, setSurveyId, onUploaded, setNotice }: { 
         <span className={survey.duplicateRows ? "warn" : ""}><b>{survey.duplicateRows}</b>duplicates excluded</span>
         {!survey.identifierHeader && <span><b>—</b>not linked to accounts</span>}
       </div>
-      <div className="smart-group-grid">{survey.groups.map((group) => <div key={group.key} className="smart-group"><small>{group.key === "SUPPORT" ? "SUPPORTING" : group.key.replace("SMART", "SMART ")} · {group.questions}</small><b>{pct(group.percentage)}</b><span>{group.label}</span><em>{group.agree} of {group.valid} responses agree</em></div>)}</div>
+      <div className="smart-group-grid">{survey.groups.map((group) => <div key={group.key} className="smart-group"><small>{group.key === "SUPPORT" ? "SUPPORTING" : group.key.replace("SMART", "SMART ")} · {group.questions}</small><b>{pct(group.percentage)}</b><Meter value={group.percentage} tone="survey" label={`${group.label}: ${pct(group.percentage)}`} /><span>{group.label}</span><em>{group.agree} of {group.valid} responses agree</em></div>)}</div>
       <div className="smart-table-wrap"><table className="smart-table">
         <thead><tr><th>#</th><th>Statement</th><th>Objective</th><th>Agree or Strongly Agree</th><th>Valid responses</th></tr></thead>
-        <tbody>{survey.questions.map((question) => <tr key={question.number}><td>Q{question.number}</td><td>{question.statement}</td><td>{question.group === "SUPPORT" ? "Supporting" : question.group.replace("SMART", "SMART ")}</td><td><b>{pct(question.percentage)}</b><small>{question.agree} responses</small></td><td>{question.valid}</td></tr>)}</tbody>
+        <tbody>{survey.questions.map((question) => <tr key={question.number}><td>Q{question.number}</td><td>{question.statement}</td><td>{question.group === "SUPPORT" ? "Supporting" : question.group.replace("SMART", "SMART ")}</td><td><span className="smart-metric"><span><b>{pct(question.percentage)}</b><small>{question.agree} responses</small></span><Meter value={question.percentage} tone="survey" label={`Q${question.number}: ${pct(question.percentage)}`} /></span></td><td>{question.valid}</td></tr>)}</tbody>
       </table></div>
     </> : !file && <div className="smart-empty">No questionnaire uploaded yet. Export the responses from Google Forms (Responses → Download CSV) and upload the file here.</div>}
   </section>;
