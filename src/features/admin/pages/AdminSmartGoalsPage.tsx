@@ -6,12 +6,13 @@ type GoalKey = "SMART1" | "SMART2" | "SMART3" | "SMART4";
 type Goal = {
   key: GoalKey; name: string; target: number; correct: number; total: number; percentage: number | null;
   status: "ACHIEVED" | "NOT_ACHIEVED" | "INSUFFICIENT_DATA"; eligibleStudents: number; participatingStudents: number;
-  noParticipation: number | null; incomplete: number | null; lastUpdated: string | null; evidence: string; limitations: string[];
+  noParticipation: number | null; incomplete: number | null; lastUpdated: string | null; evidence: string; limitations: string[]; areas?: Area[];
 };
 type Metric = { correct: number; total: number; percentage: number | null; status: "MEASURED" | "INCOMPLETE" | "NO_PARTICIPATION"; activities?: ActivityStatus[] };
 type ActivityStatus = { key: string; status: "COMPLETED" | "STARTED" | "NOT_STARTED"; completedAt: string | null };
 type StudentRow = { studentId: string; code: string; name: string; classCode: string | null; classTitle: string | null; runsAttempted: number; runsCompleted: number; assessmentDates: string[] } & Record<GoalKey, Metric>;
 type Report = {
+  replyCoachEvaluations?: Record<string, number>;
   methodVersion: string; computedAt: string; rules: string[]; eligibleStudents: number; goals: Goal[]; students: StudentRow[];
   classes: { classCode: string; classTitle: string | null }[]; studentOptions: { id: string; code: string; name: string }[];
   filters: Record<string, unknown>; audit: { recordsRead: Record<string, number>; recordsExcluded: Record<string, number> };
@@ -295,6 +296,8 @@ export default function AdminSmartGoalsPage() {
 
     {survey && <ComparisonPanel comparison={comparison} hasIdentifier={!!survey.identifierHeader} />}
 
+    {report && <RefactoringPanel report={report} survey={survey} comparison={comparison} setNotice={setNotice} />}
+
     {report && <section className="smart-section smart-summary">
       <div className="smart-section-head"><div><small>EVALUATION SUMMARY</small><h2>JapLearn 2.0 SMART objectives</h2></div><p>Period {String(report.filters.from ?? "start")} to {String(report.filters.to ?? "today")} · class {String(report.filters.classCode || "all")} · module {String(report.filters.module)} · {report.filters.population === "SURVEY_MATCHED" ? "survey respondents only (email matched)" : "all eligible students"} · {report.methodVersion}</p></div>
       <p className="smart-note">Game accuracy and questionnaire agreement are separate evidence sources. They are shown side by side and are never combined into one score. No student names or emails appear in this summary.</p>
@@ -464,4 +467,174 @@ function ComparisonPanel({ comparison, hasIdentifier }: { comparison: Comparison
     </table></div>
     <p className="smart-note">Unmatched respondents and missing game records are shown as insufficient data, never as zero. Respondents are matched by email only. Conversational accuracy uses Reply Coach, Response Rush, Dialogue Relay and Talk with Sumi context scores; pronunciation scores are never used.</p>
   </section>;
+}
+
+type Area = { label: string; correct: number; total: number; percentage: number | null; students: number; started: number };
+type Priority = { id?: string; goalKey: string; rank: number; included: boolean; learned: string; evidence: string; objective: string; aspect: string; expectedImprovement: string; updatedAt?: string; updatedBy?: string };
+
+const QUESTIONS_5 = [
+  ["learned", "1. What did we learn from the MVP validation?"],
+  ["evidence", "2. What stakeholder feedback or evidence supports it?"],
+  ["objective", "3. Which SMART objective or measurable outcome is affected?"],
+  ["aspect", "4. What aspect of the requirements or design should be improved?"],
+  ["expectedImprovement", "5. How is the change expected to improve the measurable outcome?"],
+] as const;
+
+const SURVEY_GROUP_OF: Record<GoalKey, number[]> = { SMART1: [1, 2], SMART2: [3, 4], SMART3: [5, 6], SMART4: [9, 10] };
+
+/** Builds a starting draft from the measured evidence. The team must review and confirm the interpretation. */
+function draftFor(goal: Goal, report: Report, survey: Survey | null, comparison: Comparison | null): Priority {
+  const areas = (goal.areas ?? []).filter((item) => item.total > 0);
+  const weakest = areas[0];
+  const short = SHORT[goal.key];
+  const group = survey?.groups.find((item) => item.key === goal.key) ?? null;
+  const overall = comparison?.overall.find((item) => item.key === goal.key) ?? null;
+  const statements = survey ? survey.questions.filter((q) => SURVEY_GROUP_OF[goal.key].includes(q.number)).sort((a, b) => (a.percentage ?? 101) - (b.percentage ?? 101)) : [];
+  const lowStatement = statements[0];
+  const isCompletion = goal.key === "SMART4";
+  const unit = isCompletion ? "completed" : "correct";
+
+  let learned: string;
+  if (goal.status === "INSUFFICIENT_DATA") learned = `${goal.name} could not be measured yet: there are not enough validation records for the selected students and period.`;
+  else if (goal.status === "NOT_ACHIEVED") learned = `${goal.name} reached ${pct(goal.percentage)} against the ${goal.target}% target (${(goal.target - (goal.percentage ?? 0)).toFixed(1)} points short).${weakest ? ` The weakest area was ${weakest.label} at ${pct(weakest.percentage)}.` : ""}`;
+  else learned = `${goal.name} met the ${goal.target}% target at ${pct(goal.percentage)}${weakest ? `, but ${weakest.label} remained the lowest area at ${pct(weakest.percentage)}` : ""}.`;
+  if (group?.percentage != null) learned += ` ${group.percentage}% of respondents agreed the app helped with this objective${overall?.difference != null ? `; matched students' measured result was ${Math.abs(overall.difference).toFixed(1)} points ${overall.difference >= 0 ? "above" : "below"} their perception` : ""}.`;
+
+  const evidence: string[] = [];
+  evidence.push(`Game records: ${goal.correct} ${unit} out of ${goal.total} (${pct(goal.percentage)}), ${goal.participatingStudents} of ${goal.eligibleStudents} eligible students measured.`);
+  for (const item of areas.slice(0, 4)) evidence.push(isCompletion
+    ? `${item.label}: completed by ${item.correct} of ${item.total} students (${pct(item.percentage)})${item.started ? `, ${item.started} started but did not finish` : ""}.`
+    : `${item.label}: ${item.correct}/${item.total} correct (${pct(item.percentage)}) across ${item.students} students.`);
+  if ((goal.key === "SMART2" || goal.key === "SMART3") && report.replyCoachEvaluations) {
+    const ev = report.replyCoachEvaluations; const all = Object.values(ev).reduce((sum, value) => sum + value, 0);
+    const poor = (ev.IMPOLITE ?? 0) + (ev.RUDE ?? 0) + (ev.AWKWARD ?? 0);
+    if (all) evidence.push(`Reply Coach first-attempt ratings: ${poor} of ${all} answers were Awkward, Impolite or Rude (${(poor * 100 / all).toFixed(1)}%).`);
+  }
+  if (group) evidence.push(`Questionnaire (${group.questions}): ${pct(group.percentage)} agreement from ${group.valid} valid responses.`);
+  if (lowStatement) evidence.push(`Lowest statement: Q${lowStatement.number} "${lowStatement.statement}" at ${pct(lowStatement.percentage)} agreement.`);
+
+  const target = weakest?.label ?? "the activities linked to this objective";
+  const aspect = {
+    SMART1: `Situational scenario design in ${target}: review scenario context clarity, difficulty progression between levels, and the feedback shown after a wrong choice, so learners understand why a reply fits the situation.`,
+    SMART2: `Response-feedback design in ${target}: explain why the best response fits the context, contrast it with awkward or impolite choices, and add a reinforcement attempt before the activity ends.`,
+    SMART3: `Politeness instruction and assessment in ${target}: make formal vs informal cues explicit, explain keigo choices in feedback, and increase the number of items that explicitly assess politeness.`,
+    SMART4: `Activity flow of the least-completed activities (${areas.slice(0, 2).map((item) => item.label).join(", ") || "none measured"}): review session length, how the activity is reached in the app, and progress reminders so students finish what they start.`,
+  }[goal.key];
+
+  return {
+    goalKey: goal.key, rank: { SMART1: 1, SMART2: 2, SMART3: 3, SMART4: 4 }[goal.key], included: goal.status !== "INSUFFICIENT_DATA",
+    learned, evidence: evidence.join("\n"),
+    objective: `SMART ${goal.key.slice(-1)}: ${goal.name} (target ≥ ${goal.target}%)`,
+    aspect,
+    expectedImprovement: goal.percentage === null
+      ? `Once measurable, the change should move ${short.toLowerCase()} results toward the ${goal.target}% target; to be verified on this dashboard with the same rules (${report.methodVersion}).`
+      : `Expected to raise ${short.toLowerCase()} from ${pct(goal.percentage)}${weakest ? ` (and ${weakest.label} from ${pct(weakest.percentage)})` : ""} toward the ${goal.target}% target; to be verified by re-measuring on this dashboard after the change with the same rules (${report.methodVersion}).`,
+  };
+}
+
+function RefactoringPanel({ report, survey, comparison, setNotice }: { report: Report; survey: Survey | null; comparison: Comparison | null; setNotice: (text: string) => void }) {
+  const [saved, setSaved] = useState<Priority[]>([]);
+  const [drafts, setDrafts] = useState<Record<string, Priority>>({});
+  const [busy, setBusy] = useState("");
+
+  const load = useCallback(async () => {
+    const response = await fetch(`${API_URL}/api/admin/smart-goals/refactoring`).catch(() => null);
+    if (response?.ok) setSaved(await response.json());
+  }, []);
+  useEffect(() => { void load(); }, [load]);
+
+  const save = async (item: Priority, key: string) => {
+    setBusy(key);
+    try {
+      const response = await fetch(`${API_URL}/api/admin/smart-goals/refactoring`, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(item) });
+      if (!response.ok) throw new Error();
+      setDrafts((current) => { const next = { ...current }; delete next[key]; return next; });
+      await load();
+      setNotice("Refactoring priority saved.");
+    } catch { setNotice("The refactoring priority could not be saved."); }
+    finally { setBusy(""); }
+  };
+  const remove = async (item: Priority) => {
+    if (!item.id || !window.confirm("Delete this refactoring priority?")) return;
+    await fetch(`${API_URL}/api/admin/smart-goals/refactoring/${encodeURIComponent(item.id)}`, { method: "DELETE" });
+    await load();
+  };
+  const edit = (key: string, base: Priority, field: keyof Priority, value: string | boolean | number) =>
+    setDrafts((current) => ({ ...current, [key]: { ...(current[key] ?? base), [field]: value } }));
+
+  const exportCsv = () => {
+    const rows = saved.filter((item) => item.included).sort((a, b) => a.rank - b.rank);
+    downloadCsv(`japlearn-refactoring-priorities-${new Date().toISOString().slice(0, 10)}.csv`, [
+      ["#", "SMART objective", ...QUESTIONS_5.map(([, label]) => label)],
+      ...rows.map((item, index) => [index + 1, item.goalKey, item.learned, item.evidence, item.objective, item.aspect, item.expectedImprovement]),
+    ]);
+  };
+
+  return <section className="smart-section smart-refactor">
+    <div className="smart-section-head"><div><small>REQUIREMENTS &amp; DESIGN REFACTORING</small><h2>Refactoring priorities from MVP validation</h2></div>
+      <div className="header-actions smart-no-print"><button className="soft-button" onClick={exportCsv} disabled={!saved.some((item) => item.included)}><Download size={16} />Export priorities CSV</button></div></div>
+
+    <div className="smart-flow" aria-label="Refactoring progression">{["MVP validation", "Stakeholder feedback & evidence", "Improvement opportunities", "Requirements & design refactoring", "Improved system"].map((step, index) => <span key={step}><b>{index + 1}</b>{step}</span>)}</div>
+    <div className="smart-refactor-guide">
+      <div><h3>What counts as a refactoring priority</h3><p>A change to requirements or design that should make JapLearn better at reaching a SMART objective: accuracy, effectiveness, reliability, efficiency or quality of the learning outcome, backed by validation evidence.</p></div>
+      <div><h3>What does not</h3><p>Bug fixes, minor UI/UX or cosmetic changes, fixing implementation problems, features already in the original MVP, or features not tied to an objective. A new feature qualifies only when the evidence shows it is needed for a SMART objective.</p></div>
+    </div>
+
+    {report.goals.map((goal) => {
+      const Icon = GOAL_ICON[goal.key];
+      const areas = (goal.areas ?? []).filter((item) => item.total > 0);
+      const group = survey?.groups.find((item) => item.key === goal.key) ?? null;
+      const overall = comparison?.overall.find((item) => item.key === goal.key) ?? null;
+      const mine = saved.filter((item) => item.goalKey === goal.key);
+      const draftKey = `new-${goal.key}`;
+      return <article key={goal.key} className={`smart-refactor-goal ${goal.status.toLowerCase()}`}>
+        <header><span className="smart-goal-icon"><Icon /></span><div><small>{goal.key.replace("SMART", "SMART ")} · target ≥ {goal.target}%</small><h3>{goal.name}</h3></div><em className={`smart-status ${goal.status.toLowerCase()}`}>{STATUS_LABEL[goal.status]}</em></header>
+        <div className="smart-refactor-body">
+          <div className="smart-evidence-card">
+            <h4>Evidence from validation</h4>
+            <div className="smart-evidence-kpis">
+              <div><small>Measured</small><b>{pct(goal.percentage)}</b><span>{goal.correct}/{goal.total}</span></div>
+              <div><small>Survey agreement</small><b className="survey">{group ? pct(group.percentage) : "—"}</b><span>{group ? `${group.valid} responses` : "no questionnaire"}</span></div>
+              <div><small>Actual − survey</small><b>{overall?.difference == null ? "—" : diffLabel(overall.difference)}</b><span>matched students</span></div>
+            </div>
+            <h5>{goal.key === "SMART4" ? "Least-completed activities" : "Weakest specific areas"}</h5>
+            {areas.length ? <ul className="smart-area-list">{areas.slice(0, 5).map((item) => <li key={item.label}>
+              <span>{item.label}</span>
+              <Meter value={item.percentage} target={goal.target} tone={(item.percentage ?? 0) >= goal.target ? "good" : "low"} label={`${item.label}: ${pct(item.percentage)}`} />
+              <b>{pct(item.percentage)}</b><small>{goal.key === "SMART4" ? `${item.correct}/${item.total} students${item.started ? ` · ${item.started} unfinished` : ""}` : `${item.correct}/${item.total} · ${item.students} students`}</small>
+            </li>)}</ul> : <p className="smart-note">No measured records for this objective in the current selection.</p>}
+          </div>
+
+          <div className="smart-priority-stack">
+            {mine.map((item) => { const key = item.id!; const value = drafts[key] ?? item; return <PriorityForm key={key} value={value} dirty={!!drafts[key]} busy={busy === key}
+              onChange={(field, next) => edit(key, item, field, next)} onSave={() => void save(value, key)} onDelete={() => void remove(item)} />; })}
+            {drafts[draftKey]
+              ? <PriorityForm value={drafts[draftKey]} dirty busy={busy === draftKey} isNew onChange={(field, next) => edit(draftKey, drafts[draftKey], field, next)} onSave={() => void save(drafts[draftKey], draftKey)} onDelete={() => setDrafts((current) => { const next = { ...current }; delete next[draftKey]; return next; })} />
+              : <div className="smart-priority-actions smart-no-print">
+                <button className="primary-button" onClick={() => setDrafts((current) => ({ ...current, [draftKey]: draftFor(goal, report, survey, comparison) }))}><Sparkles size={16} />{mine.length ? "Draft another from evidence" : "Draft from evidence"}</button>
+                <button className="soft-button" onClick={() => setDrafts((current) => ({ ...current, [draftKey]: { goalKey: goal.key, rank: 9, included: true, learned: "", evidence: "", objective: `SMART ${goal.key.slice(-1)}: ${goal.name} (target ≥ ${goal.target}%)`, aspect: "", expectedImprovement: "" } }))}>Write blank</button>
+              </div>}
+          </div>
+        </div>
+      </article>;
+    })}
+    <p className="smart-note">Drafts are generated only from the numbers on this dashboard. Review each one with your team and add the stakeholders' own words (interview notes, comments from the form) before submitting. Nothing is saved until you click Save.</p>
+  </section>;
+}
+
+function PriorityForm({ value, dirty, busy, isNew, onChange, onSave, onDelete }: { value: Priority; dirty: boolean; busy: boolean; isNew?: boolean; onChange: (field: keyof Priority, value: string | boolean | number) => void; onSave: () => void; onDelete: () => void }) {
+  return <div className={`smart-priority ${value.included ? "" : "excluded"}`}>
+    <div className="smart-priority-top">
+      <span className={`smart-chip ${isNew ? "draft" : dirty ? "draft" : "saved"}`}>{isNew ? "Draft" : dirty ? "Unsaved changes" : "Saved"}</span>
+      <label className="smart-check"><input type="checkbox" checked={value.included} onChange={(event) => onChange("included", event.target.checked)} />Include in submission</label>
+      <label className="smart-rank">Priority<input type="number" min={1} max={99} value={value.rank} onChange={(event) => onChange("rank", Number(event.target.value) || 1)} /></label>
+    </div>
+    {QUESTIONS_5.map(([field, label]) => <label key={field} className="smart-q"><span>{label}</span>
+      <textarea rows={field === "evidence" ? 5 : field === "objective" ? 1 : 3} maxLength={3000} value={String(value[field] ?? "")} onChange={(event) => onChange(field, event.target.value)} /></label>)}
+    <div className="smart-priority-foot smart-no-print">
+      {value.updatedAt && !dirty && <small>Saved {new Date(value.updatedAt).toLocaleString()}{value.updatedBy ? ` by ${value.updatedBy}` : ""}</small>}
+      <button className="soft-button" onClick={onDelete}>{isNew ? "Discard" : "Delete"}</button>
+      <button className="primary-button" onClick={onSave} disabled={busy || (!dirty && !isNew)}>{busy ? "Saving…" : "Save"}</button>
+    </div>
+  </div>;
 }
