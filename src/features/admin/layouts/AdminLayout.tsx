@@ -1,5 +1,6 @@
 import {
   BookOpenCheck,
+  ClipboardCheck,
   Compass,
   Gamepad2,
   GraduationCap,
@@ -21,6 +22,7 @@ const navigation = [
   { to: "/admin", label: "Overview", icon: LayoutDashboard, end: true, group: "Overview" },
   { to: "/admin/students", label: "Students", icon: Users, group: "People" },
   { to: "/admin/teachers", label: "Teachers", icon: GraduationCap, group: "People" },
+  { to: "/admin/smart-goals", label: "SMART Goals", icon: ClipboardCheck, group: "Evaluation" },
   { to: "/admin/quacksituate", label: "QuackSituate", icon: Compass, group: "Game content" },
   { to: "/admin/quackresponse", label: "QuackResponse", icon: MessageCircleQuestion, group: "Game content" },
   { to: "/admin/quacktalk", label: "QuackTalk", icon: Mic2, group: "Game content" },

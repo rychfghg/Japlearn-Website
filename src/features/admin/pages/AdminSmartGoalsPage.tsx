@@ -1,0 +1,364 @@
+import { useCallback, useEffect, useMemo, useState } from "react";
+import { ClipboardCheck, Download, FileUp, Printer, RefreshCw, Trash2 } from "lucide-react";
+import { API_URL, portalFetch as fetch } from "../../../lib/api";
+import { confirmAction } from "../../../lib/confirmAction";
+
+type GoalKey = "SMART1" | "SMART2" | "SMART3" | "SMART4";
+type Goal = {
+  key: GoalKey; name: string; target: number; correct: number; total: number; percentage: number | null;
+  status: "ACHIEVED" | "NOT_ACHIEVED" | "INSUFFICIENT_DATA"; eligibleStudents: number; participatingStudents: number;
+  noParticipation: number | null; incomplete: number | null; lastUpdated: string | null; evidence: string; limitations: string[];
+};
+type Metric = { correct: number; total: number; percentage: number | null; status: "MEASURED" | "INCOMPLETE" | "NO_PARTICIPATION" | "NOT_ASSIGNED" };
+type StudentRow = { studentId: string; code: string; name: string; classCode: string | null; classTitle: string | null; runsAttempted: number; runsCompleted: number; assessmentDates: string[] } & Record<GoalKey, Metric>;
+type Assignment = { id: string; title: string; classCode: string; classTitle: string | null; activityKey: string; level: number | null; chapterId: string | null; startsAt: string; dueAt: string; createdAt: string; assignedStudents?: number; completedStudents?: number };
+type Report = {
+  methodVersion: string; computedAt: string; rules: string[]; eligibleStudents: number; goals: Goal[]; students: StudentRow[];
+  classes: { classCode: string; classTitle: string | null }[]; studentOptions: { id: string; code: string; name: string }[];
+  assignments: { counted: Assignment[]; open: Assignment[] };
+  filters: Record<string, unknown>; audit: { recordsRead: Record<string, number>; recordsExcluded: Record<string, number> };
+};
+type SurveyQuestion = { number: number; statement: string; group: string; agree: number; valid: number; percentage: number | null };
+type SurveyGroup = { key: string; label: string; questions: string; agree: number; valid: number; percentage: number | null };
+type Survey = {
+  id: string; fileName: string; sha256: string; uploadedAt: string; uploadedBy: string; identifierHeader: string | null; matchedOnly: boolean;
+  totalRows: number; countedRows: number; matchedRows: number; unmatchedRows: number; duplicateRows: number; noIdentifierRows: number;
+  questions: SurveyQuestion[]; groups: SurveyGroup[];
+};
+
+const GOAL_KEYS: GoalKey[] = ["SMART1", "SMART2", "SMART3", "SMART4"];
+const SHORT: Record<GoalKey, string> = { SMART1: "Situational", SMART2: "Conversational", SMART3: "Politeness", SMART4: "Completion" };
+const MODULES = [
+  ["ALL", "All modules"], ["QUACKSITUATE", "QuackSituate (all)"], ["RECOGNITION", "Situational Recognition"], ["EXPRESSION_MATCH", "Expression Match"],
+  ["POLITENESS", "Politeness"], ["QUACKRESPONSE", "QuackResponse (all)"], ["REPLY_COACH", "Reply Coach"], ["RESPONSE_RUSH", "Response Rush"],
+] as const;
+const ACTIVITIES = [
+  ["RECOGNITION", "QuackSituate · Situational Recognition"], ["EXPRESSION_MATCH", "QuackSituate · Expression Match"], ["POLITENESS", "QuackSituate · Politeness"],
+  ["REPLY_COACH", "QuackResponse · Reply Coach"], ["RESPONSE_RUSH", "QuackResponse · Response Rush"], ["DIALOGUE_RELAY", "QuackResponse · Dialogue Relay"], ["QUACKTALK", "QuackTalk session"],
+] as const;
+const activityLabel = (key: string) => ACTIVITIES.find(([value]) => value === key)?.[1] ?? key;
+const STATUS_LABEL = { ACHIEVED: "Achieved", NOT_ACHIEVED: "Not Achieved", INSUFFICIENT_DATA: "Insufficient Data" } as const;
+const pct = (value: number | null | undefined) => value === null || value === undefined ? "—" : `${value.toFixed(1)}%`;
+const date = (value: string | null | undefined) => value ? new Date(value).toLocaleDateString(undefined, { year: "numeric", month: "short", day: "numeric" }) : "—";
+
+// ---- CSV helpers (the server re-parses and validates the file; this only builds the column mapping)
+function parseCsv(text: string): string[][] {
+  const rows: string[][] = []; let row: string[] = []; let field = ""; let quoted = false;
+  for (let i = text.charCodeAt(0) === 0xfeff ? 1 : 0; i < text.length; i++) {
+    const c = text[i];
+    if (quoted) { if (c === '"') { if (text[i + 1] === '"') { field += '"'; i++; } else quoted = false; } else field += c; }
+    else if (c === '"') quoted = true;
+    else if (c === ",") { row.push(field); field = ""; }
+    else if (c === "\r" || c === "\n") { if (c === "\r" && text[i + 1] === "\n") i++; row.push(field); field = ""; rows.push(row); row = []; }
+    else field += c;
+  }
+  if (field || row.length) { row.push(field); rows.push(row); }
+  return rows;
+}
+const LIKERT = new Set(["strongly agree", "agree", "neutral", "neither agree nor disagree", "neither agree or disagree", "undecided", "disagree", "strongly disagree", "1", "2", "3", "4", "5"]);
+const isLikertColumn = (rows: string[][], col: number) => {
+  const values = rows.slice(1).map((row) => (row[col] ?? "").trim().toLowerCase().replace(/\s+/g, " ")).filter(Boolean);
+  return values.length > 0 && values.filter((value) => LIKERT.has(value)).length * 2 >= values.length;
+};
+const csvCell = (value: unknown) => { const text = String(value ?? ""); return /[",\n\r]/.test(text) || /^[=+\-@]/.test(text) ? `"${(/^[=+\-@]/.test(text) ? "'" : "") + text.replace(/"/g, '""')}"` : text; };
+const downloadCsv = (name: string, rows: unknown[][]) => {
+  const blob = new Blob(["﻿" + rows.map((row) => row.map(csvCell).join(",")).join("\r\n")], { type: "text/csv;charset=utf-8" });
+  const link = document.createElement("a"); link.href = URL.createObjectURL(blob); link.download = name; link.click();
+  setTimeout(() => URL.revokeObjectURL(link.href), 1000);
+};
+
+function MetricCell({ metric }: { metric: Metric }) {
+  if (metric.status === "MEASURED") return <span className="smart-metric"><b>{pct(metric.percentage)}</b><small>{metric.correct}/{metric.total}</small></span>;
+  const label = { INCOMPLETE: "Incomplete", NO_PARTICIPATION: "No participation", NOT_ASSIGNED: "Not assigned" }[metric.status];
+  return <span className={`smart-metric empty ${metric.status.toLowerCase()}`}>{label}</span>;
+}
+
+export default function AdminSmartGoalsPage() {
+  const [from, setFrom] = useState("");
+  const [to, setTo] = useState("");
+  const [classCode, setClassCode] = useState("");
+  const [studentId, setStudentId] = useState("");
+  const [module, setModule] = useState("ALL");
+  const [includeUnapproved, setIncludeUnapproved] = useState(false);
+  const [report, setReport] = useState<Report | null>(null);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
+  const [notice, setNotice] = useState("");
+  const [surveys, setSurveys] = useState<Survey[]>([]);
+  const [surveyId, setSurveyId] = useState("");
+  const [chapters, setChapters] = useState<{ id: string; title: string }[]>([]);
+
+  const load = useCallback(async () => {
+    setLoading(true); setError("");
+    const params = new URLSearchParams();
+    if (from) params.set("from", from);
+    if (to) params.set("to", to);
+    if (classCode) params.set("classCode", classCode);
+    if (studentId) params.set("studentId", studentId);
+    if (module !== "ALL") params.set("module", module);
+    if (includeUnapproved) params.set("includeUnapproved", "true");
+    try {
+      const response = await fetch(`${API_URL}/api/admin/smart-goals/report?${params}`);
+      if (!response.ok) throw new Error();
+      setReport(await response.json());
+    } catch {
+      setError("The SMART goal report could not be loaded. Make sure the updated backend is running and you are signed in as an admin.");
+    } finally { setLoading(false); }
+  }, [from, to, classCode, studentId, module, includeUnapproved]);
+
+  const loadSurveys = useCallback(async () => {
+    const response = await fetch(`${API_URL}/api/admin/smart-goals/surveys`).catch(() => null);
+    if (!response?.ok) return;
+    const list: Survey[] = await response.json();
+    setSurveys(list);
+    setSurveyId((current) => list.some((item) => item.id === current) ? current : list[0]?.id ?? "");
+  }, []);
+
+  useEffect(() => { void load(); }, [load]);
+  useEffect(() => { void loadSurveys(); }, [loadSurveys]);
+  useEffect(() => {
+    fetch(`${API_URL}/api/reply-coach/chapters`).then((response) => response.ok ? response.json() : []).then((list) => setChapters(Array.isArray(list) ? list.map((item: { id: string; title?: string }) => ({ id: item.id, title: item.title || item.id })) : [])).catch(() => undefined);
+  }, []);
+
+  const survey = surveys.find((item) => item.id === surveyId) ?? null;
+  const surveyGroup = (key: string) => survey?.groups.find((group) => group.key === key) ?? null;
+
+  const improvements = useMemo(() => {
+    if (!report) return [];
+    const items: string[] = [];
+    for (const goal of report.goals) {
+      if (goal.status === "NOT_ACHIEVED" && goal.percentage !== null) items.push(`${goal.name}: ${pct(goal.percentage)} measured against a ${goal.target}% target (${(goal.target - goal.percentage).toFixed(1)} points short). Review the items and activities behind this result before deciding on changes.`);
+      if (goal.status === "INSUFFICIENT_DATA") items.push(`${goal.name}: not measurable from the current records. ${goal.key === "SMART4" ? "Create class assignments below so completion can be tracked from now on." : "More evaluation attempts are needed in the selected period."}`);
+      if (goal.key !== "SMART4" && goal.eligibleStudents > 0 && goal.participatingStudents < goal.eligibleStudents)
+        items.push(`${goal.name}: ${goal.participatingStudents} of ${goal.eligibleStudents} eligible students have measured answers (${goal.noParticipation ?? 0} with no participation, ${goal.incomplete ?? 0} incomplete). Low coverage limits how far the result generalises.`);
+    }
+    if (survey) {
+      const lowest = [...survey.questions].filter((question) => question.percentage !== null).sort((a, b) => (a.percentage ?? 0) - (b.percentage ?? 0)).slice(0, 2);
+      for (const question of lowest) items.push(`Questionnaire Q${question.number} had the lowest agreement (${pct(question.percentage)}): "${question.statement}". Consider reviewing the related content.`);
+    }
+    return items;
+  }, [report, survey]);
+
+  const exportSummary = () => {
+    if (!report) return;
+    const rows: unknown[][] = [
+      ["JapLearn 2.0 SMART Goals Validation Summary (anonymized)"],
+      ["Method", report.methodVersion, "Computed", report.computedAt],
+      ["Period", report.filters.from ?? "all", report.filters.to ?? "all", "Class", report.filters.classCode || "all", "Module", report.filters.module],
+      [],
+      ["Objective", "Target %", "Measured %", "Correct/completed", "Total scored/assigned", "Status", "Students measured", "Eligible students", "Evidence source", "Questionnaire agreement %", "Questionnaire valid responses"],
+      ...report.goals.map((goal) => { const group = surveyGroup(goal.key); return [goal.name, goal.target, goal.percentage ?? "Insufficient Data", goal.correct, goal.total, STATUS_LABEL[goal.status], goal.participatingStudents, goal.eligibleStudents, goal.evidence, group?.percentage ?? "", group?.valid ?? ""]; }),
+      [],
+      ["Student code", "Class", "Situational %", "Conversational %", "Politeness %", "Completion %", "Runs attempted", "Runs completed"],
+      ...report.students.map((row) => [row.code, row.classCode ?? "", ...GOAL_KEYS.map((key) => row[key].status === "MEASURED" ? row[key].percentage : row[key].status), row.runsAttempted, row.runsCompleted]),
+      [],
+      ["Rules"], ...report.rules.map((rule) => [rule]),
+    ];
+    if (survey) rows.push([], ["Questionnaire", survey.fileName, "SHA-256", survey.sha256, "Counted respondents", survey.countedRows], ["Question", "Group", "Agree or Strongly Agree", "Valid responses", "%"], ...survey.questions.map((question) => [`Q${question.number}`, question.group, question.agree, question.valid, question.percentage ?? ""]));
+    downloadCsv(`japlearn-smart-summary-${new Date().toISOString().slice(0, 10)}.csv`, rows);
+  };
+
+  return <div className="admin-users-page smart-page">
+    <header><div><small>EVALUATION</small><h1>SMART Goals Validation</h1><p>Measured game performance and questionnaire results for the four JapLearn 2.0 objectives. Results are read-only and computed from existing records.</p></div>
+      <div className="header-actions smart-no-print"><button className="soft-button" onClick={() => void load()} disabled={loading}><RefreshCw size={16} />{loading ? "Loading…" : "Refresh"}</button><button className="soft-button" onClick={exportSummary} disabled={!report}><Download size={16} />Export CSV</button><button className="primary-button" onClick={() => window.print()} disabled={!report}><Printer size={16} />Summary PDF</button></div></header>
+
+    <div className="smart-filters smart-no-print" aria-label="Evaluation filters">
+      <label>From<input type="date" value={from} onChange={(event) => setFrom(event.target.value)} /></label>
+      <label>To<input type="date" value={to} onChange={(event) => setTo(event.target.value)} /></label>
+      <label>Class<select value={classCode} onChange={(event) => setClassCode(event.target.value)}><option value="">All classes</option>{report?.classes.map((item) => <option key={item.classCode} value={item.classCode}>{item.classTitle ? `${item.classTitle} · ${item.classCode}` : item.classCode}</option>)}</select></label>
+      <label>Student<select value={studentId} onChange={(event) => setStudentId(event.target.value)}><option value="">All eligible students</option>{report?.studentOptions.map((item) => <option key={item.id} value={item.id}>{item.name} · {item.code}</option>)}</select></label>
+      <label>Module<select value={module} onChange={(event) => setModule(event.target.value)}>{MODULES.map(([value, label]) => <option key={value} value={value}>{label}</option>)}</select></label>
+      <label className="smart-check"><input type="checkbox" checked={includeUnapproved} onChange={(event) => setIncludeUnapproved(event.target.checked)} />Include unapproved accounts</label>
+      <button type="button" className="admin-filter-clear" onClick={() => { setFrom(""); setTo(""); setClassCode(""); setStudentId(""); setModule("ALL"); setIncludeUnapproved(false); }}>Clear filters</button>
+    </div>
+    {error && <div className="admin-error">{error}</div>}
+    {notice && <div className="admin-notice">{notice}</div>}
+
+    {report && <>
+      <section className="smart-section">
+        <div className="smart-section-head"><div><small>ACTUAL GAME PERFORMANCE</small><h2>Objective results</h2></div><p>{report.eligibleStudents} eligible student{report.eligibleStudents === 1 ? "" : "s"} · computed {new Date(report.computedAt).toLocaleString()}</p></div>
+        <div className="smart-goal-grid">
+          {report.goals.map((goal) => <article key={goal.key} className={`smart-goal-card ${goal.status.toLowerCase()}`}>
+            <header><span>{goal.key.replace("SMART", "SMART ")}</span><em>{STATUS_LABEL[goal.status]}</em></header>
+            <h3>{goal.name}</h3>
+            <div className="smart-goal-value"><b>{goal.percentage === null ? "—" : pct(goal.percentage)}</b><span>target ≥ {goal.target}%</span></div>
+            <div className="smart-progress" role="progressbar" aria-valuenow={goal.percentage ?? 0} aria-valuemin={0} aria-valuemax={100} aria-label={`${goal.name} progress`}><i style={{ width: `${Math.min(100, goal.percentage ?? 0)}%` }} /><s style={{ left: `${goal.target}%` }} /></div>
+            <dl>
+              <div><dt>{goal.key === "SMART4" ? "Completed / assigned" : "Correct / scored"}</dt><dd>{goal.correct} / {goal.total}</dd></div>
+              <div><dt>Students measured</dt><dd>{goal.participatingStudents} of {goal.eligibleStudents}</dd></div>
+              {goal.key !== "SMART4" && <div><dt>No participation · incomplete</dt><dd>{goal.noParticipation} · {goal.incomplete}</dd></div>}
+              <div><dt>Last updated</dt><dd>{date(goal.lastUpdated)}</dd></div>
+            </dl>
+            <p className="smart-evidence">{goal.evidence}</p>
+          </article>)}
+        </div>
+      </section>
+
+      <section className="smart-section smart-no-print">
+        <div className="smart-section-head"><div><small>PER STUDENT</small><h2>Student performance</h2></div><p>Percentages use the first evaluation attempt. Blank results are labelled, not scored as zero.</p></div>
+        <div className="smart-table-wrap"><table className="smart-table">
+          <thead><tr><th>Student</th><th>Class</th><th>Situational</th><th>Conversational</th><th>Politeness</th><th>Completion</th><th>Runs attempted / completed</th><th>Assessment dates</th></tr></thead>
+          <tbody>
+            {report.students.map((row) => <tr key={row.studentId}>
+              <td><b>{row.name}</b><small>{row.code}</small></td>
+              <td>{row.classCode ? <><b>{row.classCode}</b>{row.classTitle && <small>{row.classTitle}</small>}</> : <small>No class</small>}</td>
+              {GOAL_KEYS.map((key) => <td key={key}><MetricCell metric={row[key]} /></td>)}
+              <td>{row.runsAttempted} / {row.runsCompleted}</td>
+              <td className="smart-dates">{row.assessmentDates.length ? <>{row.assessmentDates.slice(-4).join(", ")}{row.assessmentDates.length > 4 && <small>+{row.assessmentDates.length - 4} more</small>}</> : <small>None</small>}</td>
+            </tr>)}
+            {!report.students.length && <tr><td colSpan={8} className="smart-empty">No eligible students match these filters.</td></tr>}
+          </tbody>
+        </table></div>
+      </section>
+
+      <AssignmentsPanel report={report} chapters={chapters} onChanged={() => void load()} setNotice={setNotice} />
+    </>}
+
+    <SurveyPanel surveys={surveys} survey={survey} setSurveyId={setSurveyId} onUploaded={async (id) => { await loadSurveys(); setSurveyId(id); }} setNotice={setNotice} />
+
+    {report && <section className="smart-section smart-summary">
+      <div className="smart-section-head"><div><small>EVALUATION SUMMARY</small><h2>JapLearn 2.0 SMART objectives</h2></div><p>Period {String(report.filters.from ?? "start")} to {String(report.filters.to ?? "today")} · class {String(report.filters.classCode || "all")} · module {String(report.filters.module)} · {report.methodVersion}</p></div>
+      <p className="smart-note">Game accuracy and questionnaire agreement are separate evidence sources. They are shown side by side and are never combined into one score. No student names or emails appear in this summary.</p>
+      <div className="smart-table-wrap"><table className="smart-table smart-summary-table">
+        <thead><tr><th>Objective</th><th>Target</th><th>Measured (game records)</th><th>Status</th><th>Students measured</th><th>Questionnaire agreement</th></tr></thead>
+        <tbody>{report.goals.map((goal) => { const group = surveyGroup(goal.key); return <tr key={goal.key}>
+          <td><b>{goal.name}</b><small>{goal.evidence}</small></td><td>≥ {goal.target}%</td>
+          <td><b>{pct(goal.percentage)}</b><small>{goal.correct} / {goal.total}</small></td>
+          <td><em className={`smart-status ${goal.status.toLowerCase()}`}>{STATUS_LABEL[goal.status]}</em></td>
+          <td>{goal.participatingStudents} of {goal.eligibleStudents}</td>
+          <td>{group ? <><b>{pct(group.percentage)}</b><small>{group.questions} · {group.valid} valid responses</small></> : <small>No questionnaire selected</small>}</td>
+        </tr>; })}
+        {survey && (() => { const support = surveyGroup("SUPPORT"); return support ? <tr><td><b>Supporting communication familiarity</b><small>Questionnaire only</small></td><td>—</td><td>—</td><td>—</td><td>—</td><td><b>{pct(support.percentage)}</b><small>{support.questions} · {support.valid} valid responses</small></td></tr> : null; })()}
+        </tbody>
+      </table></div>
+      <div className="smart-summary-grid">
+        <div><h3>Measurement limitations</h3><ul>{report.goals.flatMap((goal) => goal.limitations.map((item, index) => <li key={`${goal.key}-${index}`}><b>{SHORT[goal.key]}:</b> {item}</li>))}{survey && <li><b>Questionnaire:</b> {survey.countedRows} of {survey.totalRows} responses counted{survey.duplicateRows ? `, ${survey.duplicateRows} duplicate submissions excluded` : ""}{survey.unmatchedRows ? `, ${survey.unmatchedRows} not matched to a student account` : ""}{survey.noIdentifierRows ? `, ${survey.noIdentifierRows} without an email` : ""}. Agreement is self-reported perception, not measured skill.</li>}</ul></div>
+        <div><h3>Areas needing improvement</h3>{improvements.length ? <ul>{improvements.map((item) => <li key={item}>{item}</li>)}</ul> : <p>All measured objectives meet their targets for this selection.</p>}<p className="smart-note">These are priorities to review, such as content difficulty, item wording or how activities are assigned. They do not mean a new feature is needed.</p></div>
+      </div>
+      <details className="smart-audit"><summary>Calculation rules and audit trail</summary><ol>{report.rules.map((rule) => <li key={rule}>{rule}</li>)}</ol><p>Records read: {Object.entries(report.audit.recordsRead).map(([key, value]) => `${key} ${value}`).join(" · ")}</p><p>Excluded from accuracy: {Object.keys(report.audit.recordsExcluded).length ? Object.entries(report.audit.recordsExcluded).map(([key, value]) => `${key}: ${value}`).join(" · ") : "none"}</p>{survey && <p>Questionnaire file {survey.fileName} · SHA-256 {survey.sha256.slice(0, 16)}… · uploaded {new Date(survey.uploadedAt).toLocaleString()} by {survey.uploadedBy}</p>}</details>
+    </section>}
+  </div>;
+}
+
+function AssignmentsPanel({ report, chapters, onChanged, setNotice }: { report: Report; chapters: { id: string; title: string }[]; onChanged: () => void; setNotice: (text: string) => void }) {
+  const [form, setForm] = useState({ classCode: "", activityKey: "POLITENESS", level: "", chapterId: "", title: "", startsAt: "", dueAt: "" });
+  const [saving, setSaving] = useState(false);
+  const usesLevel = form.activityKey === "EXPRESSION_MATCH" || form.activityKey === "POLITENESS";
+  const all = [...report.assignments.open.map((item) => ({ ...item, open: true })), ...report.assignments.counted.map((item) => ({ ...item, open: false }))];
+
+  const create = async () => {
+    if (!form.classCode || !form.startsAt || !form.dueAt) { setNotice("Choose a class, a start date and a due date."); return; }
+    setSaving(true);
+    try {
+      const response = await fetch(`${API_URL}/api/admin/smart-goals/assignments`, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({
+        classCode: form.classCode, activityKey: form.activityKey, level: usesLevel && form.level ? Number(form.level) : null,
+        chapterId: form.activityKey === "REPLY_COACH" && form.chapterId ? form.chapterId : null, title: form.title,
+        startsAt: new Date(`${form.startsAt}T00:00:00`).toISOString(), dueAt: new Date(`${form.dueAt}T23:59:59`).toISOString(),
+      }) });
+      const body = await response.json().catch(() => null);
+      if (!response.ok) throw new Error(body?.error || "The assignment could not be saved.");
+      setNotice("Assignment saved. Completion is read from the class's game records between the start and due dates.");
+      setForm({ ...form, title: "", startsAt: "", dueAt: "" });
+      onChanged();
+    } catch (error) { setNotice(error instanceof Error ? error.message : "The assignment could not be saved."); }
+    finally { setSaving(false); }
+  };
+  const remove = async (item: Assignment) => {
+    if (!await confirmAction(`Remove the assignment "${item.title}"?`, { confirmLabel: "Remove assignment", description: "Only the assignment is removed. Student game records are not changed." })) return;
+    const response = await fetch(`${API_URL}/api/admin/smart-goals/assignments/${encodeURIComponent(item.id)}`, { method: "DELETE" });
+    setNotice(response.ok ? "Assignment removed." : "The assignment could not be removed.");
+    onChanged();
+  };
+
+  return <section className="smart-section smart-no-print">
+    <div className="smart-section-head"><div><small>SMART 4 · ASSIGNED ACTIVITIES</small><h2>Communication activity assignments</h2></div><p>New tracking. The system had no class assignment records for communication games before this, so completion is counted only for assignments created here, after their due date.</p></div>
+    <div className="smart-assign-form">
+      <label>Class<select value={form.classCode} onChange={(event) => setForm({ ...form, classCode: event.target.value })}><option value="">Choose a class</option>{report.classes.map((item) => <option key={item.classCode} value={item.classCode}>{item.classTitle ? `${item.classTitle} · ${item.classCode}` : item.classCode}</option>)}</select></label>
+      <label>Activity<select value={form.activityKey} onChange={(event) => setForm({ ...form, activityKey: event.target.value })}>{ACTIVITIES.map(([value, label]) => <option key={value} value={value}>{label}</option>)}</select></label>
+      {usesLevel && <label>Level<select value={form.level} onChange={(event) => setForm({ ...form, level: event.target.value })}><option value="">Any level</option><option value="1">Level 1</option><option value="2">Level 2</option><option value="3">Level 3</option></select></label>}
+      {form.activityKey === "REPLY_COACH" && <label>Chapter<select value={form.chapterId} onChange={(event) => setForm({ ...form, chapterId: event.target.value })}><option value="">Any chapter</option>{chapters.map((item) => <option key={item.id} value={item.id}>{item.title}</option>)}</select></label>}
+      <label>Title<input maxLength={80} placeholder="e.g. Week 3 politeness practice" value={form.title} onChange={(event) => setForm({ ...form, title: event.target.value })} /></label>
+      <label>Starts<input type="date" value={form.startsAt} onChange={(event) => setForm({ ...form, startsAt: event.target.value })} /></label>
+      <label>Due<input type="date" value={form.dueAt} onChange={(event) => setForm({ ...form, dueAt: event.target.value })} /></label>
+      <button className="primary-button" onClick={() => void create()} disabled={saving}><ClipboardCheck size={16} />{saving ? "Saving…" : "Assign"}</button>
+    </div>
+    <div className="smart-table-wrap"><table className="smart-table">
+      <thead><tr><th>Assignment</th><th>Class</th><th>Window</th><th>Completed</th><th>Counted</th><th /></tr></thead>
+      <tbody>
+        {all.map((item) => <tr key={item.id}>
+          <td><b>{item.title}</b><small>{activityLabel(item.activityKey)}{item.level ? ` · level ${item.level}` : ""}{item.chapterId ? ` · ${chapters.find((chapter) => chapter.id === item.chapterId)?.title ?? item.chapterId}` : ""}</small></td>
+          <td>{item.classCode}</td><td>{date(item.startsAt)} – {date(item.dueAt)}</td>
+          <td>{item.completedStudents ?? 0} / {item.assignedStudents ?? 0}</td>
+          <td>{item.open ? <em className="smart-status insufficient_data">Open</em> : <em className="smart-status achieved">Counted</em>}</td>
+          <td><button className="smart-icon-button" onClick={() => void remove(item)} aria-label={`Remove ${item.title}`}><Trash2 size={16} /></button></td>
+        </tr>)}
+        {!all.length && <tr><td colSpan={6} className="smart-empty">No assignments for the selected classes and period yet.</td></tr>}
+      </tbody>
+    </table></div>
+  </section>;
+}
+
+function SurveyPanel({ surveys, survey, setSurveyId, onUploaded, setNotice }: { surveys: Survey[]; survey: Survey | null; setSurveyId: (id: string) => void; onUploaded: (id: string) => Promise<void>; setNotice: (text: string) => void }) {
+  const [file, setFile] = useState<{ name: string; text: string; rows: string[][] } | null>(null);
+  const [mapping, setMapping] = useState<number[]>([]);
+  const [idColumn, setIdColumn] = useState(-1);
+  const [matchedOnly, setMatchedOnly] = useState(false);
+  const [uploading, setUploading] = useState(false);
+  const header = file?.rows[0] ?? [];
+
+  const choose = async (picked: File | undefined) => {
+    if (!picked) return;
+    if (!picked.name.toLowerCase().endsWith(".csv")) { setNotice("Please choose the .csv file exported from Google Forms."); return; }
+    if (picked.size > 1_500_000) { setNotice("The CSV file is too large (limit about 1.5 MB)."); return; }
+    const text = await picked.text();
+    const rows = parseCsv(text);
+    if (rows.length < 2) { setNotice("The CSV needs a header row and at least one response."); return; }
+    const likert = rows[0].map((_, index) => index).filter((index) => isLikertColumn(rows, index));
+    setFile({ name: picked.name, text, rows });
+    setMapping(likert.slice(0, 10));
+    setIdColumn(rows[0].findIndex((name) => /e-?mail/i.test(name)));
+    setNotice(likert.length < 10 ? `Only ${likert.length} agreement columns were detected. Map the remaining questions manually.` : likert.length > 10 ? `${likert.length} agreement columns were found. The first 10 are mapped; check they are the Learning Effectiveness statements.` : "");
+  };
+  const upload = async () => {
+    if (!file || mapping.length !== 10 || mapping.some((value) => value < 0)) { setNotice("Map all 10 questions before uploading."); return; }
+    setUploading(true);
+    try {
+      const response = await fetch(`${API_URL}/api/admin/smart-goals/surveys`, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ fileName: file.name, csv: file.text, questionColumns: mapping, identifierColumn: idColumn >= 0 ? idColumn : null, matchedOnly }) });
+      const body = await response.json().catch(() => null);
+      if (!response.ok) throw new Error(body?.error || "The questionnaire could not be uploaded.");
+      setFile(null); setNotice("Questionnaire uploaded and stored as a new record."); await onUploaded(body.id);
+    } catch (error) { setNotice(error instanceof Error ? error.message : "The questionnaire could not be uploaded."); }
+    finally { setUploading(false); }
+  };
+
+  return <section className="smart-section">
+    <div className="smart-section-head"><div><small>QUESTIONNAIRE</small><h2>Student-Perceived Learning Effectiveness</h2></div><p>Share of valid respondents who chose Agree or Strongly Agree. This is perception data and is kept separate from game accuracy.</p></div>
+    <div className="smart-survey-toolbar smart-no-print">
+      <label className="smart-file"><FileUp size={16} />Upload Google Forms CSV<input type="file" accept=".csv,text/csv" onChange={(event) => { void choose(event.target.files?.[0]); event.target.value = ""; }} /></label>
+      {surveys.length > 0 && <label>Questionnaire upload<select value={survey?.id ?? ""} onChange={(event) => setSurveyId(event.target.value)}>{surveys.map((item) => <option key={item.id} value={item.id}>{item.fileName} · {new Date(item.uploadedAt).toLocaleString()}</option>)}</select></label>}
+    </div>
+    {file && <div className="smart-mapping smart-no-print">
+      <h3>Map the 10 Learning Effectiveness statements · {file.name} ({file.rows.length - 1} rows)</h3>
+      <div className="smart-mapping-grid">{Array.from({ length: 10 }, (_, q) => <label key={q}>Q{q + 1} · {["Situational", "Situational", "Conversational", "Conversational", "Politeness", "Politeness", "Familiarity", "Familiarity", "Completion", "Completion"][q]}<select value={mapping[q] ?? -1} onChange={(event) => { const next = [...mapping]; next[q] = Number(event.target.value); setMapping(next); }}><option value={-1}>Choose a column</option>{header.map((name, index) => <option key={index} value={index}>{index + 1}. {name.slice(0, 90)}</option>)}</select></label>)}</div>
+      <div className="smart-mapping-grid">
+        <label>Verified email column (optional)<select value={idColumn} onChange={(event) => setIdColumn(Number(event.target.value))}><option value={-1}>None: responses stay anonymous</option>{header.map((name, index) => <option key={index} value={index}>{index + 1}. {name.slice(0, 90)}</option>)}</select></label>
+        <label className="smart-check"><input type="checkbox" disabled={idColumn < 0} checked={matchedOnly && idColumn >= 0} onChange={(event) => setMatchedOnly(event.target.checked)} />Count only responses matched to a student account</label>
+      </div>
+      <p className="smart-note">Responses are linked only by exact email match, never by name. Repeat submissions from the same email are flagged and only the first counts. Emails are not stored.</p>
+      <div className="header-actions"><button className="soft-button" onClick={() => setFile(null)}>Cancel</button><button className="primary-button" onClick={() => void upload()} disabled={uploading}><FileUp size={16} />{uploading ? "Uploading…" : "Validate and upload"}</button></div>
+    </div>}
+    {survey ? <>
+      <div className="smart-survey-stats">
+        <span><b>{survey.countedRows}</b>counted respondents</span><span><b>{survey.totalRows}</b>rows in file</span>
+        {survey.identifierHeader && <><span><b>{survey.matchedRows}</b>matched to accounts</span><span className={survey.unmatchedRows ? "warn" : ""}><b>{survey.unmatchedRows}</b>unmatched</span></>}
+        <span className={survey.duplicateRows ? "warn" : ""}><b>{survey.duplicateRows}</b>duplicates excluded</span>
+        {!survey.identifierHeader && <span><b>—</b>not linked to accounts</span>}
+      </div>
+      <div className="smart-group-grid">{survey.groups.map((group) => <div key={group.key} className="smart-group"><small>{group.key === "SUPPORT" ? "SUPPORTING" : group.key.replace("SMART", "SMART ")} · {group.questions}</small><b>{pct(group.percentage)}</b><span>{group.label}</span><em>{group.agree} of {group.valid} responses agree</em></div>)}</div>
+      <div className="smart-table-wrap"><table className="smart-table">
+        <thead><tr><th>#</th><th>Statement</th><th>Objective</th><th>Agree or Strongly Agree</th><th>Valid responses</th></tr></thead>
+        <tbody>{survey.questions.map((question) => <tr key={question.number}><td>Q{question.number}</td><td>{question.statement}</td><td>{question.group === "SUPPORT" ? "Supporting" : question.group.replace("SMART", "SMART ")}</td><td><b>{pct(question.percentage)}</b><small>{question.agree} responses</small></td><td>{question.valid}</td></tr>)}</tbody>
+      </table></div>
+    </> : !file && <div className="smart-empty">No questionnaire uploaded yet. Export the responses from Google Forms (Responses → Download CSV) and upload the file here.</div>}
+  </section>;
+}

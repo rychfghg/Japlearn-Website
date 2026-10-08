@@ -19,6 +19,7 @@ import AdminGamePage from "./features/admin/pages/AdminGamePage";
 import AdminLayout from "./features/admin/layouts/AdminLayout";
 import AdminOverviewPage from "./features/admin/pages/AdminOverviewPage";
 import AdminUsersPage from "./features/admin/pages/AdminUsersPage";
+import AdminSmartGoalsPage from "./features/admin/pages/AdminSmartGoalsPage";
 import TeacherLayout from "./features/teacher/layouts/TeacherLayout";
 import ActivitiesPage from "./features/teacher/pages/ActivitiesPage";
 import AssignCommunicationPage from "./features/teacher/pages/AssignCommunicationPage";
@@ -109,6 +110,7 @@ export default function App() {
           <Route index element={<AdminOverviewPage />} />
           <Route path="students" element={<AdminUsersPage role="student" />} />
           <Route path="teachers" element={<AdminUsersPage role="teacher" />} />
+          <Route path="smart-goals" element={<AdminSmartGoalsPage />} />
           <Route path="quacksituate" element={<AdminSituationalContentPage />} />
           <Route path="quackslate" element={<AdminQuestionBankPage />} />
           <Route path="quackresponse" element={<AdminQuackResponseShell />}>
