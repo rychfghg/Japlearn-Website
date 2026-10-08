@@ -28,6 +28,7 @@ type Survey = {
 
 const GOAL_KEYS: GoalKey[] = ["SMART1", "SMART2", "SMART3", "SMART4"];
 const SHORT: Record<GoalKey, string> = { SMART1: "Situational", SMART2: "Conversational", SMART3: "Politeness", SMART4: "Completion" };
+const GOAL_LABEL: Record<GoalKey, string> = { SMART1: "Situational Communication Accuracy", SMART2: "Conversational Response Accuracy", SMART3: "Politeness Recognition Accuracy", SMART4: "Communication Activity Completion" };
 const MODULES = [
   ["ALL", "All modules"], ["QUACKSITUATE", "QuackSituate (all)"], ["RECOGNITION", "Situational Recognition"], ["EXPRESSION_MATCH", "Expression Match"],
   ["POLITENESS", "Politeness"], ["QUACKRESPONSE", "QuackResponse (all)"], ["REPLY_COACH", "Reply Coach"], ["RESPONSE_RUSH", "Response Rush"],
@@ -103,8 +104,7 @@ export default function AdminSmartGoalsPage() {
   const [surveyId, setSurveyId] = useState("");
   const [chapters, setChapters] = useState<{ id: string; title: string }[]>([]);
 
-  const load = useCallback(async () => {
-    setLoading(true); setError("");
+  const query = useMemo(() => {
     const params = new URLSearchParams();
     if (from) params.set("from", from);
     if (to) params.set("to", to);
@@ -112,6 +112,13 @@ export default function AdminSmartGoalsPage() {
     if (studentId) params.set("studentId", studentId);
     if (module !== "ALL") params.set("module", module);
     if (includeUnapproved) params.set("includeUnapproved", "true");
+    return params.toString();
+  }, [from, to, classCode, studentId, module, includeUnapproved]);
+  const [comparison, setComparison] = useState<Comparison | null>(null);
+
+  const load = useCallback(async () => {
+    setLoading(true); setError("");
+    const params = query;
     try {
       const response = await fetch(`${API_URL}/api/admin/smart-goals/report?${params}`);
       if (!response.ok) throw new Error();
@@ -119,7 +126,18 @@ export default function AdminSmartGoalsPage() {
     } catch {
       setError("The SMART goal report could not be loaded. Make sure the updated backend is running and you are signed in as an admin.");
     } finally { setLoading(false); }
-  }, [from, to, classCode, studentId, module, includeUnapproved]);
+  }, [query]);
+
+  // Per-student comparison for the selected questionnaire, using the same filters as the report.
+  useEffect(() => {
+    if (!surveyId) { setComparison(null); return; }
+    let live = true;
+    fetch(`${API_URL}/api/admin/smart-goals/surveys/${encodeURIComponent(surveyId)}/comparison?${query}`)
+      .then((response) => response.ok ? response.json() : null)
+      .then((body) => { if (live) setComparison(body); })
+      .catch(() => { if (live) setComparison(null); });
+    return () => { live = false; };
+  }, [surveyId, query, report]);
 
   const loadSurveys = useCallback(async () => {
     const response = await fetch(`${API_URL}/api/admin/smart-goals/surveys`).catch(() => null);
@@ -262,6 +280,8 @@ export default function AdminSmartGoalsPage() {
 
     <SurveyPanel surveys={surveys} survey={survey} setSurveyId={setSurveyId} onUploaded={async (id) => { await loadSurveys(); setSurveyId(id); }} setNotice={setNotice} />
 
+    {survey && <ComparisonPanel comparison={comparison} hasIdentifier={!!survey.identifierHeader} />}
+
     {report && <section className="smart-section smart-summary">
       <div className="smart-section-head"><div><small>EVALUATION SUMMARY</small><h2>JapLearn 2.0 SMART objectives</h2></div><p>Period {String(report.filters.from ?? "start")} to {String(report.filters.to ?? "today")} · class {String(report.filters.classCode || "all")} · module {String(report.filters.module)} · {report.methodVersion}</p></div>
       <p className="smart-note">Game accuracy and questionnaire agreement are separate evidence sources. They are shown side by side and are never combined into one score. No student names or emails appear in this summary.</p>
@@ -362,7 +382,7 @@ function SurveyPanel({ surveys, survey, setSurveyId, onUploaded, setNotice }: { 
     const likert = rows[0].map((_, index) => index).filter((index) => isLikertColumn(rows, index));
     setFile({ name: picked.name, text, rows });
     setMapping(likert.slice(0, 10));
-    setIdColumn(rows[0].findIndex((name) => /e-?mail/i.test(name)));
+    setIdColumn(rows[0].findIndex((name) => /e-?mail|student ?id|student ?code/i.test(name)));
     setNotice(likert.length < 10 ? `Only ${likert.length} agreement columns were detected. Map the remaining questions manually.` : likert.length > 10 ? `${likert.length} agreement columns were found. The first 10 are mapped; check they are the Learning Effectiveness statements.` : "");
   };
   const upload = async () => {
@@ -387,10 +407,10 @@ function SurveyPanel({ surveys, survey, setSurveyId, onUploaded, setNotice }: { 
       <h3>Map the 10 Learning Effectiveness statements · {file.name} ({file.rows.length - 1} rows)</h3>
       <div className="smart-mapping-grid">{Array.from({ length: 10 }, (_, q) => <label key={q}>Q{q + 1} · {["Situational", "Situational", "Conversational", "Conversational", "Politeness", "Politeness", "Familiarity", "Familiarity", "Completion", "Completion"][q]}<select value={mapping[q] ?? -1} onChange={(event) => { const next = [...mapping]; next[q] = Number(event.target.value); setMapping(next); }}><option value={-1}>Choose a column</option>{header.map((name, index) => <option key={index} value={index}>{index + 1}. {name.slice(0, 90)}</option>)}</select></label>)}</div>
       <div className="smart-mapping-grid">
-        <label>Verified email column (optional)<select value={idColumn} onChange={(event) => setIdColumn(Number(event.target.value))}><option value={-1}>None: responses stay anonymous</option>{header.map((name, index) => <option key={index} value={index}>{index + 1}. {name.slice(0, 90)}</option>)}</select></label>
+        <label>Verified email or student ID column (optional)<select value={idColumn} onChange={(event) => setIdColumn(Number(event.target.value))}><option value={-1}>None: responses stay anonymous</option>{header.map((name, index) => <option key={index} value={index}>{index + 1}. {name.slice(0, 90)}</option>)}</select></label>
         <label className="smart-check"><input type="checkbox" disabled={idColumn < 0} checked={matchedOnly && idColumn >= 0} onChange={(event) => setMatchedOnly(event.target.checked)} />Count only responses matched to a student account</label>
       </div>
-      <p className="smart-note">Responses are linked only by exact email match, never by name. Repeat submissions from the same email are flagged and only the first counts. Emails are not stored.</p>
+      <p className="smart-note">Responses are linked only by an exact account email or student ID (the S-code shown on this dashboard), never by name. Repeat submissions from the same student are flagged and only the first counts. Emails are not stored.</p>
       <div className="header-actions"><button className="soft-button" onClick={() => setFile(null)}>Cancel</button><button className="primary-button" onClick={() => void upload()} disabled={uploading}><FileUp size={16} />{uploading ? "Uploading…" : "Validate and upload"}</button></div>
     </div>}
     {survey ? <>
@@ -406,5 +426,86 @@ function SurveyPanel({ surveys, survey, setSurveyId, onUploaded, setNotice }: { 
         <tbody>{survey.questions.map((question) => <tr key={question.number}><td>Q{question.number}</td><td>{question.statement}</td><td>{question.group === "SUPPORT" ? "Supporting" : question.group.replace("SMART", "SMART ")}</td><td><span className="smart-metric"><span><b>{pct(question.percentage)}</b><small>{question.agree} responses</small></span><Meter value={question.percentage} tone="survey" label={`Q${question.number}: ${pct(question.percentage)}`} /></span></td><td>{question.valid}</td></tr>)}</tbody>
       </table></div>
     </> : !file && <div className="smart-empty">No questionnaire uploaded yet. Export the responses from Google Forms (Responses → Download CSV) and upload the file here.</div>}
+  </section>;
+}
+
+type CompareCell = {
+  surveyAgree: number; surveyValid: number; surveyPercentage: number | null; surveyStatus: string;
+  actualCorrect: number; actualTotal: number; actualPercentage: number | null; actualStatus: string;
+  difference: number | null; meetsTarget: boolean | null;
+};
+type CompareOverall = {
+  key: GoalKey; target: number; surveyAgree: number; surveyValid: number; surveyPercentage: number | null;
+  actualCorrect: number; actualTotal: number; actualPercentage: number | null; actualStatus: Goal["status"];
+  difference: number | null; studentsWithPerformance: number;
+};
+type Comparison = {
+  surveyId: string; fileName: string; matchedStudents: number;
+  students: ({ studentId: string; code: string; name: string; classCode: string | null; rowNumber: number } & Record<GoalKey, CompareCell>)[];
+  overall: CompareOverall[];
+  flags: { unmatchedRows: number; noIdentifierRows: number; duplicateRows: number; matchedNotEligible: number; legacyMatchedRows: number; unmatchedRowNumbers: number[] };
+};
+
+const ACTUAL_EMPTY: Record<string, string> = { NO_PARTICIPATION: "No records", INCOMPLETE: "Incomplete", NOT_ASSIGNED: "Not assigned", INSUFFICIENT_DATA: "Insufficient data" };
+const diffLabel = (value: number | null) => value === null ? "—" : `${value > 0 ? "+" : value < 0 ? "−" : "±"}${Math.abs(value).toFixed(1)} pts`;
+
+function CompareCellView({ cell, target }: { cell: CompareCell; target: number }) {
+  return <div className="smart-cmp-cell">
+    <div className="smart-cmp-line"><span className="smart-cmp-tag actual">Actual</span>{cell.actualPercentage !== null
+      ? <><b>{pct(cell.actualPercentage)}</b><small>{cell.actualCorrect}/{cell.actualTotal}</small></>
+      : <em className="smart-flag">{ACTUAL_EMPTY[cell.actualStatus] ?? "Insufficient data"}</em>}</div>
+    <div className="smart-cmp-line"><span className="smart-cmp-tag survey">Survey</span>{cell.surveyPercentage !== null
+      ? <><b>{pct(cell.surveyPercentage)}</b><small>{cell.surveyAgree}/{cell.surveyValid}</small></>
+      : <em className="smart-flag">No valid answers</em>}</div>
+    <div className="smart-cmp-foot">
+      <span className={`smart-diff ${cell.difference === null ? "" : cell.difference >= 0 ? "pos" : "neg"}`} title="Actual minus survey, in percentage points">{diffLabel(cell.difference)}</span>
+      {cell.meetsTarget === null ? <span className="smart-target na">Target n/a</span> : cell.meetsTarget ? <span className="smart-target met"><CheckCircle2 />Meets {target}%</span> : <span className="smart-target miss"><AlertTriangle />Below {target}%</span>}
+    </div>
+  </div>;
+}
+
+function ComparisonPanel({ comparison, hasIdentifier }: { comparison: Comparison | null; hasIdentifier: boolean }) {
+  if (!hasIdentifier) return <section className="smart-section smart-no-print"><div className="smart-section-head"><div><small>MATCHED RESPONDENTS</small><h2>Perception vs actual performance</h2></div></div><div className="smart-empty">This questionnaire was uploaded without an email or student ID column, so respondents cannot be matched to accounts. Upload it again and choose the identifier column.</div></section>;
+  if (!comparison) return <section className="smart-section smart-no-print"><div className="smart-empty">Loading the per-student comparison…</div></section>;
+  const f = comparison.flags;
+  const target = (key: GoalKey) => TARGET[key];
+  return <section className="smart-section">
+    <div className="smart-section-head"><div><small>MATCHED RESPONDENTS</small><h2>Perception vs actual performance</h2></div>
+      <p>Each matched student's questionnaire agreement beside their measured game result. Difference = Actual − Survey in percentage points. The two are never averaged.</p></div>
+
+    <div className="smart-cmp-overall">
+      {comparison.overall.map((item) => { const goal = GOAL_LABEL[item.key]; return <article key={item.key} className={item.actualStatus.toLowerCase()}>
+        <header><span>{item.key.replace("SMART", "SMART ")}</span><em className={`smart-status ${item.actualStatus.toLowerCase()}`}>{STATUS_LABEL[item.actualStatus]}</em></header>
+        <h3>{goal}</h3>
+        <div className="smart-cmp-pair">
+          <div><small>Actual</small><b>{pct(item.actualPercentage)}</b><span>{item.actualCorrect}/{item.actualTotal}</span></div>
+          <div><small>Survey</small><b className="survey">{pct(item.surveyPercentage)}</b><span>{item.surveyAgree}/{item.surveyValid}</span></div>
+        </div>
+        <Meter value={item.actualPercentage} target={item.target} tone="game" label={`Actual ${pct(item.actualPercentage)}, target ${item.target}%`} />
+        <Meter value={item.surveyPercentage} tone="survey" label={`Survey ${pct(item.surveyPercentage)}`} />
+        <footer><span className={`smart-diff ${item.difference === null ? "" : item.difference >= 0 ? "pos" : "neg"}`}>{diffLabel(item.difference)}</span><span>{item.studentsWithPerformance} of {comparison.matchedStudents} with records</span></footer>
+      </article>; })}
+    </div>
+
+    <div className="smart-flags">
+      <span><b>{comparison.matchedStudents}</b>matched eligible students</span>
+      <span className={f.unmatchedRows ? "warn" : ""} title={f.unmatchedRowNumbers.length ? `CSV rows: ${f.unmatchedRowNumbers.join(", ")}` : undefined}><b>{f.unmatchedRows}</b>unmatched respondents</span>
+      <span className={f.noIdentifierRows ? "warn" : ""}><b>{f.noIdentifierRows}</b>without email or ID</span>
+      <span className={f.duplicateRows ? "warn" : ""}><b>{f.duplicateRows}</b>duplicates excluded</span>
+      <span className={f.matchedNotEligible ? "warn" : ""}><b>{f.matchedNotEligible}</b>matched but outside filters</span>
+      {f.legacyMatchedRows > 0 && <span className="warn"><b>{f.legacyMatchedRows}</b>uploaded before matching was stored: re-upload to compare</span>}
+    </div>
+
+    <div className="smart-table-wrap smart-no-print"><table className="smart-table smart-cmp-table">
+      <thead><tr><th>Student</th>{GOAL_KEYS.map((key) => <th key={key}>{SHORT[key]} <span className="smart-th-target">≥{target(key)}%</span></th>)}</tr></thead>
+      <tbody>
+        {comparison.students.map((row) => <tr key={row.studentId}>
+          <td><b>{row.name}</b><small>{row.code}{row.classCode ? ` · ${row.classCode}` : ""} · CSV row {row.rowNumber}</small></td>
+          {GOAL_KEYS.map((key) => <td key={key}><CompareCellView cell={row[key]} target={target(key)} /></td>)}
+        </tr>)}
+        {!comparison.students.length && <tr><td colSpan={5} className="smart-empty">No respondents matched an eligible student account for these filters.</td></tr>}
+      </tbody>
+    </table></div>
+    <p className="smart-note">Unmatched respondents and missing game records are shown as insufficient data, never as zero. Conversational accuracy uses Reply Coach and Response Rush; QuackTalk stores AI ratings rather than correct/incorrect answers, so it is not scored here.</p>
   </section>;
 }
