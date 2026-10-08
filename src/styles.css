@@ -7989,3 +7989,14 @@ button.tile-link { border: 0; background: transparent; padding: 0; font-family: 
 .smart-target.na{background:var(--s-na-bg);color:var(--s-na)}
 @media(max-width:1200px){.smart-cmp-overall{grid-template-columns:repeat(2,minmax(0,1fr))}}
 @media(max-width:640px){.smart-cmp-overall{grid-template-columns:1fr}}
+/* SMART: population toggle */
+.smart-population{display:flex;flex-wrap:wrap;align-items:center;gap:8px;padding:8px;background:#fff;border:1px solid var(--s-line);border-radius:14px;box-shadow:var(--s-shadow)}
+.smart-population>span{font-size:11px;font-weight:900;letter-spacing:.6px;text-transform:uppercase;color:var(--s-muted);padding:0 8px}
+.smart-population button{display:inline-flex;align-items:center;gap:7px;height:36px;padding:0 14px;border-radius:10px;border:1px solid transparent;background:var(--s-soft);color:var(--s-ink-2);font:inherit;font-size:13px;font-weight:800;cursor:pointer;transition:background .15s,color .15s,box-shadow .15s}
+.smart-population button:hover:not(:disabled){background:#efe6f5}
+.smart-population button.on{background:var(--s-violet);color:#fff;box-shadow:0 6px 14px #7c2bd633}
+.smart-population button:disabled{opacity:.5;cursor:not-allowed}
+.smart-population label{display:flex;align-items:center;gap:8px;margin-left:auto;font-size:11px;font-weight:800;text-transform:uppercase;letter-spacing:.3px;color:var(--s-muted)}
+.smart-population select{height:36px;border:1px solid var(--s-line);border-radius:10px;padding:0 10px;font:inherit;font-size:13px;text-transform:none;letter-spacing:0;color:var(--s-ink);max-width:280px}
+@media(max-width:640px){.smart-population button{flex:1 1 100%;justify-content:center}.smart-population label{margin-left:0;flex:1 1 100%}.smart-population select{flex:1}}
+.smart-hint{font-style:normal;font-size:11px;font-weight:600;color:var(--s-muted);text-transform:none;letter-spacing:0}

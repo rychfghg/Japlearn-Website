@@ -11,7 +11,7 @@ type Goal = {
 };
 type Metric = { correct: number; total: number; percentage: number | null; status: "MEASURED" | "INCOMPLETE" | "NO_PARTICIPATION" | "NOT_ASSIGNED" };
 type StudentRow = { studentId: string; code: string; name: string; classCode: string | null; classTitle: string | null; runsAttempted: number; runsCompleted: number; assessmentDates: string[] } & Record<GoalKey, Metric>;
-type Assignment = { id: string; title: string; classCode: string; classTitle: string | null; activityKey: string; level: number | null; chapterId: string | null; startsAt: string; dueAt: string; createdAt: string; assignedStudents?: number; completedStudents?: number };
+type Assignment = { id: string; title: string; classCode: string; classTitle: string | null; activityKey: string; level: number | null; chapterId: string | null; requiredCount?: number; startsAt: string; dueAt: string; createdAt: string; assignedStudents?: number; completedStudents?: number };
 type Report = {
   methodVersion: string; computedAt: string; rules: string[]; eligibleStudents: number; goals: Goal[]; students: StudentRow[];
   classes: { classCode: string; classTitle: string | null }[]; studentOptions: { id: string; code: string; name: string }[];
@@ -96,6 +96,8 @@ export default function AdminSmartGoalsPage() {
   const [studentId, setStudentId] = useState("");
   const [module, setModule] = useState("ALL");
   const [includeUnapproved, setIncludeUnapproved] = useState(false);
+  // ALL = every eligible student; SURVEY = only students whose account email matched a questionnaire respondent.
+  const [population, setPopulation] = useState<"ALL" | "SURVEY">("ALL");
   const [report, setReport] = useState<Report | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
@@ -112,8 +114,9 @@ export default function AdminSmartGoalsPage() {
     if (studentId) params.set("studentId", studentId);
     if (module !== "ALL") params.set("module", module);
     if (includeUnapproved) params.set("includeUnapproved", "true");
+    if (population === "SURVEY" && surveyId) params.set("surveyId", surveyId);
     return params.toString();
-  }, [from, to, classCode, studentId, module, includeUnapproved]);
+  }, [from, to, classCode, studentId, module, includeUnapproved, population, surveyId]);
   const [comparison, setComparison] = useState<Comparison | null>(null);
 
   const load = useCallback(async () => {
@@ -177,6 +180,7 @@ export default function AdminSmartGoalsPage() {
     const rows: unknown[][] = [
       ["JapLearn 2.0 SMART Goals Validation Summary (anonymized)"],
       ["Method", report.methodVersion, "Computed", report.computedAt],
+      ["Calculated for", report.filters.population === "SURVEY_MATCHED" ? "Survey respondents matched by email only" : "All eligible students"],
       ["Period", report.filters.from ?? "all", report.filters.to ?? "all", "Class", report.filters.classCode || "all", "Module", report.filters.module],
       [],
       ["Objective", "Target %", "Measured %", "Correct/completed", "Total scored/assigned", "Status", "Students measured", "Eligible students", "Evidence source", "Questionnaire agreement %", "Questionnaire valid responses"],
@@ -195,6 +199,12 @@ export default function AdminSmartGoalsPage() {
     <header><div><small>EVALUATION</small><h1>SMART Goals Validation</h1><p>Measured game performance and questionnaire results for the four JapLearn 2.0 objectives. Results are read-only and computed from existing records.</p></div>
       <div className="header-actions smart-no-print"><button className="soft-button" onClick={() => void load()} disabled={loading}><RefreshCw size={16} />{loading ? "Loading…" : "Refresh"}</button><button className="soft-button" onClick={exportSummary} disabled={!report}><Download size={16} />Export CSV</button><button className="primary-button" onClick={() => window.print()} disabled={!report}><Printer size={16} />Summary PDF</button></div></header>
 
+    <div className="smart-population smart-no-print" role="radiogroup" aria-label="Calculate SMART goals for">
+      <span>Calculate for</span>
+      <button type="button" role="radio" aria-checked={population === "ALL"} className={population === "ALL" ? "on" : ""} onClick={() => setPopulation("ALL")}><Users size={15} />All eligible students</button>
+      <button type="button" role="radio" aria-checked={population === "SURVEY"} disabled={!surveys.length} className={population === "SURVEY" ? "on" : ""} onClick={() => setPopulation("SURVEY")} title={surveys.length ? undefined : "Upload a questionnaire first"}><ClipboardCheck size={15} />Survey respondents only (email matched)</button>
+      {population === "SURVEY" && surveys.length > 0 && <label>Questionnaire<select value={surveyId} onChange={(event) => setSurveyId(event.target.value)}>{surveys.map((item) => <option key={item.id} value={item.id}>{item.fileName} · {item.matchedRows} matched</option>)}</select></label>}
+    </div>
     <div className="smart-filters smart-no-print" aria-label="Evaluation filters">
       <label>From<input type="date" value={from} onChange={(event) => setFrom(event.target.value)} /></label>
       <label>To<input type="date" value={to} onChange={(event) => setTo(event.target.value)} /></label>
@@ -202,7 +212,7 @@ export default function AdminSmartGoalsPage() {
       <label>Student<select value={studentId} onChange={(event) => setStudentId(event.target.value)}><option value="">All eligible students</option>{report?.studentOptions.map((item) => <option key={item.id} value={item.id}>{item.name} · {item.code}</option>)}</select></label>
       <label>Module<select value={module} onChange={(event) => setModule(event.target.value)}>{MODULES.map(([value, label]) => <option key={value} value={value}>{label}</option>)}</select></label>
       <label className="smart-check"><input type="checkbox" checked={includeUnapproved} onChange={(event) => setIncludeUnapproved(event.target.checked)} />Include unapproved accounts</label>
-      <button type="button" className="admin-filter-clear" onClick={() => { setFrom(""); setTo(""); setClassCode(""); setStudentId(""); setModule("ALL"); setIncludeUnapproved(false); }}>Clear filters</button>
+      <button type="button" className="admin-filter-clear" onClick={() => { setFrom(""); setTo(""); setClassCode(""); setStudentId(""); setModule("ALL"); setIncludeUnapproved(false); setPopulation("ALL"); }}>Clear filters</button>
     </div>
     {error && <div className="admin-error">{error}</div>}
     {notice && <div className="admin-notice">{notice}</div>}
@@ -214,10 +224,10 @@ export default function AdminSmartGoalsPage() {
         const noData = report.goals.filter((goal) => goal.status === "INSUFFICIENT_DATA").length;
         const measured = report.students.filter((row) => (["SMART1", "SMART2", "SMART3"] as GoalKey[]).some((key) => row[key].status === "MEASURED")).length;
         return <section className="smart-hero">
-          <div className="smart-hero-main"><small>OVERALL</small><h2><b>{achieved}</b> of 4 objectives achieved</h2>
+          <div className="smart-hero-main"><small>{report.filters.population === "SURVEY_MATCHED" ? "SURVEY RESPONDENTS ONLY · MATCHED BY EMAIL" : "ALL ELIGIBLE STUDENTS"}</small><h2><b>{achieved}</b> of 4 objectives achieved</h2>
             <div className="smart-hero-track" aria-hidden="true">{report.goals.map((goal) => <i key={goal.key} className={goal.status.toLowerCase()} title={`${goal.name}: ${STATUS_LABEL[goal.status]}`} />)}</div>
             <p>{notMet} not achieved · {noData} without enough data</p></div>
-          <div className="smart-hero-stat"><Users /><div><b>{report.eligibleStudents}</b><span>eligible students</span></div></div>
+          <div className="smart-hero-stat"><Users /><div><b>{report.eligibleStudents}</b><span>{report.filters.population === "SURVEY_MATCHED" ? "matched survey respondents" : "eligible students"}</span></div></div>
           <div className="smart-hero-stat"><ClipboardCheck /><div><b>{measured}</b><span>with measured answers</span></div></div>
           <div className="smart-hero-stat"><RefreshCw /><div><b>{new Date(report.computedAt).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}</b><span>computed {date(report.computedAt)}</span></div></div>
         </section>;
@@ -261,7 +271,7 @@ export default function AdminSmartGoalsPage() {
       <section className="smart-section smart-no-print">
         <div className="smart-section-head"><div><small>PER STUDENT</small><h2>Student performance</h2></div><p>Percentages use the first evaluation attempt. Blank results are labelled, not scored as zero.</p></div>
         <div className="smart-table-wrap"><table className="smart-table">
-          <thead><tr><th>Student</th><th>Class</th><th>Situational</th><th>Conversational</th><th>Politeness</th><th>Completion</th><th>Runs attempted / completed</th><th>Assessment dates</th></tr></thead>
+          <thead><tr><th>Student</th><th>Class</th><th>Situational</th><th>Conversational</th><th>Politeness</th><th>Completion <span className="smart-th-target">done / assigned</span></th><th>Runs attempted / completed</th><th>Assessment dates</th></tr></thead>
           <tbody>
             {report.students.map((row) => <tr key={row.studentId}>
               <td><b>{row.name}</b><small>{row.code}</small></td>
@@ -283,7 +293,7 @@ export default function AdminSmartGoalsPage() {
     {survey && <ComparisonPanel comparison={comparison} hasIdentifier={!!survey.identifierHeader} />}
 
     {report && <section className="smart-section smart-summary">
-      <div className="smart-section-head"><div><small>EVALUATION SUMMARY</small><h2>JapLearn 2.0 SMART objectives</h2></div><p>Period {String(report.filters.from ?? "start")} to {String(report.filters.to ?? "today")} · class {String(report.filters.classCode || "all")} · module {String(report.filters.module)} · {report.methodVersion}</p></div>
+      <div className="smart-section-head"><div><small>EVALUATION SUMMARY</small><h2>JapLearn 2.0 SMART objectives</h2></div><p>Period {String(report.filters.from ?? "start")} to {String(report.filters.to ?? "today")} · class {String(report.filters.classCode || "all")} · module {String(report.filters.module)} · {report.filters.population === "SURVEY_MATCHED" ? "survey respondents only (email matched)" : "all eligible students"} · {report.methodVersion}</p></div>
       <p className="smart-note">Game accuracy and questionnaire agreement are separate evidence sources. They are shown side by side and are never combined into one score. No student names or emails appear in this summary.</p>
       <div className="smart-table-wrap"><table className="smart-table smart-summary-table">
         <thead><tr><th>Objective</th><th>Target</th><th>Measured (game records)</th><th>Status</th><th>Students measured</th><th>Questionnaire agreement</th></tr></thead>
@@ -306,8 +316,22 @@ export default function AdminSmartGoalsPage() {
   </div>;
 }
 
+const UNIT_NAME: Record<string, string> = {
+  RECOGNITION: "finished run", EXPRESSION_MATCH: "level/set", POLITENESS: "level", REPLY_COACH: "chapter",
+  RESPONSE_RUSH: "finished run", DIALOGUE_RELAY: "finished run", TALK_WITH_SUMI: "session", GUIDED_PHRASE: "completed session", QUACKTALK: "session",
+};
+const UNIT_HELP: Record<string, string> = {
+  RECOGNITION: "Each finished Ahiru Rescue run counts once. Game-over runs are not saved, so they never count.",
+  EXPRESSION_MATCH: "Each distinct finished level/set counts once. Replaying the same set does not add to it.",
+  POLITENESS: "Each distinct finished level counts once. Set 3 with no level filter to require all three levels.",
+  REPLY_COACH: "Each distinct chapter marked complete counts once. Pick a chapter to require that one only.",
+  RESPONSE_RUSH: "Each finished run counts once.", DIALOGUE_RELAY: "Each finished run counts once.",
+  TALK_WITH_SUMI: "Each saved session with at least one spoken learner turn counts once.",
+  GUIDED_PHRASE: "Each completed (not just started) practice session counts once.", QUACKTALK: "Each saved session with at least one learner turn counts once.",
+};
+
 function AssignmentsPanel({ report, chapters, onChanged, setNotice }: { report: Report; chapters: { id: string; title: string }[]; onChanged: () => void; setNotice: (text: string) => void }) {
-  const [form, setForm] = useState({ classCode: "", activityKey: "POLITENESS", level: "", chapterId: "", title: "", startsAt: "", dueAt: "" });
+  const [form, setForm] = useState({ classCode: "", activityKey: "POLITENESS", level: "", chapterId: "", requiredCount: "1", title: "", startsAt: "", dueAt: "" });
   const [saving, setSaving] = useState(false);
   const usesLevel = form.activityKey === "EXPRESSION_MATCH" || form.activityKey === "POLITENESS";
   const all = [...report.assignments.open.map((item) => ({ ...item, open: true })), ...report.assignments.counted.map((item) => ({ ...item, open: false }))];
@@ -318,7 +342,7 @@ function AssignmentsPanel({ report, chapters, onChanged, setNotice }: { report: 
     try {
       const response = await fetch(`${API_URL}/api/admin/smart-goals/assignments`, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({
         classCode: form.classCode, activityKey: form.activityKey, level: usesLevel && form.level ? Number(form.level) : null,
-        chapterId: form.activityKey === "REPLY_COACH" && form.chapterId ? form.chapterId : null, title: form.title,
+        chapterId: form.activityKey === "REPLY_COACH" && form.chapterId ? form.chapterId : null, requiredCount: Math.min(20, Math.max(1, Number(form.requiredCount) || 1)), title: form.title,
         startsAt: new Date(`${form.startsAt}T00:00:00`).toISOString(), dueAt: new Date(`${form.dueAt}T23:59:59`).toISOString(),
       }) });
       const body = await response.json().catch(() => null);
@@ -343,16 +367,17 @@ function AssignmentsPanel({ report, chapters, onChanged, setNotice }: { report: 
       <label>Activity<select value={form.activityKey} onChange={(event) => setForm({ ...form, activityKey: event.target.value })}>{ACTIVITIES.map(([value, label]) => <option key={value} value={value}>{label}</option>)}</select></label>
       {usesLevel && <label>Level<select value={form.level} onChange={(event) => setForm({ ...form, level: event.target.value })}><option value="">Any level</option><option value="1">Level 1</option><option value="2">Level 2</option><option value="3">Level 3</option></select></label>}
       {form.activityKey === "REPLY_COACH" && <label>Chapter<select value={form.chapterId} onChange={(event) => setForm({ ...form, chapterId: event.target.value })}><option value="">Any chapter</option>{chapters.map((item) => <option key={item.id} value={item.id}>{item.title}</option>)}</select></label>}
+      <label title={UNIT_HELP[form.activityKey]}>Required to complete<input type="number" min={1} max={20} value={form.requiredCount} onChange={(event) => setForm({ ...form, requiredCount: event.target.value })} /><em className="smart-hint">{form.requiredCount || 1} {UNIT_NAME[form.activityKey]}{Number(form.requiredCount) === 1 ? "" : "s"}</em></label>
       <label>Title<input maxLength={80} placeholder="e.g. Week 3 politeness practice" value={form.title} onChange={(event) => setForm({ ...form, title: event.target.value })} /></label>
       <label>Starts<input type="date" value={form.startsAt} onChange={(event) => setForm({ ...form, startsAt: event.target.value })} /></label>
       <label>Due<input type="date" value={form.dueAt} onChange={(event) => setForm({ ...form, dueAt: event.target.value })} /></label>
       <button className="primary-button" onClick={() => void create()} disabled={saving}><ClipboardCheck size={16} />{saving ? "Saving…" : "Assign"}</button>
     </div>
     <div className="smart-table-wrap"><table className="smart-table">
-      <thead><tr><th>Assignment</th><th>Class</th><th>Window</th><th>Completed</th><th>Counted</th><th /></tr></thead>
+      <thead><tr><th>Assignment</th><th>Class</th><th>Window</th><th>Students completed / assigned</th><th>Counted</th><th /></tr></thead>
       <tbody>
         {all.map((item) => <tr key={item.id}>
-          <td><b>{item.title}</b><small>{activityLabel(item.activityKey)}{item.level ? ` · level ${item.level}` : ""}{item.chapterId ? ` · ${chapters.find((chapter) => chapter.id === item.chapterId)?.title ?? item.chapterId}` : ""}</small></td>
+          <td><b>{item.title}</b><small>{activityLabel(item.activityKey)}{item.level ? ` · level ${item.level}` : ""}{item.chapterId ? ` · ${chapters.find((chapter) => chapter.id === item.chapterId)?.title ?? item.chapterId}` : ""} · needs {item.requiredCount ?? 1} finished {UNIT_NAME[item.activityKey] ?? "unit"}{(item.requiredCount ?? 1) === 1 ? "" : "s"}</small></td>
           <td>{item.classCode}</td><td>{date(item.startsAt)} – {date(item.dueAt)}</td>
           <td>{item.completedStudents ?? 0} / {item.assignedStudents ?? 0}</td>
           <td>{item.open ? <em className="smart-status insufficient_data">Open</em> : <em className="smart-status achieved">Counted</em>}</td>
