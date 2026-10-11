@@ -20,6 +20,7 @@ import AdminLayout from "./features/admin/layouts/AdminLayout";
 import AdminOverviewPage from "./features/admin/pages/AdminOverviewPage";
 import AdminUsersPage from "./features/admin/pages/AdminUsersPage";
 import AdminSmartGoalsPage from "./features/admin/pages/AdminSmartGoalsPage";
+import AdminQuackmanPage from "./features/admin/pages/AdminQuackmanPage";
 import TeacherLayout from "./features/teacher/layouts/TeacherLayout";
 import ActivitiesPage from "./features/teacher/pages/ActivitiesPage";
 import AssignCommunicationPage from "./features/teacher/pages/AssignCommunicationPage";
@@ -133,15 +134,7 @@ export default function App() {
               />
             }
           />
-          <Route
-            path="quackman"
-            element={
-              <AdminGamePage
-                title="Quackman"
-                description="Manage the word-survival game from one dedicated workspace."
-              />
-            }
-          />
+          <Route path="quackman" element={<AdminQuackmanPage />} />
         </Route>
 
         <Route path="*" element={<Navigate to="/" replace />} />
