@@ -4,13 +4,14 @@ import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import Brand from "../components/Brand";
 import mascot from "../assets/idle.png";
 import { API_URL } from "../lib/api";
+import { cleanPassword } from "../lib/inputRules";
 
 // Same rules the student reset page enforces.
 const RULES = [
   { label: "At least 8 characters", test: (v: string) => v.length >= 8 },
   { label: "One uppercase letter", test: (v: string) => /[A-Z]/.test(v) },
   { label: "One number", test: (v: string) => /[0-9]/.test(v) },
-  { label: "One special character", test: (v: string) => /[!@#$%^&*(),.?":{}|<>]/.test(v) },
+  { label: "One symbol (e.g. ! @ # _ - .)", test: (v: string) => /[^A-Za-z0-9\s]/.test(v) },
 ];
 
 export default function TeacherResetPassword() {
@@ -112,7 +113,7 @@ export default function TeacherResetPassword() {
                 type={show ? "text" : "password"}
                 id="reset-new"
                 value={password}
-                onChange={(e) => { setPassword(e.target.value); setError(""); }}
+                onChange={(e) => { setPassword(cleanPassword(e.target.value)); setError(""); }}
                 placeholder=" "
                 autoComplete="new-password"
                 autoFocus
@@ -137,7 +138,7 @@ export default function TeacherResetPassword() {
                 type={show ? "text" : "password"}
                 id="reset-confirm"
                 value={confirm}
-                onChange={(e) => { setConfirm(e.target.value); setError(""); }}
+                onChange={(e) => { setConfirm(cleanPassword(e.target.value)); setError(""); }}
                 placeholder=" "
                 autoComplete="new-password"
                 className={mismatch ? "treset-mismatch" : ""}

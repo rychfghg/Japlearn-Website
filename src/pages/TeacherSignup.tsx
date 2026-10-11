@@ -15,6 +15,7 @@ import { Link, useNavigate } from "react-router-dom";
 import mascot from "../assets/hello.png";
 import Brand from "../components/Brand";
 import { registerTeacher } from "../lib/api";
+import { NAME_RULE, PASSWORD_RULE, cleanEmail, cleanName, cleanPassword, isStrictEmail, isValidName, isValidPassword } from "../lib/inputRules";
 
 export default function TeacherSignup() {
   const navigate = useNavigate();
@@ -31,7 +32,12 @@ export default function TeacherSignup() {
   const [created, setCreated] = useState(false);
 
   const update = (field: keyof typeof form, value: string) => {
-    setForm((current) => ({ ...current, [field]: value }));
+    const clean = field === "fname" || field === "lname" ? cleanName(value)
+      : field === "email" ? cleanEmail(value)
+      : field === "password" || field === "confirmPassword" ? cleanPassword(value)
+      : value;
+    if (clean !== value) setError(field === "fname" || field === "lname" ? NAME_RULE : field === "email" ? "Emails can only use letters, numbers and . _ % + - characters." : PASSWORD_RULE);
+    setForm((current) => ({ ...current, [field]: clean }));
   };
 
   async function submit(event: FormEvent) {
@@ -39,13 +45,18 @@ export default function TeacherSignup() {
     if (loading) return;
 
     // Same rule the server enforces: only Gmail or CIT emails can sign up.
-    if (!/^[^\s@]+@(gmail\.com|cit\.edu)$/i.test(form.email.trim())) {
+    if (!isValidName(form.fname) || !isValidName(form.lname)) {
+      setError(NAME_RULE);
+      return;
+    }
+
+    if (!isStrictEmail(form.email.trim()) || !/@(gmail\.com|cit\.edu)$/i.test(form.email.trim())) {
       setError("Please use a valid Gmail address.");
       return;
     }
 
-    if (form.password.length < 8) {
-      setError("Use at least 8 characters for your password.");
+    if (!isValidPassword(form.password)) {
+      setError(form.password.length < 8 ? "Use at least 8 characters for your password." : PASSWORD_RULE);
       return;
     }
 

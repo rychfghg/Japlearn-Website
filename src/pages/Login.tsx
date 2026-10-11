@@ -21,6 +21,7 @@ import appLogo from "../assets/app-logo.png";
 import { EMAIL_PATTERN, loginUser, notifyAdminVisit, requestPasswordReset, type PortalRole } from "../lib/api";
 import { session } from "../lib/auth";
 import { startPage } from "../features/teacher/preferences";
+import { cleanEmail, cleanPassword } from "../lib/inputRules";
 
 type LoginProps = {
   role: PortalRole;
@@ -126,7 +127,7 @@ export default function Login({ role }: LoginProps) {
                 id="admin-email"
                 type="email"
                 value={email}
-                onChange={(event) => setEmail(event.target.value)}
+                onChange={(event) => setEmail(cleanEmail(event.target.value))}
                 placeholder="Enter your email"
                 required
                 autoComplete="email"
@@ -140,7 +141,7 @@ export default function Login({ role }: LoginProps) {
                 id="admin-password"
                 type={showPassword ? "text" : "password"}
                 value={password}
-                onChange={(event) => setPassword(event.target.value)}
+                onChange={(event) => setPassword(cleanPassword(event.target.value))}
                 onKeyUp={(event) => setCapsOn(event.getModifierState("CapsLock"))}
                 onBlur={() => setCapsOn(false)}
                 placeholder="Enter your password"
@@ -249,7 +250,7 @@ export default function Login({ role }: LoginProps) {
                   type="email"
                   id="teacher-email"
                   value={email}
-                  onChange={(event) => setEmail(event.target.value)}
+                  onChange={(event) => setEmail(cleanEmail(event.target.value))}
                   placeholder=" "
                   required
                   autoComplete="email"
@@ -263,7 +264,7 @@ export default function Login({ role }: LoginProps) {
                   type={showPassword ? "text" : "password"}
                   id="teacher-password"
                   value={password}
-                  onChange={(event) => setPassword(event.target.value)}
+                  onChange={(event) => setPassword(cleanPassword(event.target.value))}
                   placeholder=" "
                   required
                   autoComplete="current-password"
@@ -291,7 +292,7 @@ export default function Login({ role }: LoginProps) {
                   <input
                     type="email"
                     value={email}
-                    onChange={(event) => setEmail(event.target.value)}
+                    onChange={(event) => setEmail(cleanEmail(event.target.value))}
                     placeholder={`${role}@japlearn.com`}
                     required
                     autoComplete="email"
@@ -306,7 +307,7 @@ export default function Login({ role }: LoginProps) {
                   <input
                     type={showPassword ? "text" : "password"}
                     value={password}
-                    onChange={(event) => setPassword(event.target.value)}
+                    onChange={(event) => setPassword(cleanPassword(event.target.value))}
                     placeholder="Enter your password"
                     required
                     autoComplete="current-password"
@@ -364,7 +365,7 @@ export default function Login({ role }: LoginProps) {
                     type="email"
                     id="reset-email"
                     value={resetEmail}
-                    onChange={(event) => { setResetEmail(event.target.value); setResetError(""); }}
+                    onChange={(event) => { setResetEmail(cleanEmail(event.target.value)); setResetError(""); }}
                     placeholder=" "
                     autoComplete="email"
                     autoFocus

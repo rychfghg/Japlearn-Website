@@ -112,7 +112,7 @@ export async function loginUser(
   };
 }
 
-export const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[A-Za-z]{2,}$/;
+export const EMAIL_PATTERN = /^[a-z0-9](?:[a-z0-9._%+-]{0,62}[a-z0-9])?@[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?(?:\.[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?)*\.[a-z]{2,24}$/;
 
 /** Same Brevo-backed flow the student app uses. The backend never reveals whether the email exists. */
 export async function requestPasswordReset(email: string) {
