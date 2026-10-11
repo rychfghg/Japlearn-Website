@@ -24,7 +24,7 @@ const pages: Record<string, PageContent> = {
     sections: [
       { title: "Information we collect", items: [
         "Account details you provide: first and last name, email address, password (stored encrypted with bcrypt, never in readable form), your role (student or teacher), and the class code you join.",
-        "Learning records created as you use JapLearn: lesson completion, quiz answers, game scores and attempts, badges, streaks, daily goal minutes, and speaking practice results.",
+        "Learning records created as you use JapLearn: lesson completion, quiz answers, game scores and attempts, badges, streaks, and speaking practice results.",
         "Basic technical information needed to operate and troubleshoot the service, such as app version and the date and time of activity.",
         "Teacher accounts also hold the classes, lessons and activities they create.",
       ] },
