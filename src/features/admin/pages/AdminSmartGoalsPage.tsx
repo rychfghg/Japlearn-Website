@@ -11,7 +11,7 @@ type Goal = {
 type Metric = { unfinishedAnswers?: number; correct: number; total: number; percentage: number | null; status: "MEASURED" | "INCOMPLETE" | "NO_PARTICIPATION"; activities?: ActivityStatus[] };
 type ActivityStatus = { key: string; status: "COMPLETED" | "STARTED" | "NOT_STARTED"; completedAt: string | null };
 type DropOff = { label: string; students: number; outOf: number | null; averageReached: number; stopPoints: { answered: number; students: number }[] };
-type Signals = { incorrect: number; retries: number; hints: number | null; timeouts: number; incompleteActivities: number; technicalFailures: number | null };
+type Signals = { incorrect: number; retries: number; assistedAnswers?: number; hints: number | null; timeouts: number; incompleteActivities: number; technicalFailures: number | null };
 type StudentRow = { signals?: Signals; studentId: string; code: string; name: string; classCode: string | null; classTitle: string | null; runsAttempted: number; runsCompleted: number; assessmentDates: string[] } & Record<GoalKey, Metric>;
 type Report = {
   replyCoachEvaluations?: Record<string, number>;
@@ -310,22 +310,22 @@ export default function AdminSmartGoalsPage() {
       {report.signals && <section className="smart-section smart-no-print">
         <div className="smart-section-head"><div><small>ATTEMPT QUALITY</small><h2>Incorrect answers, retries, hints, timeouts and incomplete play</h2></div><p>Tracked separately from the scores. None of these change a student's accuracy; they explain it.</p></div>
         <div className="smart-signal-grid">
-          {([["incorrect", "Incorrect answers", "first attempts, SMART 1-3"], ["retries", "Retries", "replays after the first attempt"], ["hints", "Hints used", report.signals.hintRecords ? `from ${report.signals.hintRecords} records with hint data` : "no hint data recorded yet"], ["timeouts", "Timeouts", "Reply Coach answers"], ["incompleteActivities", "Incomplete activities", "started but not finished"], ["technicalFailures", "Technical failures", "not stored by the app"]] as const).map(([key, label, note]) => {
+          {([["incorrect", "Incorrect answers", "first attempts, SMART 1-3"], ["retries", "Retries", "replays after the first attempt"], ["assistedAnswers", "Assisted answers", "Reply Coach answers with help; not counted"], ["hints", "Hints used", report.signals.hintRecords ? `from ${report.signals.hintRecords} records with hint data` : "no hint data recorded yet"], ["timeouts", "Timeouts", "Reply Coach answers"], ["incompleteActivities", "Incomplete activities", "started but not finished"], ["technicalFailures", "Technical failures", "not stored by the app"]] as const).map(([key, label, note]) => {
             const value = report.signals![key];
             const unavailable = value === null || (key === "hints" && !report.signals!.hintRecords);
             return <div key={key} className={`smart-signal ${unavailable ? "na" : ""}`}><small>{label}</small><b>{unavailable ? "Not recorded" : value}</b><span>{note}</span></div>;
           })}
         </div>
         <div className="smart-table-wrap"><table className="smart-table">
-          <thead><tr><th>Student</th><th>Incorrect</th><th>Retries</th><th>Hints</th><th>Timeouts</th><th>Incomplete activities</th><th>Technical failures</th></tr></thead>
+          <thead><tr><th>Student</th><th>Incorrect</th><th>Retries</th><th>Assisted</th><th>Hints</th><th>Timeouts</th><th>Incomplete activities</th><th>Technical failures</th></tr></thead>
           <tbody>
             {report.students.map((row) => { const sig = row.signals; return <tr key={row.studentId}>
               <td><b>{row.name}</b><small>{row.code}</small></td>
-              <td>{sig?.incorrect ?? "—"}</td><td>{sig?.retries ?? "—"}</td>
+              <td>{sig?.incorrect ?? "—"}</td><td>{sig?.retries ?? "—"}</td><td>{sig?.assistedAnswers ?? 0}</td>
               <td>{sig?.hints ?? <small>Not recorded</small>}</td><td>{sig?.timeouts ?? "—"}</td>
               <td>{sig?.incompleteActivities ?? "—"}</td><td><small>Not recorded</small></td>
             </tr>; })}
-            {!report.students.length && <tr><td colSpan={7} className="smart-empty">No eligible students match these filters.</td></tr>}
+            {!report.students.length && <tr><td colSpan={8} className="smart-empty">No eligible students match these filters.</td></tr>}
           </tbody>
         </table></div>
         <ul className="smart-signal-notes">{report.signals.notes.map((note) => <li key={note}>{note}</li>)}</ul>
